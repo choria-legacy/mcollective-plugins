@@ -1,5 +1,9 @@
 #!/usr/bin/ruby
 
+# Client program for the mcollective service agent found at See http://code.google.com/p/mcollective-plugins/wiki/AgentPuppetService
+#
+# Released under the GPLv2
+
 require 'mcollective'
 
 oparser = MCollective::Optionparser.new({}, "filter")
