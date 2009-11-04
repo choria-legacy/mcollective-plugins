@@ -4,6 +4,16 @@ module MCollective
 
         # A factsource for Reductive Labs Facter
         #
+        # This plugin currently assumes you put custom facts via
+        # Puppets pluginsync in /var/lib/puppet/lib you can just edit
+        # the path for now if your custom facts are elsewhere.
+        #
+        # It caches facts for 300 seconds to speed things up a bit,
+        # generally though using this plugin will slow down discovery by
+        # a second or so.
+        #
+        # See: http://code.google.com/p/mcollective-plugins/wiki/FactsRLFacter
+        #
         # Plugin released under the terms of the GPL.
         class Facter<Base
             @@last_facts_load = 0
