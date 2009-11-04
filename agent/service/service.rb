@@ -8,7 +8,7 @@ module MCollective
         #
         # Released under the terms of the GPL, same as Puppet
         class Service
-            attr_reader :timeout
+            attr_reader :timeout, :meta
 
             def initialize
                 @timeout = 10
