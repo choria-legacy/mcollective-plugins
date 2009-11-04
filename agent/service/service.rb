@@ -70,10 +70,12 @@ module MCollective
                 Accepted Messages
                 -----------------
 
-                start [service]    - starts a service
-                stop [service]     - stops a service
-                restart [service]  - restarts a service
-                status [service]   - obtains the status of a service
+                Input should be a hash of the form:
+
+                {"service" => "httpd",
+                 "action" => "stop"}
+
+                Possible actions are: stop, start, restart, status
 
                 Returned Data
                 -------------
