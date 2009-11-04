@@ -14,7 +14,8 @@ module MCollective
                 @timeout = 10
                 @log = MCollective::Log.instance
                 @meta = {:license => "GPLv2",
-                         :author => "R.I.Pienaar <rip@devco.net>"}
+                         :author => "R.I.Pienaar <rip@devco.net>",
+                         :url => "http://code.google.com/p/mcollective-plugins/"}
 
             end
 
