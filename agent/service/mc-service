@@ -1,0 +1,73 @@
+#!/usr/bin/ruby
+
+require 'mcollective'
+
+oparser = MCollective::Optionparser.new({}, "filter")
+
+options = oparser.parse{|parser, options|
+    parser.define_head "Manage remote services"
+    parser.banner = "Usage: sh-service [options] service action"
+}
+
+# confine machines we want to access to ones with
+# the right agent only
+options[:filter]["agent"] = "service"
+
+def summarize(stats, statuscnt)
+    puts("\n---- service agent summary ----")
+    puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
+    print("        Statuses: ")
+
+    statuscnt.keys.sort.each do |s|
+        case s
+            when "running"
+                print("started=#{statuscnt[s]} ") 
+
+            when "stopped"
+                print("stopped=#{statuscnt[s]} ") 
+
+            else
+                print("unknown (#{s})=#{statuscnt[s]} ") 
+        end
+    end
+
+    printf("\n    Elapsed Time: %.2f ms\n\n", stats[:blocktime])
+end
+
+if ARGV.length == 2
+    service = ARGV.shift
+    action = ARGV.shift
+else
+    puts("Please specify a service and action")
+    exit 1
+end
+
+begin
+    client = MCollective::Client.new(options[:config])
+
+    statuscnt = {}
+    starttime = Time.now.to_f
+
+    stats = client.discovered_req("#{action} #{service}", "service", options) do |resp|
+
+        next if resp == nil
+
+        status = resp[:body][:svcstatus].to_s
+        statuscnt.include?(status) ? statuscnt[status] += 1 : statuscnt[status] = 1
+
+        printf("%-40s status=%s\n", resp[:senderid], status)
+
+        if options[:verbose]
+            resp[:body][:output].each do |o|
+                puts("\t#{o}")
+            end 
+            puts
+        end
+    end
+rescue Exception => e
+    raise e
+end
+
+summarize(stats, statuscnt)
+
+# vi:tabstop=4:expandtab:ai
