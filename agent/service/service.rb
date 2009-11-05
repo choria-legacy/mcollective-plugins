@@ -31,7 +31,7 @@ module MCollective
                     hasstatus = false
 
                     if @config.pluginconf.include?("service.hasstatus")
-                        hasstatus = true if @cofig.pluginconf["service.hasstatus"] =~ /^1|y|t/
+                        hasstatus = true if @config.pluginconf["service.hasstatus"] =~ /^1|y|t/
                     end
                     
 
