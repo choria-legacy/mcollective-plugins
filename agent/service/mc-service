@@ -41,6 +41,11 @@ end
 if ARGV.length == 2
     service = ARGV.shift
     action = ARGV.shift
+
+    unless action =~ /^(start|stop|status|restart)$/
+        puts("Action has to be start, stop, status or restart")
+        exit 1
+    end
 else
     puts("Please specify a service and action")
     exit 1
