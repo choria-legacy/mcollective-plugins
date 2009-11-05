@@ -23,7 +23,7 @@ module MCollective
                 if msg[:body] =~ /^blockip.(\d+\.\d+\.\d+\.\d+)$/
                     ip = $1
 
-                    out = %x[/sbin/iptables -I junk_filter -s #{ip} -j DROP 2>&1]
+                    out = %x[/sbin/iptables -A junk_filter -s #{ip} -j DROP 2>&1]
                     system("/usr/bin/logger -i -t mcollective 'Attempted to add #{ip} to iptables junk_filter chain on #{Socket.gethostname}'")
 
                     ret = "Adding #{ip} #{out}"
