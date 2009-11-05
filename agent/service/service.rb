@@ -2,7 +2,7 @@ module MCollective
     module Agent
         require 'puppet'
 
-        # A agent that uses Reductive Labs puppet to manage services
+        # An agent that uses Reductive Labs puppet to manage services
         #
         # See http://code.google.com/p/mcollective-plugins/wiki/AgentPuppetService
         #
