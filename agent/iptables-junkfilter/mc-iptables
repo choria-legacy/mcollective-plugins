@@ -1,5 +1,9 @@
 #!/usr/bin/ruby
 
+# Client program for the mcollective iptables agent found at http://code.google.com/p/mcollective-plugins/wiki/AgentIptablesJunkfilter
+#
+# Released under the GPLv2
+
 require 'mcollective'
 
 oparser = MCollective::Optionparser.new({}, "filter")
