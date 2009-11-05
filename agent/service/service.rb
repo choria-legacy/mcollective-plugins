@@ -13,6 +13,7 @@ module MCollective
             def initialize
                 @timeout = 10
                 @log = MCollective::Log.instance
+                @config = MCollective::Config.instance
                 @meta = {:license => "GPLv2",
                          :author => "R.I.Pienaar <rip@devco.net>",
                          :url => "http://code.google.com/p/mcollective-plugins/"}
@@ -27,11 +28,17 @@ module MCollective
                 unless result["status"]
                     service = req["service"]
                     action = req["action"]
+                    hasstatus = false
 
-                    @log.info("Doing #{action} for service #{service}")
+                    if @config.pluginconf.include?("service.hasstatus")
+                        hasstatus = true if @cofig.pluginconf["service.hasstatus"] =~ /^1|y|t/
+                    end
+                    
+
+                    @log.info("Doing action #{action} for service #{service} hasstatus = #{hasstatus}")
 
                     begin
-                        svc = Puppet::Type.type(:service).new(:name => service, :hasstatus => true).provider
+                        svc = Puppet::Type.type(:service).new(:name => service, :hasstatus => hasstatus).provider
 
                         if action != "status"
                             svc.send action

@@ -50,18 +50,17 @@ begin
     client = MCollective::Client.new(options[:config])
 
     statuscnt = {}
-    starttime = Time.now.to_f
 
-    stats = client.discovered_req("#{action} #{service}", "service", options) do |resp|
+    stats = client.discovered_req({"service" => service, "action" => action}, "service", options) do |resp|
         next if resp == nil
 
-        status = resp[:body][:svcstatus].to_s
+        status = resp[:body]["status"].to_s
         statuscnt.include?(status) ? statuscnt[status] += 1 : statuscnt[status] = 1
 
         printf("%-40s status=%s\n", resp[:senderid], status)
 
         if options[:verbose]
-            resp[:body][:output].each do |o|
+            resp[:body]["output"].each do |o|
                 puts("\t#{o}")
             end 
             puts
