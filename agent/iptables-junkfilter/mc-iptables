@@ -28,10 +28,14 @@ end
 begin
     client = MCollective::Client.new(options[:config])
 
-    stats = client.discovered_req("#{action} #{ipaddress}", "iptables", options) do |resp|
+    req = {"command" => action, "ip" => ipaddress}
+
+    stats = client.discovered_req(req, "iptables", options) do |resp|
         next if resp == nil
 
-        printf("%-40s %s\n", resp[:senderid], resp[:body])
+        result = resp[:body]
+
+        printf("%-40s %s\n", resp[:senderid], result["status"])
     end
 rescue Exception => e
     raise e
