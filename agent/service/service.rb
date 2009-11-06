@@ -4,7 +4,7 @@ module MCollective
 
         # An agent that uses Reductive Labs puppet to manage services
         #
-        # See http://code.google.com/p/mcollective-plugins/wiki/AgentPuppetService
+        # See http://code.google.com/p/mcollective-plugins/
         #
         # Released under the terms of the GPL, same as Puppet
         class Service
