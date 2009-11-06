@@ -11,6 +11,8 @@ module MCollective
             attr_reader :timeout, :meta
 
             def initialize
+                @log = MCollective::Log.instance
+
                 @timeout = 2
                 @meta = {:license => "GPLv2",
                          :author => "R.I.Pienaar <rip@devco.net>",
@@ -20,20 +22,28 @@ module MCollective
             def handlemsg(msg, connection)
                 ret = "unknown command"
 
-                if msg[:body] =~ /^blockip.(\d+\.\d+\.\d+\.\d+)$/
+                if msg[:body] =~ /^block.(\d+\.\d+\.\d+\.\d+)$/
                     ip = $1
 
                     out = %x[/sbin/iptables -A junk_filter -s #{ip} -j DROP 2>&1]
                     system("/usr/bin/logger -i -t mcollective 'Attempted to add #{ip} to iptables junk_filter chain on #{Socket.gethostname}'")
 
                     ret = "Adding #{ip} #{out}"
-                elsif msg[:body] =~ /^unblockip.(\d+\.\d+\.\d+\.\d+)$/
+                elsif msg[:body] =~ /^unblock.(\d+\.\d+\.\d+\.\d+)$/
                     ip = $1
 
                     out = %x[/sbin/iptables -D junk_filter -s #{ip} -j DROP 2>&1]
                     system("/usr/bin/logger -i -t mcollective 'Attempted to remove #{ip} from iptables junk_filter chain on #{Socket.gethostname}'")
 
                     ret = "Removing #{ip} #{out}"
+                elsif msg[:body] =~ /^isblocked.(\d+\.\d+\.\d+\.\d+)$/
+                    ip = $1
+
+                    matches = %x[/sbin/iptables -L junk_filter -n 2>&1].split("\n").grep(/^DROP.+#{ip}/).size
+
+                    matches >= 1 ? ret = true : ret = false
+
+                    @log.debug("isblocked #{ip} returning #{ret}")
                 end
 
                 ret
@@ -50,11 +60,13 @@ module MCollective
             -----------------
             blockip <ip>   - Adds the IP address to the filter
             unblock <ip>   - Removes the IP address from the filter
+            blocked? <ip>  - Checks if an ip is blocked, returns true or false
 
             Returned Data
             -------------
 
-            Simple string with some text about the action performed
+            Usually a simple string with some text about the action performed
+            except in the case of blocked? which will return true or false
             EOH
             end
         end

@@ -10,7 +10,7 @@ oparser = MCollective::Optionparser.new({}, "filter")
 
 options = oparser.parse{|parser, options|
     parser.define_head "Manage remote iptables"
-    parser.banner = "Usage: sh-iptables <block|unblock> <ip address>"
+    parser.banner = "Usage: sh-iptables <block|unblock|isblocked> <ip address>"
 }
 
 # confine machines we want to access to ones with
@@ -28,7 +28,7 @@ end
 begin
     client = MCollective::Client.new(options[:config])
 
-    stats = client.discovered_req("#{action}ip #{ipaddress}", "iptables", options) do |resp|
+    stats = client.discovered_req("#{action} #{ipaddress}", "iptables", options) do |resp|
         next if resp == nil
 
         printf("%-40s %s\n", resp[:senderid], resp[:body])
