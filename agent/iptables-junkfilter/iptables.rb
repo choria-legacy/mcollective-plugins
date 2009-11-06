@@ -12,6 +12,7 @@ module MCollective
 
             def initialize
                 @log = MCollective::Log.instance
+                @config = MCollective::Config.instance
 
                 @timeout = 2
                 @meta = {:license => "GPLv2",
@@ -21,25 +22,32 @@ module MCollective
 
             def handlemsg(msg, connection)
                 ret = "unknown command"
+                
+                if @config.pluginconf.include?("iptables.target")
+                    target = @config.pluginconf["iptables.target"]
+                else
+                    target = "DROP"
+                end
+
 
                 if msg[:body] =~ /^block.(\d+\.\d+\.\d+\.\d+)$/
                     ip = $1
 
-                    out = %x[/sbin/iptables -A junk_filter -s #{ip} -j DROP 2>&1]
+                    out = %x[/sbin/iptables -A junk_filter -s #{ip} -j #{target} 2>&1]
                     system("/usr/bin/logger -i -t mcollective 'Attempted to add #{ip} to iptables junk_filter chain on #{Socket.gethostname}'")
 
                     ret = "Adding #{ip} #{out}"
                 elsif msg[:body] =~ /^unblock.(\d+\.\d+\.\d+\.\d+)$/
                     ip = $1
 
-                    out = %x[/sbin/iptables -D junk_filter -s #{ip} -j DROP 2>&1]
+                    out = %x[/sbin/iptables -D junk_filter -s #{ip} -j #{target} 2>&1]
                     system("/usr/bin/logger -i -t mcollective 'Attempted to remove #{ip} from iptables junk_filter chain on #{Socket.gethostname}'")
 
                     ret = "Removing #{ip} #{out}"
                 elsif msg[:body] =~ /^isblocked.(\d+\.\d+\.\d+\.\d+)$/
                     ip = $1
 
-                    matches = %x[/sbin/iptables -L junk_filter -n 2>&1].split("\n").grep(/^DROP.+#{ip}/).size
+                    matches = %x[/sbin/iptables -L junk_filter -n 2>&1].split("\n").grep(/^#{target}.+#{ip}/).size
 
                     matches >= 1 ? ret = true : ret = false
 
