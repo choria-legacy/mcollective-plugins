@@ -53,10 +53,11 @@ end
 
 begin
     client = MCollective::Client.new(options[:config])
+    client.options = options
 
     statuscnt = {}
 
-    stats = client.discovered_req({"service" => service, "action" => action}, "service", options) do |resp|
+    stats = client.discovered_req({"service" => service, "action" => action}, "service") do |resp|
         next if resp == nil
 
         status = resp[:body]["status"].to_s
