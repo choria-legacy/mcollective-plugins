@@ -13,6 +13,13 @@ options = oparser.parse{|parser, options|
     parser.banner = "Usage: mc-service [options] service action"
 }
 
+if options[:filter] == {}
+    print("Do you really want to operate on services unfiltered? (y/n): ")
+    STDOUT.flush
+
+    exit unless STDIN.gets.chomp =~ /^y$/
+end
+
 # confine machines we want to access to ones with
 # the right agent only
 options[:filter]["agent"] = "service"
