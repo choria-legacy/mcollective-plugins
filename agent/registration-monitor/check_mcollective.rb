@@ -41,10 +41,10 @@ Dir.open(dir) do |files|
 end
 
 if old > 0
-    puts("CRITICAL: #{old} / #{total} hosts not checked in within #{interval} seconds; totalhosts #{total}; oldhosts #{old}; currenthosts #{total - old};")
+    puts("CRITICAL: #{old} / #{total} hosts not checked in within #{interval} seconds| totalhosts=#{total} oldhosts=#{old} currenthosts=#{total - old}")
     exit 2
 else
-    puts("OK: #{total} / #{total} hosts checked in within #{interval} seconds; totalhosts #{total}; oldhosts #{old}; currenthosts #{total - old};")
+    puts("OK: #{total} / #{total} hosts checked in within #{interval} seconds| totalhosts=#{total} oldhosts=#{old} currenthosts=#{total - old}")
     exit 0
 end
 
