@@ -42,47 +42,47 @@ module MCollective
             end
 
             def help
-            <<-EOH
-            Iptables Agent
-            ==============
-
-            Agent to add and remove ip addresses from the junk_filter chain in iptables
-
-            Accepted Messages
-            -----------------
-            Input is a hash of command and ip, commands can be:
-
-            block      - Adds the IP address to the filter
-            unblock    - Removes the IP address from the filter
-            isblocked  - Checks if an ip is blocked
-
-            Input hash should be:
-
-            {"command" => "block",
-             "ip"      => "192.168.1.1"}
-
-            Returned Data
-            -------------
-
-            Returned data is a hash, status is boolean indicating success of the request 
-            while the output is just some pretty text.
-
-            {"status" => false
-             "output" => "Failed to add 1.2.3.4: <ip tables output>"}
-
-            EOH
+                <<-EOH
+                Iptables Agent
+                ==============
+    
+                Agent to add and remove ip addresses from the junk_filter chain in iptables
+    
+                Accepted Messages
+                -----------------
+                Input is a hash of command and ip, commands can be:
+    
+                block      - Adds the IP address to the filter
+                unblock    - Removes the IP address from the filter
+                isblocked  - Checks if an ip is blocked
+    
+                Input hash should be:
+    
+                {"command" => "block",
+                 "ip"      => "192.168.1.1"}
+    
+                Returned Data
+                -------------
+    
+                Returned data is a hash, status is boolean indicating success of the request 
+                while the output is just some pretty text.
+    
+                {"status" => false
+                 "output" => "Failed to add 1.2.3.4: <ip tables output>"}
+    
+                EOH
             end
 
             private
             # Deals with requests to block an ip
             def blockip(ip)
-		@log.debug("Blocking #{ip} with target #{target}")
+                @log.debug("Blocking #{ip} with target #{target}")
 
-		# if he's already blocked we just dont bother doing it again
-		unless isblocked?(ip)
+                # if he's already blocked we just dont bother doing it again
+                unless isblocked?(ip)
                     out = %x[/sbin/iptables -A junk_filter -s #{ip} -j #{target} 2>&1]
                     system("/usr/bin/logger -i -t mcollective 'Attempted to add #{ip} to iptables junk_filter chain on #{Socket.gethostname}'")
-		end
+                end
     
                 ret = {}
     
@@ -99,7 +99,7 @@ module MCollective
     
             # Deals with requests to unblock an ip
             def unblockip(ip)
-		@log.debug("Unblocking #{ip} with target #{target}")
+                @log.debug("Unblocking #{ip} with target #{target}")
 
                 out = %x[/sbin/iptables -D junk_filter -s #{ip} -j #{target} 2>&1]
                 system("/usr/bin/logger -i -t mcollective 'Attempted to remove #{ip} from iptables junk_filter chain on #{Socket.gethostname}'")
@@ -134,7 +134,7 @@ module MCollective
     
             # Utility to figure out if a ip is blocked or not, just return true or false
             def isblocked?(ip)
-		@log.debug("Checking if #{ip} is blocked with target #{target}")
+                @log.debug("Checking if #{ip} is blocked with target #{target}")
 
                 matches = %x[/sbin/iptables -L junk_filter -n 2>&1].split("\n").grep(/^#{target}.+#{ip}/).size
     
