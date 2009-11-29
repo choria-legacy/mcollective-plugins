@@ -12,8 +12,8 @@ module MCollective
 
             def initialize
                 @timeout = 10
-                @log = MCollective::Log.instance
-                @config = MCollective::Config.instance
+                @log = Log.instance
+                @config = Config.instance
                 @meta = {:license => "GPLv2",
                          :author => "R.I.Pienaar <rip@devco.net>",
                          :url => "http://code.google.com/p/mcollective-plugins/"}
