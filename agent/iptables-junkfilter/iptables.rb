@@ -11,8 +11,8 @@ module MCollective
             attr_reader :timeout, :meta
 
             def initialize
-                @log = MCollective::Log.instance
-                @config = MCollective::Config.instance
+                @log = Log.instance
+                @config = Config.instance
 
                 @timeout = 2
                 @meta = {:license => "GPLv2",
