@@ -6,7 +6,7 @@ module MCollective
             def initialize
                 @timeout = 1
 
-                @config = MCollective::Config.instance
+                @config = Config.instance
 
                 @meta = {:license => "GPLv2",
                          :author => "R.I.Pienaar <rip@devco.net>",
