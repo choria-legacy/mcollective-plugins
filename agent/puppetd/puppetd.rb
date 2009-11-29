@@ -98,7 +98,7 @@ module MCollective
                 else
                     if @splaytime > 0
                         ret = {"status" => true,
-                               "output" => %x[#{@puppetd} --onetime --splaylimit #{@splaytime}]}
+                               "output" => %x[#{@puppetd} --onetime --splaylimit #{@splaytime} --splay]}
                     else
                         ret = {"status" => true,
                                "output" => %x[#{@puppetd} --onetime]}
