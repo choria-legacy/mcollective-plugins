@@ -1,0 +1,55 @@
+#!/usr/bin/ruby
+
+# Client program for the mcollective puppetd agent found at http://code.google.com/p/mcollective-plugins/wiki/AgentPuppetd
+#
+# Released under the GPLv2
+
+require 'mcollective'
+
+oparser = MCollective::Optionparser.new({:timeout => 10}, "filter")
+
+options = oparser.parse{|parser, options|
+    parser.define_head "Manage remote puppet daemons"
+    parser.banner = "Usage: mc-puppetd [enable|disable|runonce]"
+}
+
+# confine machines we want to access to ones with
+# the right agent only
+options[:filter]["agent"] = "puppetd"
+
+if ARGV.length == 1
+    command = ARGV.shift
+else
+    puts("Please specify a command")
+    exit 1
+end
+
+begin
+    client = MCollective::Client.new(options[:config])
+    client.options = options
+
+    stats = client.discovered_req(command, "puppetd") do |resp|
+        next if resp == nil
+
+        result = resp[:body]
+
+        if options[:verbose]
+            printf("%-40s status=%s\n", resp[:senderid], result["status"]) 
+            printf("    %-40s\n\n", result["output"]) if options[:verbose]
+        else 
+            if result["status"]
+                print "." unless options[:verbose]
+            else
+                printf("%-40s status=%s\n\n", resp[:senderid], result["status"]) 
+            end
+        end
+    end
+rescue Exception => e
+    raise e
+end
+
+puts unless options[:verbose]
+
+client.display_stats(stats, options, "puppetd agent stats")
+
+# vi:tabstop=4:expandtab:ai
