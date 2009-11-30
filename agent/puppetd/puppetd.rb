@@ -12,23 +12,13 @@ module MCollective
                          :author => "R.I.Pienaar <rip@devco.net>",
                          :url => "http://code.google.com/p/mcollective-plugins/"}
 
-                if @config.pluginconf.include?("puppetd.splaytime")
-                    @splaytime = @config.pluginconf["puppetd.splaytime"]
-                else
-                    @splaytime = 0
-                end
+                @splaytime = 0
+                @lockfile = "/var/lib/puppet/state/puppetdlock"
+                @puppetd = "/usr/sbin/puppetd"
 
-                if @config.pluginconf.include?("puppetd.lockfile")
-                    @lockfile = @config.pluginconf["puppetd.lockfile"]
-                else
-                    @lockfile = "/var/lib/puppet/state/puppetdlock"
-                end
-
-                if @config.pluginconf.include?("puppetd.puppetd")
-                    @puppetd = @config.pluginconf["puppetd.puppetd"]
-                else
-                    @puppetd = "/usr/sbin/puppetd"
-                end
+                @splaytime = @config.pluginconf["puppetd.splaytime"] if @config.pluginconf.include?("puppetd.splaytime")
+                @lockfile = @config.pluginconf["puppetd.lockfile"] if @config.pluginconf.include?("puppetd.lockfile")
+                @puppetd = @config.pluginconf["puppetd.puppetd"] if @config.pluginconf.include?("puppetd.puppetd")
             end
 
             def handlemsg(msg, connection)
@@ -46,6 +36,9 @@ module MCollective
 
                     when "runonce"
                         ret = runonce
+
+                    when "status"
+                        ret = status
                 end
 
                 ret
@@ -66,6 +59,8 @@ module MCollective
                 disable    - Disable the puppetd using --disable if possible
                 runonce    - Run the puppetd with --runonce, if configured with 
                              it will splay it with that amount.
+                status     - Always returns true, but with some text about the
+                             current status of your daemon.
     
 
                 Configuration 
@@ -89,6 +84,21 @@ module MCollective
             end
 
             private
+            def status
+                ret = {"status" => true,
+                       "output" => "Enabled, not running"}
+
+                if File.exists?(@lockfile)
+                    if File::Stat.new(@lockfile).zero?
+                        ret["output"] = "Disabled, not running"
+                    else
+                        ret["output"] = "Enabled, running"
+                    end
+                end
+
+                ret
+            end
+
             def runonce
                 ret = {}
 

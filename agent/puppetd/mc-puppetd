@@ -10,7 +10,7 @@ oparser = MCollective::Optionparser.new({:timeout => 10}, "filter")
 
 options = oparser.parse{|parser, options|
     parser.define_head "Manage remote puppet daemons"
-    parser.banner = "Usage: mc-puppetd [enable|disable|runonce]"
+    parser.banner = "Usage: mc-puppetd [enable|disable|runonce|status]"
 }
 
 # confine machines we want to access to ones with
@@ -22,6 +22,10 @@ if ARGV.length == 1
 else
     puts("Please specify a command")
     exit 1
+end
+
+if command == "status"
+    options[:verbose] = true
 end
 
 begin
