@@ -16,7 +16,7 @@ module MCollective
                 @lockfile = "/var/lib/puppet/state/puppetdlock"
                 @puppetd = "/usr/sbin/puppetd"
 
-                @splaytime = @config.pluginconf["puppetd.splaytime"] if @config.pluginconf.include?("puppetd.splaytime").to_i
+                @splaytime = @config.pluginconf["puppetd.splaytime"].to_i if @config.pluginconf.include?("puppetd.splaytime")
                 @lockfile = @config.pluginconf["puppetd.lockfile"] if @config.pluginconf.include?("puppetd.lockfile")
                 @puppetd = @config.pluginconf["puppetd.puppetd"] if @config.pluginconf.include?("puppetd.puppetd")
             end
