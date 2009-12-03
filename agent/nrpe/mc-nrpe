@@ -1,0 +1,67 @@
+#!/usr/bin/ruby
+
+# Client program for the mcollective nrpe agent found at http://code.google.com/p/mcollective-plugins/
+#
+# Released under the GPLv2
+
+require 'mcollective'
+
+oparser = MCollective::Optionparser.new({:filter => {"agent" => "nrpe"}}, "filter")
+
+options = oparser.parse{|parser, options|
+    parser.define_head "Calls remote NRPE plugins"
+}
+
+if ARGV.length > 0
+    command = ARGV.shift
+else
+    puts("UNKNOWN: NRPE command not specified")
+    exit 3
+end
+
+stats = [0, 0, 0, 0]
+statuscodes = [0]
+
+begin
+    client = MCollective::Client.new(options[:config])
+    client.options = options
+
+    callstats = client.discovered_req(command, "nrpe") do |resp|
+        output = resp[:body]
+
+        status = output[:status]
+        string = output[:string]
+        statuscode = output[:exit]
+
+        statuscodes << statuscode.to_i
+        stats[statuscode] += 1
+
+        if options[:verbose]
+            printf("%-40s status=%s\n", resp[:senderid], status) 
+            printf("    %-40s\n\n", string) if options[:verbose]
+        else 
+            if statuscode == 0
+                print "." unless options[:verbose]
+            else
+                printf("\n%-40s status=%s\n", resp[:senderid], status) 
+            end
+        end
+    end
+rescue Exception => e
+    raise e
+end
+
+puts
+
+client.display_stats(callstats, options, "#{command} status summary")
+
+puts 
+
+printf("              OK: %d\n", stats[0])
+printf("         WARNING: %d\n", stats[1])
+printf("        CRITICAL: %d\n", stats[2])
+printf("         UNKNOWN: %d\n", stats[3])
+
+exit statuscodes.max
+
+# vi:tabstop=4:expandtab:ai
