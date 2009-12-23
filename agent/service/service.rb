@@ -38,7 +38,13 @@ module MCollective
                     @log.info("Doing action #{action} for service #{service} hasstatus = #{hasstatus}")
 
                     begin
-                        svc = Puppet::Type.type(:service).new(:name => service, :hasstatus => hasstatus).provider
+                        if Puppet.version =~ /0.24/
+                            Puppet::Type.type(:service).clear
+                            svc = Puppet::Type.type(:service).create(:name => service, :hasstatus => hasstatus).provider
+                        else
+                            svc = Puppet::Type.type(:service).new(:name => service, :hasstatus => hasstatus).provider
+                        end
+
 
                         if action != "status"
                             svc.send action
