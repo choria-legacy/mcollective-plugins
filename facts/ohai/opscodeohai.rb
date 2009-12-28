@@ -6,7 +6,7 @@ module MCollective
         #
         # It caches facts for 3000 seconds to speed things up a bit,
         # generally though using this plugin will slow down discovery by
-        # a second or so.
+        # a couple of seconds
         #
         # See: http://code.google.com/p/mcollective-plugins/wiki/FactsOpsCodeOhai
         #
