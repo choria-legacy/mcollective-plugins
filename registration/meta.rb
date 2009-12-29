@@ -4,6 +4,7 @@ module MCollective
         #
         # - all facts
         # - all agents
+        # - all classes if applicable
         # 
         # will add cf classes soon
         #
@@ -12,8 +13,22 @@ module MCollective
         # Licence: Apache 2
         class Meta<Base
             def body
-                {:agentlist => Agents.agentlist,
-                 :facts => PluginManager["facts_plugin"].get_facts}
+                result = {:agentlist => [],
+                          :facts => {},
+                          :classes => []}
+
+                cfile = Config.instance.classesfile
+
+                Log.instance.info("Reading classes from #{cfile}")
+
+                if File.exist?(cfile)
+                    result[:classes] = File.readlines(cfile).map {|i| i.chomp}
+                end
+                
+                result[:agentlist] = Agents.agentlist
+                result[:facts] = PluginManager["facts_plugin"].get_facts
+
+                result
             end
         end
     end
