@@ -1,83 +1,75 @@
 module MCollective
     module Agent
-        # An agent that calls nagios plugins on remote hosts by parsing nrpe configs
-        #
-        # Not to be released in public
-        class Nrpe
-            attr_reader :timeout, :meta
-            def initialize
-                @timeout = 1
-                @meta = {:license => "GPLv2",
-                         :author => "R.I.Pienaar <rip@devco.net>",
-                         :url => "http://code.google.com/p/mcollective-plugins/"}
-            end
+        class Nrpe<RPC::Agent
+            def runcommand_action
+                validate :command, String
+               
+                command = plugin_for_command(request[:command])
 
-            def handlemsg(msg, connection)
-                req = msg[:body]
+                reply.fail "No such command: #{request[:command]}" if command == nil
+                return unless reply.statuscode == 0
 
-                output = {:string => "unknown", :status => "UNKNOWN", :exit => 3, :perfdata => ""}
+                reply[:output] = %x[#{command[:cmd]}]
+                reply[:exitcode] = $?.exitstatus
 
-                begin
-                    input = validate(req)
+                case reply[:exitcode]
+                    when 0
+                        reply.statusmsg = "OK"
 
-                    raise("Unknown plugin #{req}") if input == nil
+                    when 1
+                        reply.fail "WARNING"
 
-                    output[:string] = %x[#{input[:cmd]}]
+                    when 2
+                        reply.fail "CRITICAL"
 
-                    if output[:string] =~ /^(.+)\|(.+)$/
-                        output[:string] = $1
-                        output[:perfdata] = $2
-                    end
+                    else
+                        reply.fail "UNKNOWN"
 
-                    output[:exit] = $?.exitstatus
-
-                    case output[:exit]
-                        when 0
-                            output[:status] = "OK"
-                        when 1
-                            output[:status] = "WARNING"
-                        when 2
-                            output[:status] = "CRITICAL"
-                        else
-                            output[:status] = "UNKNOWN"
-
-                    end
-                rescue Exception => e
-                    output[:string] = e.to_s
-                    output[:exit] = 3
                 end
 
-                output
+                if reply[:output] =~ /^(.+)\|(.+)$/
+                    reply[:output] = $1
+                    reply[:perfdata] = $2
+                else
+                    reply[:perfdata] = ""
+                end
             end
 
-            def validate(req)
+            def help
+                <<-EOH
+                Simple RPC NRPE Agent
+                =====================
+
+                Agent that looks for defined commands in /etc/nagios/nrpe.d and runs the command.
+
+                INPUT:
+                    :command        The NRPE command to run
+
+                OUTPUT:
+                     :output        The string that the plugin gave
+                     :exitcode      The exitcode from the plugin
+                     :status        an OK, WARNING, CRITICAL or UNKNOWN string
+                     :perfdata      any perfdata from the plugin
+                EOH
+            end
+
+            private
+            def plugin_for_command(req)
                 ret = nil
-
+    
                 fname = "/etc/nagios/nrpe.d/#{req}.cfg"
-
+    
                 if File.exist?(fname)
                     t = File.readlines(fname).first.chomp
-
+    
                     if t =~ /command\[.+\]=(.+)$/
                         ret = {:cmd => $1}
                     end
                 end
-
+    
                 ret
-            end
-
-            def help
-            <<-EOH
-            NRPE Agent
-            ==========
-
-            Agent that looks for defined commands in /etc/nagios/nrpe.d and runs the command.
-
-            Returns a hash of :string, :exit, :status and :perfdata
-            EOH
             end
         end
     end
 end
-
-# vi:tabstop=4:expandtab:ai:filetype=ruby
+# vi:tabstop=4:expandtab:ai

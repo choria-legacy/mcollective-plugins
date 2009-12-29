@@ -6,11 +6,9 @@
 
 require 'mcollective'
 
-oparser = MCollective::Optionparser.new({:filter => {"agent" => "nrpe"}}, "filter")
+include MCollective::RPC
 
-options = oparser.parse{|parser, options|
-    parser.define_head "Calls remote NRPE plugins"
-}
+nrpe = rpcclient("nrpe")
 
 if ARGV.length > 0
     command = ARGV.shift
@@ -19,44 +17,38 @@ else
     exit 3
 end
 
+
 stats = [0, 0, 0, 0]
 statuscodes = [0]
 
-begin
-    client = MCollective::Client.new(options[:config])
-    client.options = options
+nrpe_results = nrpe.runcommand(:command => command)
 
-    callstats = client.discovered_req(command, "nrpe") do |resp|
-        output = resp[:body]
+puts
 
-        status = output[:status]
-        string = output[:string]
-        statuscode = output[:exit]
+nrpe_results.each do |result|
+    exitcode = result[:data][:exitcode].to_i
+    statuscodes << exitcode
+    stats[exitcode] += 1
 
-        statuscodes << statuscode.to_i
-        stats[statuscode] += 1
-
-        if options[:verbose]
-            printf("%-40s status=%s\n", resp[:senderid], status) 
-            printf("    %-40s\n\n", string) if options[:verbose]
-        else 
-            if statuscode == 0
-                print "." unless options[:verbose]
-            else
-                printf("\n%-40s status=%s\n", resp[:senderid], status) 
-            end
-        end
+    if nrpe.verbose
+        printf("%-40s status=%s\n", result[:sender], result[:statusmsg]) 
+        printf("    %-40s\n\n", result[:data][:output])
+    else 
+        printf("%-40s status=%s\n", result[:sender], result[:statusmsg]) unless result[:statuscode] == 0
     end
-rescue Exception => e
-    raise e
 end
 
 puts
 
-client.display_stats(callstats, options, "#{command} status summary")
+# Nodes that don't respond are UNKNOWNs
+if nrpe.stats[:noresponsefrom].size > 0
+    stats[3] += nrpe.stats[:noresponsefrom].size
+    statuscodes << 3
+end
 
-puts 
+printrpcstats :caption => "#{command} NRPE results"
 
+printf("\nNagios Statusses:\n") if nrpe.verbose
 printf("              OK: %d\n", stats[0])
 printf("         WARNING: %d\n", stats[1])
 printf("        CRITICAL: %d\n", stats[2])
