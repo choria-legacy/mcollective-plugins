@@ -9,19 +9,19 @@ module MCollective
         # Agent is based on Simple RPC so needs mcollective 0.4.0 or newer
         class Service<RPC::Agent
             def restart_action
-                do_service_action(request[:service], "restart")
+                do_service_action("restart")
             end
 
             def stop_action
-                do_service_action(request[:service], "stop")
+                do_service_action("stop")
             end
 
             def start_action
-                do_service_action(request[:service], "start")
+                do_service_action("start")
             end
 
             def status_action
-                do_service_action(request[:service], "status")
+                do_service_action("status")
             end
 
             private
@@ -54,8 +54,10 @@ module MCollective
             end
 
             # Does the actual work with the puppet provider and sets appropriate reply options
-            def do_service_action(service, action)
+            def do_service_action(action)
                 validate :service, String
+
+                service = request[:service]
 
                 begin
                     Log.instance.debug("Doing #{action} for service #{service}")
