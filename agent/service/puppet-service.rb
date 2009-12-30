@@ -1,106 +1,99 @@
 module MCollective
     module Agent
-        require 'puppet'
-
         # An agent that uses Reductive Labs puppet to manage services
         #
         # See http://code.google.com/p/mcollective-plugins/
         #
         # Released under the terms of the GPL, same as Puppet
-        class Service
-            attr_reader :timeout, :meta
+        #
+        # Agent is based on Simple RPC so needs mcollective 0.4.0 or newer
+        class Service<RPC::Agent
+            def restart_action
+                validate :service, String
 
-            def initialize
-                @timeout = 10
-                @log = Log.instance
-                @config = Config.instance
-                @meta = {:license => "GPLv2",
-                         :author => "R.I.Pienaar <rip@devco.net>",
-                         :url => "http://code.google.com/p/mcollective-plugins/"}
-
+                do_service_action(request[:service], "restart")
             end
 
-            def handlemsg(msg, stomp)
-                req = msg[:body]
+            def stop_action
+                validate :service, String
 
-                result = validate(req)
+                do_service_action(request[:service], "stop")
+            end
 
-                unless result["status"]
-                    service = req["service"]
-                    action = req["action"]
-                    hasstatus = false
+            def start_action
+                validate :service, String
 
-                    if @config.pluginconf.include?("service.hasstatus")
-                        hasstatus = true if @config.pluginconf["service.hasstatus"] =~ /^1|y|t/
-                    end
+                do_service_action(request[:service], "start")
+            end
+
+            def status_action
+                validate :service, String
+
+                do_service_action(request[:service], "status")
+            end
+
+            private
+            # Creates an instance of the Puppet service provider, supports config options:
+            #
+            # - service.hasrestart - set this if your OS provides restart options on services
+            # - service.hasstatus  - set this if your OS provides status options on services
+            def get_puppet(service)
+                hasstatus = false
+                hasrestart = false
+
+                if @config.pluginconf.include?("service.hasrestart")
+                    hasrestart = true if @config.pluginconf["service.hasrestart"] =~ /^1|y|t/
+                end
                     
+                if @config.pluginconf.include?("service.hasstatus")
+                    hasstatus = true if @config.pluginconf["service.hasstatus"] =~ /^1|y|t/
+                end
+                    
+                require 'puppet'
 
-                    @log.info("Doing action #{action} for service #{service} hasstatus = #{hasstatus}")
-
-                    begin
-                        if Puppet.version =~ /0.24/
-                            Puppet::Type.type(:service).clear
-                            svc = Puppet::Type.type(:service).create(:name => service, :hasstatus => hasstatus).provider
-                        else
-                            svc = Puppet::Type.type(:service).new(:name => service, :hasstatus => hasstatus).provider
-                        end
-
-
-                        if action != "status"
-                            svc.send action
-                            sleep 0.5
-                        end
-
-                        result["output"] = "success"
-                        result["status"] = svc.status.to_s
-                    rescue Exception => e
-                        result["output"] = "Failed: #{e}"
-                        result["status"] = "error"
-                    end
-
+                if Puppet.version =~ /0.24/
+                    Puppet::Type.type(:service).clear
+                    svc = Puppet::Type.type(:service).create(:name => service, :hasstatus => hasstatus, :hasrestart => hasrestart).provider
+                else
+                    svc = Puppet::Type.type(:service).new(:name => service, :hasstatus => hasstatus, :hasrestart => hasrestart).provider
                 end
 
-                result
+                svc
             end
 
-            def validate(req)
-                result = {"output" => nil, "status" => nil}
-
+            # Does the actal work with the puppet provider and sets appropriate reply options
+            def do_service_action(service, action)
                 begin
-                    raise "Request is not a hash" unless req.is_a?(Hash)
-                    raise "Request has no 'service'" unless req["service"]
-                    raise "Request has no 'action'" unless req["action"]
-                rescue Exception => e
-                    result = {"output" => e.to_s, "status" => "error"}
-                end
+                    Log.instance.debug("Doing #{action} for service #{service}")
 
-                result
+                    svc = get_puppet(service)
+
+                    unless action == "status"
+                        svc.send action
+                        sleep 0.5
+                    end
+
+                    reply["status"] = svc.status.to_s
+                rescue Exception => e
+                    reply.fail "Failed: #{e}"
+                end
             end
 
             def help
                 <<-EOH
-                Service Agent
-                =============
+                Simple RPC Service Agent
+                ========================
 
                 Agent to manage services using the Puppet service provider
 
-                Accepted Messages
-                -----------------
+                ACTIONS:
+                    start, stop, restart and status
 
-                Input should be a hash of the form:
+                INPUT:
+                    :service    the name of the service to manage
 
-                {"service" => "httpd",
-                 "action" => "stop"}
-
-                Possible actions are: stop, start, restart, status
-
-                Returned Data
-                -------------
-
-                In all cases a hash will be returned similar to:
-
-                {:output    => "no output",
-                 :svcstatus => :running}
+                OUTPUT:
+                    :status     the status from puppet
                 EOH
             end
         end
