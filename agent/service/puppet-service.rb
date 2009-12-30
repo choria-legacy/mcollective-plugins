@@ -61,7 +61,7 @@ module MCollective
                 svc
             end
 
-            # Does the actal work with the puppet provider and sets appropriate reply options
+            # Does the actual work with the puppet provider and sets appropriate reply options
             def do_service_action(service, action)
                 begin
                     Log.instance.debug("Doing #{action} for service #{service}")
