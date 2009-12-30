@@ -13,15 +13,14 @@ options = rpcoptions do |parser, options|
     parser.banner = "Usage: mc-service [options] service action"
 end
 
-svc = rpcclient("service", {:options => options})
-svc.agent_filter("service")
-
 if MCollective::Util.empty_filter?(options[:filter])
     print("Do you really want to operate on services unfiltered? (y/n): ")
     STDOUT.flush
 
     exit unless STDIN.gets.chomp =~ /^y$/
 end
+
+svc = rpcclient("service", {:options => options})
 
 def summarize(stats, statuscnt)
     puts("\n---- service agent summary ----")
