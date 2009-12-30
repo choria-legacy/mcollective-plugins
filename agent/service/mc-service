@@ -6,27 +6,26 @@
 
 require 'mcollective'
 
-oparser = MCollective::Optionparser.new({}, "filter")
+include MCollective::RPC
 
-options = oparser.parse{|parser, options|
+options = rpcoptions do |parser, options|
     parser.define_head "Manage remote services"
     parser.banner = "Usage: mc-service [options] service action"
-}
+end
 
-if options[:filter] == {}
+svc = rpcclient("service", {:options => options})
+svc.agent_filter("service")
+
+if MCollective::Util.empty_filter?(options[:filter])
     print("Do you really want to operate on services unfiltered? (y/n): ")
     STDOUT.flush
 
     exit unless STDIN.gets.chomp =~ /^y$/
 end
 
-# confine machines we want to access to ones with
-# the right agent only
-options[:filter]["agent"] = "service"
-
 def summarize(stats, statuscnt)
     puts("\n---- service agent summary ----")
-    puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
+    puts("           Nodes: #{stats[:responses] + stats[:noresponsefrom].size} / #{stats[:responses]}")
     print("        Statuses: ")
 
     statuscnt.keys.sort.each do |s|
@@ -58,31 +57,30 @@ else
     exit 1
 end
 
-begin
-    client = MCollective::Client.new(options[:config])
-    client.options = options
 
-    statuscnt = {}
+statuscnt = {}
 
-    stats = client.discovered_req({"service" => service, "action" => action}, "service") do |resp|
-        next if resp == nil
+svc.send(action, {:service => service}).each do |node|
+    status = node[:data]["status"].to_s
+    statuscnt.include?(status) ? statuscnt[status] += 1 : statuscnt[status] = 1
 
-        status = resp[:body]["status"].to_s
-        statuscnt.include?(status) ? statuscnt[status] += 1 : statuscnt[status] = 1
+    puts 
 
-        printf("%-40s status=%s\n", resp[:senderid], status)
+    # In line with Simple RPC principals, only print things that are out of order
+    case action
+        when /start/
+            printf("%-40s status=%s\n", node[:sender], status) unless status == "running"
 
-        if options[:verbose]
-            resp[:body]["output"].each do |o|
-                puts("\t#{o}")
-            end 
-            puts
-        end
+        when "stop"
+            printf("%-40s status=%s\n", node[:sender], status) unless status == "stopped"
+
+        when "status"
+            printf("%-40s status=%s\n", node[:sender], status)
     end
-rescue Exception => e
-    raise e
+
+    puts "\t\t#{node[:statusmsg]}" if svc.verbose
 end
 
-summarize(stats, statuscnt)
+summarize(svc.stats, statuscnt)
 
 # vi:tabstop=4:expandtab:ai
