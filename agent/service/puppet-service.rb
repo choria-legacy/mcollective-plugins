@@ -75,7 +75,7 @@ module MCollective
 
                     reply["status"] = svc.status.to_s
                 rescue Exception => e
-                    reply.fail "Failed: #{e}"
+                    reply.fail "#{e}"
                 end
             end
 
