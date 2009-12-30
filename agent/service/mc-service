@@ -57,28 +57,29 @@ else
     exit 1
 end
 
-
 statuscnt = {}
 
 svc.send(action, {:service => service}).each do |node|
     status = node[:data]["status"].to_s
     statuscnt.include?(status) ? statuscnt[status] += 1 : statuscnt[status] = 1
 
-    puts 
-
     # In line with Simple RPC principals, only print things that are out of order
-    case action
-        when /start/
-            printf("%-40s status=%s\n", node[:sender], status) unless status == "running"
-
-        when "stop"
-            printf("%-40s status=%s\n", node[:sender], status) unless status == "stopped"
-
-        when "status"
-            printf("%-40s status=%s\n", node[:sender], status)
+    if svc.verbose
+        printf("%-40s status=%s\n", node[:sender], status)
+        puts "\t\t#{node[:statusmsg]}" if svc.verbose
+    else
+        case action
+            when /start/
+                printf("%-40s status=%s\n", node[:sender], status) unless status == "running"
+    
+            when "stop"
+                printf("%-40s status=%s\n", node[:sender], status) unless status == "stopped"
+    
+            when "status"
+                printf("%-40s status=%s\n", node[:sender], status)
+        end
     end
 
-    puts "\t\t#{node[:statusmsg]}" if svc.verbose
 end
 
 summarize(svc.stats, statuscnt)
