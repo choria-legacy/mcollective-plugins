@@ -9,6 +9,7 @@ require 'mcollective'
 include MCollective::RPC
 
 nrpe = rpcclient("nrpe")
+nrpe.agent_filter("nrpe")
 
 if ARGV.length > 0
     command = ARGV.shift
