@@ -42,6 +42,9 @@ module MCollective
 
                 Agent that looks for defined commands in /etc/nagios/nrpe.d and runs the command.
 
+                ACTIONS:
+                    runcommand
+
                 INPUT:
                     :command        The NRPE command to run
 
