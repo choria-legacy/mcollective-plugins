@@ -8,6 +8,15 @@ module MCollective
         #
         # Agent is based on Simple RPC so needs mcollective 0.4.0 or newer
         class Service<RPC::Agent
+            def startup_hook
+                meta[:license] = "GPLv2"
+                meta[:author] = "R.I.Pienaar"
+                meta[:version] = "1.1"
+                meta[:url] = "http://mcollective-plugins.googlecode.com/"
+
+                @timeout = 60
+            end
+
             def restart_action
                 do_service_action("restart")
             end
