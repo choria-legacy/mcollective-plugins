@@ -1,6 +1,15 @@
 module MCollective
     module Agent
         class Nrpe<RPC::Agent
+            def startup_hook
+                meta[:license] = "Apache License 2.0"
+                meta[:author] = "R.I.Pienaar"
+                meta[:version] = "1.1"
+                meta[:url] = "http://mcollective-plugins.googlecode.com/"
+
+                @timeout = 5
+            end
+
             def runcommand_action
                 validate :command, String
                
