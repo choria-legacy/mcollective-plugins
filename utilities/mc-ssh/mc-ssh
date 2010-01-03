@@ -36,7 +36,6 @@ client.options = options
 
 @dialog = RDialog.new
 @dialog.backtitle = "Marionette Collective SSH"
-@dialog.itemhelp = true
 
 class CancelPressed<Exception; end
 
@@ -48,7 +47,6 @@ end
 
 # Shows a list of options and lets the user choose one
 def choose(choices, title)
-    @dialog.title = "\"#{title}\""
     res = @dialog.menu(title, choices)
             
     raise CancelPressed.new unless res
@@ -64,7 +62,7 @@ client.discover(options[:filter], options[:disctimeout]).each_with_index do |hos
 end
 
 begin
-    hostname = choose(choices, "Marionette Collective SSH").to_i
+    hostname = choose(choices, "").to_i
     hostname = choices[hostname][1]
 
     puts("Running: ssh #{hostname} #{sshoptions}")
