@@ -7,38 +7,32 @@ module MCollective
         # See http://code.google.com/p/mcollective-plugins/wiki/AgentIptablesJunkfilter
         #
         # Released under the terms of the GPL
-        class Iptables
-            attr_reader :timeout, :meta
-
-            def initialize
-                @log = Log.instance
-                @config = Config.instance
+        class Iptables<RPC::Agent
+            def startup_hook
+                meta[:license] = "GPLv2"
+                meta[:author] = "R.I.Pienaar <rip@devco.net>"
+                meta[:version] = "1.1"
+                meta[:url] = "http://mcollective-plugins.googlecode.com/"
 
                 @timeout = 2
-                @meta = {:license => "GPLv2",
-                         :author => "R.I.Pienaar <rip@devco.net>",
-                         :url => "http://code.google.com/p/mcollective-plugins/"}
             end
 
-            def handlemsg(msg, connection)
-                ip = msg[:body]["ip"]
-                command = msg[:body]["command"]
+            def block_action
+                validate :ipaddr, :ipv4address
 
-                ret = {"status" => false,
-                       "output" => "unknown command"}
-                
-                case command
-                    when "block"
-                        ret = blockip(ip)
+                blockip(request[:ipaddr])
+            end
 
-                    when "unblock"
-                        ret = unblockip(ip)
+            def unblock_action
+                validate :ipaddr, :ipv4address
 
-                    when "isblocked"
-                        ret = isblocked(ip)
-                end
+                unblockip(request[:ipaddr])
+            end
 
-                ret
+            def isblocked_action
+                validate :ipaddr, :ipv4address
+
+                isblocked(request[:ipaddr])
             end
 
             def help
@@ -48,27 +42,14 @@ module MCollective
     
                 Agent to add and remove ip addresses from the junk_filter chain in iptables
     
-                Accepted Messages
-                -----------------
-                Input is a hash of command and ip, commands can be:
-    
-                block      - Adds the IP address to the filter
-                unblock    - Removes the IP address from the filter
-                isblocked  - Checks if an ip is blocked
-    
-                Input hash should be:
-    
-                {"command" => "block",
-                 "ip"      => "192.168.1.1"}
-    
-                Returned Data
-                -------------
-    
-                Returned data is a hash, status is boolean indicating success of the request 
-                while the output is just some pretty text.
-    
-                {"status" => false
-                 "output" => "Failed to add 1.2.3.4: <ip tables output>"}
+                ACTIONS:
+                    block, unblock, isblocked
+
+                INPUT:
+                    :ipaddr     the address to block
+
+                OUTPUT:
+                    :output     output from iptables if relevant else a short status message
     
                 EOH
             end
@@ -76,73 +57,71 @@ module MCollective
             private
             # Deals with requests to block an ip
             def blockip(ip)
-                @log.debug("Blocking #{ip} with target #{target}")
+                logger.debug("Blocking #{ip} with target #{target}")
 
                 # if he's already blocked we just dont bother doing it again
                 unless isblocked?(ip)
                     out = %x[/sbin/iptables -A junk_filter -s #{ip} -j #{target} 2>&1]
                     system("/usr/bin/logger -i -t mcollective 'Attempted to add #{ip} to iptables junk_filter chain on #{Socket.gethostname}'")
+                else
+                    reply.fail "#{ip} was already blocked"
+                    return
                 end
-    
-                ret = {}
     
                 if isblocked?(ip)
-                    ret["status"] = true
-                    ret["output"] = out
+                    unless out == ""
+                        reply[:output] = out
+                    else
+                        reply[:output] = "#{ip} was blocked"
+                    end
                 else
-                    ret["status"] = false
-                    ret["output"] = "Failed to add #{ip}: #{out}"
+                    reply.fail "Failed to add #{ip}: #{out}"
                 end
-    
-                ret
             end
     
             # Deals with requests to unblock an ip
             def unblockip(ip)
-                @log.debug("Unblocking #{ip} with target #{target}")
+                logger.debug("Unblocking #{ip} with target #{target}")
 
-                out = %x[/sbin/iptables -D junk_filter -s #{ip} -j #{target} 2>&1]
-                system("/usr/bin/logger -i -t mcollective 'Attempted to remove #{ip} from iptables junk_filter chain on #{Socket.gethostname}'")
-    
-                ret = {}
-    
+                out = ""
+
+                # remove it if it's blocked
                 if isblocked?(ip)
-                    ret["status"] = false
-                    ret["output"] = "IP left blocked, iptables says: #{out}"
+                    out = %x[/sbin/iptables -D junk_filter -s #{ip} -j #{target} 2>&1]
+                    system("/usr/bin/logger -i -t mcollective 'Attempted to remove #{ip} from iptables junk_filter chain on #{Socket.gethostname}'")
                 else
-                    ret["status"] = true
-                    ret["output"] = out
+                    reply.fail "#{ip} was already unblocked"
+                    return
                 end
     
-                ret
+                # check it was removed
+                if isblocked?(ip)
+                    reply.fail "IP left blocked, iptables says: #{out}"
+                else
+                    unless out == ""
+                        reply[:output] = out
+                    else
+                        reply[:output] = "#{ip} was unblocked"
+                    end
+                end
             end
     
             # Deals with requests for status of a ip
             def isblocked(ip)
-                ret = {}
-    
                 if isblocked?(ip)
-                    ret["status"] = true
-                    ret["output"] = ""
+                    reply[:output] = "#{ip} is blocked"
                 else
-                    ret["status"] = false
-                    ret["output"] = ""
+                    reply[:output] = "#{ip} is not blocked"
                 end
-    
-                ret
             end
     
             # Utility to figure out if a ip is blocked or not, just return true or false
             def isblocked?(ip)
-                @log.debug("Checking if #{ip} is blocked with target #{target}")
+                logger.debug("Checking if #{ip} is blocked with target #{target}")
 
                 matches = %x[/sbin/iptables -L junk_filter -n 2>&1].split("\n").grep(/^#{target}.+#{ip}/).size
     
-                if matches >= 1 
-                    return true
-                else
-                    return false
-                end
+                matches >= 1 
             end
     
             # Returns the target to use for rules
