@@ -6,16 +6,14 @@
 
 require 'mcollective'
 
-oparser = MCollective::Optionparser.new({:timeout => 10}, "filter")
+include MCollective::RPC
 
-options = oparser.parse{|parser, options|
+options = rpcoptions do |parser, options|
     parser.define_head "Manage remote puppet daemons"
     parser.banner = "Usage: mc-puppetd [enable|disable|runonce|status]"
-}
+end
 
-# confine machines we want to access to ones with
-# the right agent only
-options[:filter]["agent"] = "puppetd"
+puppetd = rpcclient("puppetd", :options => options)
 
 if ARGV.length == 1
     command = ARGV.shift
@@ -25,35 +23,15 @@ else
 end
 
 if command == "status"
-    options[:verbose] = true
-end
+    puppetd.send(command).each do |node|
+        node[:statuscode] == 0 ? msg = node[:data][:output] : msg = node[:statusmsg]
 
-begin
-    client = MCollective::Client.new(options[:config])
-    client.options = options
-
-    stats = client.discovered_req(command, "puppetd") do |resp|
-        next if resp == nil
-
-        result = resp[:body]
-
-        if options[:verbose]
-            printf("%-40s status=%s\n", resp[:senderid], result["status"]) 
-            printf("    %-40s\n\n", result["output"]) if options[:verbose]
-        else 
-            if result["status"]
-                print "." unless options[:verbose]
-            else
-                printf("%-40s status=%s\n\n", resp[:senderid], result["status"]) 
-            end
-        end
+        puts "%-40s %s" % [ node[:sender], msg ]
     end
-rescue Exception => e
-    raise e
+else
+    printrpc puppetd.send(command)
 end
 
-puts unless options[:verbose]
 
-client.display_stats(stats, options, "puppetd agent stats")
-
+printrpcstats
 # vi:tabstop=4:expandtab:ai
