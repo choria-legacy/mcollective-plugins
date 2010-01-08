@@ -33,7 +33,6 @@ module MCollective
                     @@last_facts_load = Time.now.to_i
                 end
     
-                pp @@facts
                 @@facts
             end
 
