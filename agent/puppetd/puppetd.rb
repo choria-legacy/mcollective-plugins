@@ -64,10 +64,13 @@ module MCollective
                     if File::Stat.new(@lockfile).zero?
                         reply[:output] = "Disabled, not running"
                         reply[:enabled] = 0
-                    else
+		    else
                         reply[:output] = "Enabled, running"
+                        reply[:enabled] = 0
+		    end
+           	else
+                        reply[:output] = "Enabled, not running"
                         reply[:enabled] = 1
-                    end
                 end
             end
 
