@@ -4,7 +4,7 @@ module MCollective
             def startup_hook
                 meta[:license] = "Apache License 2.0"
                 meta[:author] = "R.I.Pienaar"
-                meta[:version] = "1.1"
+                meta[:version] = "1.2"
                 meta[:url] = "http://mcollective-plugins.googlecode.com/"
 
                 @timeout = 10
