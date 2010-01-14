@@ -18,7 +18,11 @@ module MCollective
                 reply.fail "No such command: #{request[:command]}" if command == nil
                 return unless reply.statuscode == 0
 
-                reply[:output] = %x[#{command[:cmd]}]
+                reply[:output] = ""
+                IO.popen(command) do |cmd|
+                    cmd.each {|output| reply[:output] << output}
+                end
+
                 reply[:exitcode] = $?.exitstatus
 
                 case reply[:exitcode]
