@@ -68,7 +68,10 @@ module MCollective
                 Simple RPC Process Management Agent
                 ===================================
                 
-                Agent that manages processes
+                Agent that manages processes.
+
+                This plugin requires http://raa.ruby-lang.org/project/sys-proctable/ to be 
+                available on your machines
 
                 ACTIONS:
                     list, kill, pkill
