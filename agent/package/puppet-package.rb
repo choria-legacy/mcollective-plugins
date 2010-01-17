@@ -17,6 +17,12 @@ module MCollective
                 @timeout = 180
             end
 
+            # All actions take a package, validating it here
+            # avoid duplicating code
+            def before_processing_hook(msg, connection)
+                validate :package, :shellsafe
+            end
+
             def install_action
                 do_pkg_action(request[:package], :install)
             end
