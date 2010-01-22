@@ -2,6 +2,8 @@ module MCollective
     module RPC
         # A RPC::Audit plugin that sends all audit messages to a non SimpleRPC agent called
         # centralrpclog where it can then process them however it feels like
+        #
+        # http://code.google.com/p/mcollective-plugins/
         class Centralrpclog<Audit
             def audit_request(request, connection)
                 config = Config.instance

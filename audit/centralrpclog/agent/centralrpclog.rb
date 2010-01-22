@@ -1,6 +1,8 @@
 module MCollective
     module Agent
         # An agent that receives and logs RPC Audit messages sent from the accompanying Audit plugin
+        #
+        # http://code.google.com/p/mcollective-plugins/
         class Centralrpclog
             attr_reader :timeout, :meta
 
