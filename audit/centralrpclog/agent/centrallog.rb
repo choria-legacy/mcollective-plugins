@@ -1,7 +1,7 @@
 module MCollective
     module Agent
         # An agent that receives and logs RPC Audit messages sent from the accompanying Audit plugin
-        class Centrallog
+        class Centralrpclog
             attr_reader :timeout, :meta
 
             def initialize
@@ -19,7 +19,7 @@ module MCollective
 
                 require 'pp'
 
-                logfile = Config.instance.pluginconf["centrallog.logfile"] || "/var/log/mcollective-audit.log"
+                logfile = Config.instance.pluginconf["centralrpclog.logfile"] || "/var/log/mcollective-rpcaudit.log"
 
                 File.open(logfile, "w") do |f|
                     f.puts("#{msg[:senderid]}> #{request.uniqid}: #{request.time} caller=#{request.caller}@#{request.sender} agent=#{request.agent} action=#{request.action}")
@@ -40,7 +40,7 @@ module MCollective
 
                 Provide it with a config option:
 
-                plugin.centrallog.logfile = /var/log/simplerpc-audit.log
+                plugin.centralrpclog.logfile = /var/log/simplerpc-audit.log
                 EOH
             end
         end
