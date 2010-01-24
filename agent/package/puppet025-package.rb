@@ -60,10 +60,10 @@ module MCollective
 
                     case action
                         when :install
-                            reply[:output] = pkg.install
+                            reply[:output] = pkg.install if pkg.properties[:ensure] == :absent
 
                         when :update
-                            reply[:output] = pkg.update
+                            reply[:output] = pkg.update if pkg.properties[:ensure] != :absent
 
                         when :uninstall
                             reply[:output] = pkg.uninstall
