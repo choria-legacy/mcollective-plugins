@@ -46,6 +46,7 @@ module MCollective
                 OUTPUT:
                     :output     A string showing some human parsable status
                     :enabled    for the status action, 1 if the daemon is enabled, 0 otherwise
+                    :running    for the status action, 1 if currently running, 0 otherwise
 
                 CONFIGURATION 
                 -------------
@@ -64,13 +65,16 @@ module MCollective
                     if File::Stat.new(@lockfile).zero?
                         reply[:output] = "Disabled, not running"
                         reply[:enabled] = 0
-		    else
+                        reply[:running] = 0
+		            else
                         reply[:output] = "Enabled, running"
                         reply[:enabled] = 0
-		    end
-           	else
+                        reply[:running] = 1
+		            end
+           	    else
                         reply[:output] = "Enabled, not running"
                         reply[:enabled] = 1
+                        reply[:running] = 0
                 end
             end
 
