@@ -11,7 +11,7 @@ module MCollective
             end
 
             def runcommand_action
-                validate :command, String
+                validate :command, :shellsafe
                
                 command = plugin_for_command(request[:command])
 
