@@ -15,8 +15,14 @@ module MCollective
                
                 command = plugin_for_command(request[:command])
 
-                reply.fail "No such command: #{request[:command]}" if command == nil
-                return unless reply.statuscode == 0
+                if command == nil
+                    reply[:output] = "No such command: #{request[:command]}" if command == nil
+                    reply[:exitcode] = 3
+
+                    reply.fail "UNKNOWN"
+
+                    return 
+                end
 
                 reply[:output] = %x[#{command[:cmd]}]
                 reply[:exitcode] = $?.exitstatus
