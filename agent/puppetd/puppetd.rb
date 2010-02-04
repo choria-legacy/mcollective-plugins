@@ -11,6 +11,7 @@ module MCollective
 
                 @splaytime = @config.pluginconf["puppetd.splaytime"].to_i || 0
                 @lockfile = @config.pluginconf["puppetd.lockfile"] || "/var/lib/puppet/state/puppetdlock"
+                @statefile = @config.pluginconf["puppetd.statefile"] || "/var/lib/puppet/state/state.yaml"
                 @puppetd = @config.pluginconf["puppetd.puppetd"] || "/usr/sbin/puppetd"
             end
 
@@ -52,6 +53,8 @@ module MCollective
                 -------------
 
                 puppetd.splaytime - How long to splay for, no splay by default
+                puppetd.statefile - Where to find the state.yaml file defaults to
+                                    /var/lib/puppet/state/state.yaml
                 puppetd.lockfile  - Where to find the lock file defaults to 
                                     /var/lib/puppet/state/puppetdlock
                 puppetd.puppetd   - Where to find the puppetd, defaults to 
@@ -61,21 +64,24 @@ module MCollective
 
             private
             def status
+                reply[:enabled] = 0
+                reply[:running] = 0
+                reply[:lastrun] = 0
+
                 if File.exists?(@lockfile)
                     if File::Stat.new(@lockfile).zero?
                         reply[:output] = "Disabled, not running"
-                        reply[:enabled] = 0
-                        reply[:running] = 0
 		            else
                         reply[:output] = "Enabled, running"
-                        reply[:enabled] = 0
                         reply[:running] = 1
 		            end
            	    else
                         reply[:output] = "Enabled, not running"
                         reply[:enabled] = 1
-                        reply[:running] = 0
                 end
+
+                reply[:lastrun] = File.stat(@statefile).mtime.to_i if File.exists?(@statefile)
+		reply[:output] += ", last run #{Time.now.to_i - reply[:lastrun]} seconds ago"
             end
 
             def runonce
