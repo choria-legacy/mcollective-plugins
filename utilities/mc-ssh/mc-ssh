@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 # Frontend to ssh that uses mcollective discovery to find hosts.
 #
