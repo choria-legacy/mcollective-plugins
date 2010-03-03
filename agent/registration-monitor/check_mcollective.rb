@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 # Nagios plugin to check mcollective if the registration-monitor
 # is in use.
