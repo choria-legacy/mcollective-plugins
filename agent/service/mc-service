@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 # Client program for the mcollective service agent found at http://code.google.com/p/mcollective-plugins/
 #
