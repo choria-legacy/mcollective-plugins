@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 # Client program for the mcollective iptables agent found at http://mcollective-plugins.googlecode.com/
 #
