@@ -42,7 +42,9 @@ module MCollective
                     enable, disable, status, runonce
 
                 INPUT:
-                    none
+                    :forcerun   For the runonce action, when set to true this
+                                force an immediate run without waiting for any 
+                                configured splay
 
                 OUTPUT:
                     :output     A string showing some human parsable status
@@ -81,15 +83,19 @@ module MCollective
                 end
 
                 reply[:lastrun] = File.stat(@statefile).mtime.to_i if File.exists?(@statefile)
-		reply[:output] += ", last run #{Time.now.to_i - reply[:lastrun]} seconds ago"
+                reply[:output] += ", last run #{Time.now.to_i - reply[:lastrun]} seconds ago"
             end
 
             def runonce
                 if File.exists?(@lockfile)
                     reply.fail "Lock file exists"
                 else
-                    if @splaytime > 0
+                    if request[:forcerun]
+                        reply[:output] = %x[#{@puppetd} --onetime]
+
+                    elsif @splaytime > 0
                         reply[:output] = %x[#{@puppetd} --onetime --splaylimit #{@splaytime} --splay]
+
                     else
                         reply[:output] = %x[#{@puppetd} --onetime]
                     end
