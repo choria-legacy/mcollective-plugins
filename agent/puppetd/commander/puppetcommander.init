@@ -44,7 +44,7 @@ fi
 # See how we were called
 case "$1" in
 	start) 
-		echo -n "Starting PuppetCommander"i
+		echo -n "Starting PuppetCommander"
 		if [ -f $lock ]; then
 			if [ -s $pidfile ]; then
 				kill `cat ${pidfile}` >/dev/null 2>&1
