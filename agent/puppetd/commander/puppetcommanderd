@@ -68,7 +68,7 @@ end
     end
 end
 
-if @config[:filter]["fact"] == [] && @config[:filter]["agent"] == []
+if @options[:filter]["fact"] == [] && @options[:filter]["agent"] == []
     @config[:filter].split(" ").each do |f|
         if f =~ /^(.+?)=(.+)/
             @options[:filter]["fact"] << {:fact => $1, :value => $2}
