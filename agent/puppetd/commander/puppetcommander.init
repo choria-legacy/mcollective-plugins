@@ -55,7 +55,7 @@ case "$1" in
 		
 		rm -f ${pidfile}
 		
-		${puppetcommanderd} -W /dev_server/ -d
+		${puppetcommanderd} -d
 		if [ $? = 0 ]; then
 			log_success_msg
 			touch $lock
