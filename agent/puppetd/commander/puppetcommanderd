@@ -1,5 +1,26 @@
 #!/usr/bin/ruby
 
+# A command and control bot to manage a number of puppet daemons
+# via the puppet agent for mcollective.  This daemon will ensure that
+# puppet daemons run at a set interval and it will control the concurrency
+# across the cluster as a whole.
+#
+# The object is to make best use of the puppetmaster resources and to provide 
+# a nice predictable utilization graphs of a master to assist in capacity planning.
+#
+# We also give priority to the Systems Administrator, if she runs an interactive
+# puppetd --test the background ones will back off - assuming her run triggers
+# the concurrency threshold.
+#
+# The concepts here was first introduced on a blog post below:
+#
+#    http://www.devco.net/archives/2010/03/17/scheduling_puppet_with_mcollective.php
+#
+# This code is released under the Apache 2 licence.
+#
+# See http://mcollective-plugins.googlecode.com/ for more information.
+
+
 require 'mcollective'
 require 'yaml'
 require 'pp'
@@ -7,13 +28,18 @@ require 'logger'
 
 include MCollective::RPC
 
+# Precedence order of configs are:
+# - defaults set here
+# - settings sotred in the config file
+# - settings passed on the command line
+#
 @config = { :interval => 30,
             :concurrency => false,
             :logfile => "/dev/null",
             :filter => "",
             :daemonize => false}
 
-if File.open("/etc/puppetcommander.cfg")
+if File.exist?("/etc/puppetcommander.cfg")
     begin
         @config = YAML::load_file('/etc/puppetcommander.cfg')
     rescue Exception => e
@@ -59,7 +85,7 @@ end
 def log(msg)
     @logger.add(Logger::INFO) { "#{Time.now}> #{msg}" }
 rescue Exception => e
-    puts "Exception raised #{e}"
+    puts "Could not log '#{msg}': #{e}"
 end
 
 def debug(msg)
@@ -68,15 +94,24 @@ def debug(msg)
     end
 
 rescue Exception => e
-    puts "Exception raised #{e}"
+    puts "Could not log '#{msg}': #{e}"
 end
 
+# Does a SimpleRPC call and calculates the total amount of 
+# puppet daemons that are currently running a catalog
 def concurrent_count
     debug("Getting puppet status")
 
     @puppet.status.inject(0) {|s,v| s += v[:data][:running] }
 end
 
+# Runs a specific client, it's a tad hacky that we abuse the 
+# identity filter here since we pretty much mean you cant use the
+# commanded + identity filters on the command line, but this is
+# an easy win.
+#
+# Ideally we'd save the identity filter before modifying it and 
+# restore it afterwards
 def run_client(client)
     log("Running agent for #{client}")
 
@@ -89,6 +124,20 @@ def run_client(client)
     @puppet.filter["identity"] = []
 end
 
+# This is the beef of things, we take a desired interval and 
+# maximum allowed concurrency and basically performs the following
+# pseudo actions:
+#
+# - count the clients that match the supplied filter
+# - figure out a desired sleep interval to run the number of clients 
+#   in the supplied maximum interval
+# - traverse the list of discovered clients alphabetically and does a 
+#   run of each one as long as the concurrency is below the limit.
+# - after running the node we sleep for the remaining time of the sleep interval
+# - once we've run all nodes, we rediscover and run again - this will pick
+#   up new nodes and recover gracefully from network outages and such.
+#
+# TODO: Add exception handling.
 def run(interval, concurrency)
     @puppet.reset
 
@@ -124,15 +173,16 @@ end
 @puppet = rpcclient("puppetd", :options => @options)
 @puppet.progress = false
 
+# starts the worker loop in the foreground
 def foreground
     loop do
       run(@config[:interval], @config[:concurrency])
     end
 end
 
+# starts the worker loop in the background
 def background
     pid = fork do
-        
         File.open("/var/run/puppetcommander.pid", "w") do |pidfile| 
             pidfile.puts $$ 
         end
@@ -145,14 +195,13 @@ def background
     end        
     
     Process.detach(pid)
-
 end
 
 log("Looping clients with an interval of #{@config[:interval]} minutes")
 log("Restricting to #{@config[:concurrency]} concurrent puppet runs") if @config[:concurrency]
 
-unless @config[:daemonize]
-    foreground
-else
+if @config[:daemonize]
     background
+else
+    foreground
 end   
