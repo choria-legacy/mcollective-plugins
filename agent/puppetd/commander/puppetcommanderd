@@ -69,11 +69,11 @@ end
 end
 
 if @config[:filter]["fact"] == [] && @config[:filter]["agent"] == []
-    :filter.split(" ").each do |f|
+    @config[:filter].split(" ").each do |f|
         if f =~ /^(.+?)=(.+)/
-            @config[:filter]["fact"] << {:fact => $1, :value => $2}
+            @options[:filter]["fact"] << {:fact => $1, :value => $2}
         else
-            @config[:filter]["cf_class"] << filter
+            @options[:filter]["cf_class"] << filter
         end
 
     end
