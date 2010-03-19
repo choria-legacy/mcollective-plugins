@@ -83,14 +83,14 @@ end
 @logger = Logger.new(@config[:logfile])
 
 def log(msg)
-    @logger.add(Logger::INFO) { "#{Time.now}> #{msg}" }
+    @logger.add(Logger::INFO) { msg }
 rescue Exception => e
     puts "Could not log '#{msg}': #{e}"
 end
 
 def debug(msg)
     if @options[:verbose]
-        @logger.add(Logger::DEBUG) {"#{Time.now}> #{msg}"}
+        @logger.add(Logger::DEBUG) { msg }
     end
 
 rescue Exception => e
