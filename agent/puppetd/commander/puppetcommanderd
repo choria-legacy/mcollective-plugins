@@ -1,0 +1,158 @@
+#!/usr/bin/ruby
+
+require 'mcollective'
+require 'yaml'
+require 'pp'
+require 'logger'
+
+include MCollective::RPC
+
+@config = { :interval => 30,
+            :concurrency => false,
+            :logfile => "/dev/null",
+            :filter => "",
+            :daemonize => false}
+
+if File.open("/etc/puppetcommander.cfg")
+    begin
+        @config = YAML::load_file('/etc/puppetcommander.cfg')
+    rescue Exception => e
+        puts e
+        exit 1
+    end
+end
+
+@options = rpcoptions do |parser, options|
+    parser.define_head "Command and Control agent to schedule puppet runs in a cluster"
+
+    parser.on('--interval [MINUTES]', '-i', 'Interval to run clients at') do |v|
+        @config[:interval] = v.to_i
+    end
+
+    parser.on('--max-concurrent [ACTIVE]', '-m [ACTIVE]', 'Maximum run concurrency to allow') do |v|
+        @config[:concurrency] = v.to_i
+    end
+
+    parser.on('--logfile [LOGFILE]', '-l [LOGFILE]', 'Log file to write') do |v|
+        @config[:logfile] = v
+    end
+
+    parser.on("--daemonize", "-d", "Daemonizes the script") do |v|
+        @config[:daemonize] = true
+    end
+end
+
+if @config[:filter]["fact"] == [] && @config[:filter]["agent"] == []
+    :filter.split(" ").each do |f|
+        if f =~ /^(.+?)=(.+)/
+            @config[:filter]["fact"] << {:fact => $1, :value => $2}
+        else
+            @config[:filter]["cf_class"] << filter
+        end
+
+    end
+
+end
+
+@logger = Logger.new(@config[:logfile])
+
+def log(msg)
+    @logger.add(Logger::INFO) { "#{Time.now}> #{msg}" }
+rescue Exception => e
+    puts "Exception raised #{e}"
+end
+
+def debug(msg)
+    if @options[:verbose]
+        @logger.add(Logger::DEBUG) {"#{Time.now}> #{msg}"}
+    end
+
+rescue Exception => e
+    puts "Exception raised #{e}"
+end
+
+def concurrent_count
+    debug("Getting puppet status")
+
+    @puppet.status.inject(0) {|s,v| s += v[:data][:running] }
+end
+
+def run_client(client)
+    log("Running agent for #{client}")
+
+    @puppet.reset
+    @puppet.identity_filter client
+
+    @puppet.runonce :forcerun => true
+
+    @puppet.reset
+    @puppet.filter["identity"] = []
+end
+
+def run(interval, concurrency)
+    @puppet.reset
+
+    clients = @puppet.discover :verbose => false
+
+    sleeptime = interval * 60 / clients.size
+
+    log("Found #{clients.size} puppet nodes, sleeping for ~#{sleeptime} seconds between runs")
+
+    clients.sort.each do |client|
+        starttime = Time.now.to_i
+        
+        cur_concurrency = concurrent_count
+        log("Current puppetd's running: #{cur_concurrency}")
+
+        if concurrency
+            if cur_concurrency < concurrency
+                run_client(client)
+            else
+                log("Puppet run for client #{client} skipped due to current concurrency of #{cur_concurrency}")
+            end
+        else
+            run_client(client)
+        end
+
+        sleeptime = (interval * 60 / clients.size) - (Time.now.to_i - starttime)
+        log("Sleeping for #{sleeptime} seconds")
+
+        sleep sleeptime - (Time.now.to_i - starttime)
+    end
+end
+
+@puppet = rpcclient("puppetd", :options => @options)
+@puppet.progress = false
+
+def foreground
+    loop do
+      run(@config[:interval], @config[:concurrency])
+    end
+end
+
+def background
+    pid = fork do
+        
+        File.open("/var/run/puppetcommander.pid", "w") do |pidfile| 
+            pidfile.puts $$ 
+        end
+        
+        Signal.trap("HUP", "IGNORE")
+
+        loop do
+            run(@config[:interval], @config[:concurrency])
+        end
+    end        
+    
+    Process.detach(pid)
+
+end
+
+log("Looping clients with an interval of #{@config[:interval]} minutes")
+log("Restricting to #{@config[:concurrency]} concurrent puppet runs") if @config[:concurrency]
+
+unless @config[:daemonize]
+    foreground
+else
+    background
+end   
