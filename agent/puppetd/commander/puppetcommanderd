@@ -37,7 +37,7 @@ include MCollective::RPC
             :concurrency => false,
             :logfile => "/dev/null",
             :filter => "",
-            :randomize => false
+            :randomize => false,
             :daemonize => false}
 
 if File.exist?("/etc/puppetcommander.cfg")
