@@ -37,6 +37,7 @@ include MCollective::RPC
             :concurrency => false,
             :logfile => "/dev/null",
             :filter => "",
+            :randomize => false
             :daemonize => false}
 
 if File.exist?("/etc/puppetcommander.cfg")
@@ -131,6 +132,7 @@ end
 # - count the clients that match the supplied filter
 # - figure out a desired sleep interval to run the number of clients 
 #   in the supplied maximum interval
+# - optionally shuffle the list of nodes based on the :randomize config option
 # - traverse the list of discovered clients alphabetically and does a 
 #   run of each one as long as the concurrency is below the limit.
 # - after running the node we sleep for the remaining time of the sleep interval
@@ -147,7 +149,13 @@ def run(interval, concurrency)
 
     log("Found #{clients.size} puppet nodes, sleeping for ~#{sleeptime} seconds between runs")
 
-    clients.sort.each do |client|
+    if @config[:randomize]
+        clients = clients.sort_by { rand }
+    else
+        clients.sort!
+    end
+
+    clients.each do |client|
         starttime = Time.now.to_i
         
         cur_concurrency = concurrent_count
