@@ -42,9 +42,14 @@ include MCollective::RPC
 
 if File.exist?("/etc/puppetcommander.cfg")
     begin
-        @config = YAML::load_file('/etc/puppetcommander.cfg')
+        config = YAML::load_file('/etc/puppetcommander.cfg')
+        if config.keys == @config.keys
+            @config = YAML::load_file('/etc/puppetcommander.cfg')
+        else
+            raise Exception
+        end
     rescue Exception => e
-        puts e
+        puts "Failed to load config file /etc/puppetcommander.cfg"
         exit 1
     end
 end
@@ -69,12 +74,12 @@ end
     end
 end
 
-if @options[:filter]["fact"] == [] && @options[:filter]["agent"] == []
+if @config[:filter]["fact"] == [] && @config[:filter]["agent"] == []
     @config[:filter].split(" ").each do |f|
         if f =~ /^(.+?)=(.+)/
-            @options[:filter]["fact"] << {:fact => $1, :value => $2}
+            @config[:filter]["fact"] << {:fact => $1, :value => $2}
         else
-            @options[:filter]["cf_class"] << filter
+            @config[:filter]["cf_class"] << filter
         end
 
     end
@@ -145,36 +150,44 @@ def run(interval, concurrency)
 
     clients = @puppet.discover :verbose => false
 
-    sleeptime = interval * 60 / clients.size
+    unless clients == nil
+        begin
+            sleeptime = interval * 60 / clients.size
 
-    log("Found #{clients.size} puppet nodes, sleeping for ~#{sleeptime} seconds between runs")
+            log("Found #{clients.size} puppet nodes, sleeping for ~#{sleeptime} seconds between runs")
 
-    if @config[:randomize]
-        clients = clients.sort_by { rand }
-    else
-        clients.sort!
-    end
-
-    clients.each do |client|
-        starttime = Time.now.to_i
-        
-        cur_concurrency = concurrent_count
-        log("Current puppetd's running: #{cur_concurrency}")
-
-        if concurrency
-            if cur_concurrency < concurrency
-                run_client(client)
+            if @config[:randomize]
+                clients = clients.sort_by { rand }
             else
-                log("Puppet run for client #{client} skipped due to current concurrency of #{cur_concurrency}")
+                clients.sort!
             end
-        else
-            run_client(client)
+
+            clients.each do |client|
+                starttime = Time.now.to_i
+        
+            cur_concurrency = concurrent_count
+            log("Current puppetd's running: #{cur_concurrency}")
+
+            if concurrency
+                if cur_concurrency < concurrency
+                    run_client(client)
+                else
+                    log("Puppet run for client #{client} skipped due to current concurrency of #{cur_concurrency}")
+                end
+            else
+                run_client(client)
+            end
+
+            sleeptime = (interval * 60 / clients.size) - (Time.now.to_i - starttime)
+            log("Sleeping for #{sleeptime} seconds")
+
+            sleep sleeptime - (Time.now.to_i - starttime)
+            end
+        rescue exception => e
+            log(e)
         end
-
-        sleeptime = (interval * 60 / clients.size) - (Time.now.to_i - starttime)
-        log("Sleeping for #{sleeptime} seconds")
-
-        sleep sleeptime - (Time.now.to_i - starttime)
+    else
+        log("No Puppet clients found.")
     end
 end
 
