@@ -165,23 +165,23 @@ def run(interval, concurrency)
             clients.each do |client|
                 starttime = Time.now.to_i
         
-            cur_concurrency = concurrent_count
-            log("Current puppetd's running: #{cur_concurrency}")
+                cur_concurrency = concurrent_count
+                log("Current puppetd's running: #{cur_concurrency}")
 
-            if concurrency
-                if cur_concurrency < concurrency
-                    run_client(client)
+                if concurrency
+                    if cur_concurrency < concurrency
+                        run_client(client)
+                    else
+                        log("Puppet run for client #{client} skipped due to current concurrency of #{cur_concurrency}")
+                    end
                 else
-                    log("Puppet run for client #{client} skipped due to current concurrency of #{cur_concurrency}")
+                    run_client(client)
                 end
-            else
-                run_client(client)
-            end
 
-            sleeptime = (interval * 60 / clients.size) - (Time.now.to_i - starttime)
-            log("Sleeping for #{sleeptime} seconds")
+                sleeptime = (interval * 60 / clients.size) - (Time.now.to_i - starttime)
+                log("Sleeping for #{sleeptime} seconds")
 
-            sleep sleeptime - (Time.now.to_i - starttime)
+                sleep sleeptime - (Time.now.to_i - starttime)
             end
         rescue exception => e
             log(e)
