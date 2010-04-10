@@ -44,7 +44,7 @@ module MCollective
                             # deny or allow the rpc request based on the policy check
                             if policyresult == true
                                 if $1 == "allow"
-                                    return
+                                    return true
                                 else
                                     deny("Denying based on deny policy line match")
                                 end
@@ -57,7 +57,11 @@ module MCollective
 
                 # If we get here then none of the policy lines matched so 
                 # we should just do whatever the default policy states
-                deny("Denying based on default policy") unless policy_allow
+                if policy_allow == true
+                    return true
+                else
+                    deny("Denying based on default policy")
+                end
             end
 
             private
