@@ -13,11 +13,19 @@ module MCollective
         # This will deny all service agent requests except for requests for
         # actions status, enable and disable on nodes with fact country=uk
         # that also have the class apache from caller userid 500.  
+        #
+        # Policy files can be commented with lines beginning with #, blank lines
+        # are ignored.  Between each major part of the policy line should be tabs
+        # you can specify multiple facts, actions and classes in space seperated lists
+        #
+        # Released under the Apache v2 License - R.I.Pienaar <rip@devco.net>
         class ActionPolicy
             def self.authorize(request)
                 policy_allow = true
+
                 logger = Log.instance
                 configdir = Config.instance.configdir
+
                 policyfile = "#{configdir}/policies/#{request.agent}.policy"
 
                 logger.debug("Looking for policy in #{policyfile}")
