@@ -9,10 +9,13 @@ module MCollective
         # Sample: 
         # policy default deny
         # allow    uid=500 status enable disable   country=uk     apache
+        # allow    uid=0   *                       *              *
         #
         # This will deny all service agent requests except for requests for
         # actions status, enable and disable on nodes with fact country=uk
         # that also have the class apache from caller userid 500.  
+        #
+        # Unix UID 0 will be able to do all actions regardless of facts and classes
         #
         # Policy files can be commented with lines beginning with #, blank lines
         # are ignored.  Between each major part of the policy line should be tabs
@@ -38,7 +41,7 @@ module MCollective
                         if line =~ /^policy default (.+)/
                             $1 == "allow" ? policy_allow = true : policy_allow = false
 
-                        elsif line =~ /^(allow|deny)\t+(.+)\t+(.+)\t+(.+)\t+(.+)$/
+                        elsif line =~ /^(allow|deny)\t+(.+?)\t+(.+?)\t+(.+?)\t+(.+?)$/
                             policyresult =  check_policy($1, $2, $3, $4, $5, request)
 
                             # deny or allow the rpc request based on the policy check
@@ -66,20 +69,33 @@ module MCollective
 
             private
             def self.check_policy(auth, rpccaller, actions, facts, classes, request)
-                # If we are not serving the caller or action in the policy line, skip checks
-                return false unless rpccaller == request.caller
-                return false unless actions.split.grep(request.action).size > 0
+                # If we have a wildcard caller or the caller matches our policy line
+                # then continue else skip this policy line
+                if (rpccaller != "*") && (rpccaller != request.caller)
+                    return false
+                end
+
+                # If we have a wildcard actions list or the request action is in the list
+                # of actions in the policy line continue, else skip this policy line
+                if (actions != "*") && (actions.split.grep(request.action).size == 0)
+                    return false
+                end
 
                 # Facts and Classes that do not match what we have indicates
-                # that we should skip checking this auth line
-                facts.split.each do |fact|
-                    if fact =~ /(.+)=(.+)/
-                        return false unless Util.get_fact($1) == $2
+                # that we should skip checking this auth line.  Both support
+                # a wildcard match
+                unless facts == "*"
+                    facts.split.each do |fact|
+                        if fact =~ /(.+)=(.+)/
+                            return false unless Util.get_fact($1) == $2
+                        end
                     end
                 end
 
-                classes.split.each do |klass|
-                    return false unless Util.has_cf_class?(klass)
+                unless classes == "*"
+                    classes.split.each do |klass|
+                        return false unless Util.has_cf_class?(klass)
+                    end
                 end
 
                 # If we get here all the facts, classes, caller and actions match
