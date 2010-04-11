@@ -189,7 +189,7 @@ def run(interval, concurrency)
 
                 sleep sleeptime - (Time.now.to_i - starttime)
             end
-        rescue exception => e
+        rescue Exception => e
             log(e)
         end
     else
