@@ -7,7 +7,7 @@ module MCollective
                 meta[:version] = "1.2"
                 meta[:url] = "http://mcollective-plugins.googlecode.com/"
 
-                @timeout = 10
+                @timeout = 20
 
                 @splaytime = @config.pluginconf["puppetd.splaytime"].to_i || 0
                 @lockfile = @config.pluginconf["puppetd.lockfile"] || "/var/lib/puppet/state/puppetdlock"
