@@ -20,6 +20,12 @@ if MCollective::Util.empty_filter?(options[:filter])
     exit unless STDIN.gets.chomp =~ /^y$/
 end
 
+# change our process name so the service being
+# managed doesnt show up in the ps list, this
+# keeps puppet RAL from stupidly assuming
+# we're the process being managed
+$0 = "mc-service"
+
 svc = rpcclient("service", {:options => options})
 
 def summarize(stats, statuscnt)
