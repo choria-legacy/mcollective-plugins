@@ -75,6 +75,7 @@ module MCollective
                         reply[:output] = "Disabled, not running"
 		            else
                         reply[:output] = "Enabled, running"
+                        reply[:enabled] = 1
                         reply[:running] = 1
 		            end
            	    else
