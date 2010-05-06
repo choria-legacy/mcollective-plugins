@@ -124,9 +124,14 @@ module MCollective
 
                     stat.zero? ? reply.fail("Already disabled") : reply.fail("Currently running")
                 else
-                    reply[:output] = %x[#{@puppetd} --disable]
+                    begin
+                        File.open(@lockfile, "w") do |file|
+                        end
 
-                    reply[:output] = "Lock created" if reply[:output] == ""
+                        reply[:output] = "Lock created"
+                    rescue Exception => e
+                        reply[:output] = "Could not create lock: #{e}"
+                    end
                 end
             end
         end
