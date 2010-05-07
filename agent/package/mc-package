@@ -12,7 +12,7 @@ options = rpcoptions do |parser, options|
     options[:timeout] = 180
 
     parser.define_head "Manage remote packages"
-    parser.banner = "Usage: mc-service [options] action pacakge"
+    parser.banner = "Usage: mc-package [options] action package"
 end
 
 if MCollective::Util.empty_filter?(options[:filter])
