@@ -123,6 +123,15 @@ module MCollective
                 result = {}
 
                 ps.each_pair do |k,v|
+                    if k == :uid
+                        begin
+                            result[:username] = Etc.getpwuid(v).name
+                        rescue Exception => e
+                            logger.debug("Could not get username for #{v}: #{e}")
+                            result[:username] = v
+                        end
+                    end
+
                     result[k] = v
                 end
 
@@ -132,6 +141,7 @@ module MCollective
             # Returns a hash of processes where cmdline matches pattern
             def get_proc_list(pattern)
                 require 'sys/proctable'
+                require 'etc'
 
                 res = Sys::ProcTable.ps.map do |ps|
                     ps_to_hash(ps) if ps["cmdline"] =~ /#{pattern}/

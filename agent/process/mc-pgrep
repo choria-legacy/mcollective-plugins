@@ -14,9 +14,10 @@ else
     pattern = "."
 end
 
-ps.list.each do |result|
+ps.list(:pattern => pattern).each do |result|
+    puts "%-20s  %5s  %5s  %s" % ["HOST", "USER", "PID", "COMMAND"]
     result[:data][:pslist].each do |proc|
-        puts "%-20s %5d %s" % [result[:sender][0,20], proc[:pid], proc[:cmdline][0,50] ] if proc[:cmdline].match pattern
+        puts "%-20s  %5s  %5d  %s" % [result[:sender][0,20], proc[:username][0,5], proc[:pid], proc[:cmdline][0,50] ] if proc[:cmdline].match pattern
     end
 end
 
