@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require 'mcollective'
+
+include MCollective::RPC
+
+$0 = "mc-pgrep"
+
+ps = rpcclient("process")
+
+if ARGV.length > 0
+    pattern = ARGV.shift
+else
+    pattern = "."
+end
+
+ps.list.each do |result|
+    result[:data][:pslist].each do |proc|
+        puts "%-20s %5d %s" % [result[:sender], proc[:pid], proc[:cmdline][0,50] ] if proc[:cmdline].match pattern
+    end
+end
+
+# vi:tabstop=4:expandtab:ai
