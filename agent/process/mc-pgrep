@@ -14,14 +14,42 @@ else
     pattern = "."
 end
 
-ps.list(:pattern => pattern).each do |result|
-    puts "%-20s  %5s  %5s  %s" % ["HOST", "USER", "PID", "COMMAND"]
-    result[:data][:pslist].each do |proc|
-        puts "%-20s  %5s  %5d  %s" % [result[:sender][0,20], proc[:username][0,5], proc[:pid], proc[:cmdline][0,50] ] if proc[:cmdline].match pattern
+class Numeric
+    def bytes_to_human
+        units = %w{B KB MB GB TB}
+        e = (Math.log(self)/Math.log(1024)).floor
+        s = "%.3f" % (to_f / 1024**e)
+        s.sub(/\.?0*$/, units[e])
     end
 end
 
-printrpcstats
+stats = {:count => 0,
+         :hosts => 0,
+         :vsize => 0,
+         :rss   => 0}
+
+ps.list(:pattern => pattern).each_with_index do |result, i|
+    if result[:data][:pslist].size > 0
+        puts result[:sender]
+        stats[:hosts] += 1
+    end
+
+    result[:data][:pslist].each do |proc|
+        puts " %10s  %5d  %s" % [proc[:username][0,10], proc[:pid], proc[:cmdline][0,60] ] if proc[:cmdline].match pattern
+
+        stats[:count] += 1
+        stats[:vsize] += proc[:vsize]
+        stats[:rss] += proc[:rss]
+    end
+
+    puts if result[:data][:pslist].size > 0
+end
+
+puts "   ---- process list stats ----"
+puts "        Matched hosts: #{stats[:hosts]}"
+puts "    Matched processes: #{stats[:count]}"
+puts "        Resident Size: #{stats[:rss].bytes_to_human}"
+puts "         Virtual Size: #{stats[:vsize].bytes_to_human}"
 
 # vi:tabstop=4:expandtab:ai
 
