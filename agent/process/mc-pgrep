@@ -16,8 +16,11 @@ end
 
 ps.list.each do |result|
     result[:data][:pslist].each do |proc|
-        puts "%-20s %5d %s" % [result[:sender], proc[:pid], proc[:cmdline][0,50] ] if proc[:cmdline].match pattern
+        puts "%-20s %5d %s" % [result[:sender][0,20], proc[:pid], proc[:cmdline][0,50] ] if proc[:cmdline].match pattern
     end
 end
 
+printrpcstats
+
 # vi:tabstop=4:expandtab:ai
+
