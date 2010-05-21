@@ -4,22 +4,38 @@ require 'mcollective'
 
 include MCollective::RPC
 
+limits = {:pattern => ".",
+          :just_zombies => false}
+
+options = rpcoptions do |parser, options|
+    parser.define_head "Search for processes matching criteria"
+    parser.banner = "Usage: mc-pgrep [options] <pattern>"
+    parser.separator ""
+    parser.separator "Process List Limiters:"
+
+    parser.on('-z', '--zombie', 'Find only zombie processes') do |v|
+        limits[:just_zombies] = v
+    end
+end
+
 $0 = "mc-pgrep"
 
-ps = rpcclient("process")
+ps = rpcclient("process", :options => options)
 
 if ARGV.length > 0
-    pattern = ARGV.shift
-else
-    pattern = "."
+    limits[:pattern] = ARGV.shift
 end
 
 class Numeric
     def bytes_to_human
-        units = %w{B KB MB GB TB}
-        e = (Math.log(self)/Math.log(1024)).floor
-        s = "%.3f" % (to_f / 1024**e)
-        s.sub(/\.?0*$/, units[e])
+        if self > 0
+            units = %w{B KB MB GB TB}
+            e = (Math.log(self)/Math.log(1024)).floor
+            s = "%.3f" % (to_f / 1024**e)
+            s.sub(/\.?0*$/, units[e])
+        else
+            "0B"
+        end
     end
 end
 
@@ -28,21 +44,21 @@ stats = {:count => 0,
          :vsize => 0,
          :rss   => 0}
 
-ps.list(:pattern => pattern).each_with_index do |result, i|
+ps.list(limits).each_with_index do |result, i|
     if result[:data][:pslist].size > 0
         puts result[:sender]
         stats[:hosts] += 1
+
+        result[:data][:pslist].each do |proc|
+            puts " %10s  %5d  %s" % [proc[:username][0,10], proc[:pid], proc[:cmdline][0,60] ] if proc[:cmdline].match limits[:pattern]
+    
+            stats[:count] += 1
+            stats[:vsize] += proc[:vsize]
+            stats[:rss] += proc[:rss]
+        end
+    
+        puts
     end
-
-    result[:data][:pslist].each do |proc|
-        puts " %10s  %5d  %s" % [proc[:username][0,10], proc[:pid], proc[:cmdline][0,60] ] if proc[:cmdline].match pattern
-
-        stats[:count] += 1
-        stats[:vsize] += proc[:vsize]
-        stats[:rss] += proc[:rss]
-    end
-
-    puts if result[:data][:pslist].size > 0
 end
 
 puts "   ---- process list stats ----"

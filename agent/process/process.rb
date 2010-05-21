@@ -13,8 +13,9 @@ module MCollective
             # List all processes, accepts an optional pattern
             def list_action
                 pattern = request[:pattern] || "."
+                zombies = request[:just_zombies] || false
 
-                reply[:pslist] = get_proc_list(pattern)
+                reply[:pslist] = get_proc_list(pattern, zombies)
             end
 
             # Kills a certain pid with a signal
@@ -39,12 +40,12 @@ module MCollective
 
                 pids_to_kill = []
 
-                get_proc_list(request[:pattern]).each do |ps|
+                get_proc_list(request[:pattern], false).each do |ps|
                     pids_to_kill << ps[:pid]
                 end
 
                 # Sanity check                                                                                                                                                                
-                if get_proc_list(".").size == pids_to_kill.size
+                if get_proc_list(".", false).size == pids_to_kill.size
                     reply.fail "Pattern matches all (#{pids_to_kill.size}) processes, refusing to kill"
                     return
                 else
@@ -139,12 +140,22 @@ module MCollective
             end
 
             # Returns a hash of processes where cmdline matches pattern
-            def get_proc_list(pattern)
+            def get_proc_list(pattern, zombies)
                 require 'sys/proctable'
                 require 'etc'
 
                 res = Sys::ProcTable.ps.map do |ps|
-                    ps_to_hash(ps) if ps["cmdline"] =~ /#{pattern}/
+                    ret = nil
+
+                    if ps["cmdline"] =~ /#{pattern}/
+                        if zombies
+                            ret = ps_to_hash(ps) if ps[:state] == "Z"
+                        else
+                            ret = ps_to_hash(ps)
+                        end
+                    end
+
+                    ret
                 end
 
                 res.compact
