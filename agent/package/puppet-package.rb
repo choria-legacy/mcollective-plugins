@@ -17,30 +17,37 @@ module MCollective
                 @timeout = 180
             end
 
-            # All actions take a package, validating it here
-            # avoid duplicating code
-            def before_processing_hook(msg, connection)
-                validate :package, :shellsafe
-            end
-
             def install_action
+                validate :package, :shellsafe
                 do_pkg_action(request[:package], :install)
             end
 
             def update_action
+                validate :package, :shellsafe
                 do_pkg_action(request[:package], :update)
             end
 
             def uninstall_action
+                validate :package, :shellsafe
                 do_pkg_action(request[:package], :uninstall)
             end
 
             def purge_action
+                validate :package, :shellsafe
                 do_pkg_action(request[:package], :purge)
             end
 
             def status_action
+                validate :package, :shellsafe
                 do_pkg_action(request[:package], :status)
+            end
+
+            def yum_clean_action
+                if File.exist?("/usr/bin/yum")
+                    reply[:output] = %x[/usr/bin/yum clean all]
+                else
+                    reply.fail "Cannot find yum at /usr/bin/yum"
+                end
             end
 
             private
@@ -95,14 +102,18 @@ module MCollective
                 providers under the hood to achieve platform independance
 
                 ACTION:
-                    install, update, uninstall, purge, status
+                    install, update, uninstall, purge, status, yum_clean
 
                 INPUT:
-                    :package    The package to affect
+                    :package    The package to affect n/a for yum_clean
 
                 OUTPUT:
-                    :output     Output from Puppet - usually this is just nil
-                    :properties The state of the package after the action was performed
+                    install, update, uninstall, purge, status:
+                       :output     Output from Puppet - usually this is just nil
+                       :properties The state of the package after the action was performed
+
+                    yum_clean:
+                       :output     Output from yum clean all
                 EOH
             end
         end
