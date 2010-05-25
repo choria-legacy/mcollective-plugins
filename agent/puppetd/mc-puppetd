@@ -10,7 +10,7 @@ include MCollective::RPC
 
 options = rpcoptions do |parser, options|
     parser.define_head "Manage remote puppet daemons"
-    parser.banner = "Usage: mc-puppetd [enable|disable|runonce|status]"
+    parser.banner = "Usage: mc-puppetd [enable|disable|runonce|status|count]"
 end
 
 puppetd = rpcclient("puppetd", :options => options)
@@ -28,6 +28,21 @@ if command == "status"
 
         puts "%-40s %s" % [ node[:sender], msg ]
     end
+elsif command == "count"
+    status = puppetd.status
+
+    running = status.inject(0) {|s,v| s += v[:data][:running] }
+    enabled = status.inject(0) {|s,v| s += v[:data][:enabled] }
+    disabled = status.size - enabled
+
+    puts
+
+    puts "Nodes currently doing puppet runs: #{running}"
+    puts "          Nodes currently enabled: #{enabled}"
+    puts "         Nodes currently disabled: #{disabled}"
+
+    puts
+
 else
     printrpc puppetd.send(command)
 end
