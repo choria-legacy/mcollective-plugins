@@ -31,6 +31,16 @@ module MCollective
                 status
             end
 
+            def metadata_action
+                reply[:facts] = PluginManager["facts_plugin"].get_facts
+                reply[:classes] = []
+
+                cfile = Config.instance.classesfile
+                if File.exist?(cfile)
+                    reply[:classes] = File.readlines(cfile).map {|i| i.chomp}
+                end
+            end
+
             def help
                 <<-EOH
                 Simple RPC Puppetd Agent
@@ -39,7 +49,7 @@ module MCollective
                 Agent to enable, disable and run the puppet agent
     
                 ACTIONS:
-                    enable, disable, status, runonce
+                    enable, disable, status, runonce, metadata
 
                 INPUT:
                     :forcerun   For the runonce action, when set to true this
@@ -50,6 +60,10 @@ module MCollective
                     :output     A string showing some human parsable status
                     :enabled    for the status action, 1 if the daemon is enabled, 0 otherwise
                     :running    for the status action, 1 if currently running, 0 otherwise
+
+                    metadata action
+                    :classes    List of classes in an Array
+                    :facts      Facts in a Hash
 
                 CONFIGURATION 
                 -------------
