@@ -34,6 +34,11 @@ pidfile="/var/run/puppetcommander.pid"
 # Source function library
 . /lib/lsb/init-functions
 
+# Load options, set things like PSK's and SSL keys in here
+if [ -f /etc/sysconfig/puppetcommanderd ]; then
+	. /etc/sysconfig/puppetcommanderd
+fi
+
 # Check if binary exists
 if ! [ -f $puppetcommanderd ] 
 then
