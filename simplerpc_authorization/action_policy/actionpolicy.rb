@@ -28,14 +28,20 @@ module MCollective
         # Released under the Apache v2 License - R.I.Pienaar <rip@devco.net>
         class ActionPolicy
             def self.authorize(request)
-            if @config.pluginconf.include?("actionpolicy.allow_unconfigured")
-                policy_allow = @config.pluginconf["actionpolicy.allow_unconfigured"]
-            else
-                policy_allow = false
-            end
+                config = Config.instance
+
+                if config.pluginconf.include?("actionpolicy.allow_unconfigured")
+                    if config.pluginconf["actionpolicy.allow_unconfigured"] =~ /^1|y/i
+                        policy_allow = true
+                    else
+                        policy_allow = false
+                    end
+                else
+                    policy_allow = false
+                end
 
                 logger = Log.instance
-                configdir = Config.instance.configdir
+                configdir = config.configdir
 
                 policyfile = "#{configdir}/policies/#{request.agent}.policy"
 
