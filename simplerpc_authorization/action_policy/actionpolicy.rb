@@ -21,10 +21,18 @@ module MCollective
         # are ignored.  Between each major part of the policy line should be tabs
         # you can specify multiple facts, actions and classes in space seperated lists
         #
+        # If no policy for an agent is found this plugin will by default not allow
+        # the request.  You can set plugin.actionpolicy.allow_unconfigured = 1 to 
+        # allow these requests.  Not recommended.
+        #
         # Released under the Apache v2 License - R.I.Pienaar <rip@devco.net>
         class ActionPolicy
             def self.authorize(request)
-                policy_allow = true
+            if @config.pluginconf.include?("actionpolicy.allow_unconfigured")
+                policy_allow = @config.pluginconf["actionpolicy.allow_unconfigured"]
+            else
+                policy_allow = false
+            end
 
                 logger = Log.instance
                 configdir = Config.instance.configdir
