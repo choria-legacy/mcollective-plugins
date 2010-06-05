@@ -22,8 +22,7 @@ module MCollective
                 logfile = Config.instance.pluginconf["centralrpclog.logfile"] || "/var/log/mcollective-rpcaudit.log"
 
                 File.open(logfile, "a") do |f|
-                    f.puts("#{Time.new.strftime("%D %T")} #{msg[:senderid]}> #{request.uniqid}: #{Time.at(request.time).strftime("%D %T")} caller=#{request.caller}@#{request.sender} agent=#{request.agent} action=#{request.action}")
-                    f.puts("#{Time.new.strftime("%D %T")} #{msg[:senderid]}> #{request.uniqid}: #{request.data.pretty_print_inspect}")
+                    f.puts("#{Time.new.strftime("%D %T")} #{msg[:senderid]}> #{request.uniqid}: #{Time.at(request.time).strftime("%D %T")} caller=#{request.caller}@#{request.sender} agent=#{request.agent} action=#{request.action} #{request.data.pretty_print_inspect}")
                 end
 
                 # never reply
