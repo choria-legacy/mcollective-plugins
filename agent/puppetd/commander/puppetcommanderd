@@ -116,24 +116,10 @@ def concurrent_count
 end
 
 # This sends a request to a specific client only.
-#
-# We bypass the SimpleRPC internals here and just send a 
-# request without caring for the results
-#
-# From 0.4.4 we should be able to at least get the msg from the 
-# SimpleRPC libraries using the new_request method
 def run_client(client)
     log("Running agent for #{client}")
 
-    msg = {:agent  => "puppetd",
-           :action => "runonce",
-           :caller => "uid=#{Process.uid}",
-           :data   => {:forcerun => true}}           
-
-    filter = @puppet.filter.clone
-    filter["identity"] = client
-
-    @puppet.client.sendreq(msg, msg[:agent], filter)
+    @puppet.custom_request("runonce", {:forcerun => true}, client, {"identity" => client})
 end
 
 # This is the beef of things, we take a desired interval and 
