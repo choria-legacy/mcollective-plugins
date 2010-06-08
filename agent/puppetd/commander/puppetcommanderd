@@ -46,10 +46,10 @@ if File.exist?("/etc/puppetcommander.cfg")
         if config.keys == @config.keys
             @config = YAML::load_file('/etc/puppetcommander.cfg')
         else
-            raise Exception
+            raise("Could not parse config, not all options given") 
         end
     rescue Exception => e
-        puts "Failed to load config file /etc/puppetcommander.cfg"
+        puts "Failed to load config file /etc/puppetcommander.cfg: #{e}"
         exit 1
     end
 end
@@ -212,6 +212,10 @@ end
 
 log("Looping clients with an interval of #{@config[:interval]} minutes")
 log("Restricting to #{@config[:concurrency]} concurrent puppet runs") if @config[:concurrency]
+
+Signal.trap("TERM") do
+    exit!
+end
 
 if @config[:daemonize]
     background
