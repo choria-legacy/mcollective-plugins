@@ -34,7 +34,10 @@ nrpe_results.each do |result|
         printf("%-40s status=%s\n", result[:sender], result[:statusmsg]) 
         printf("    %-40s\n\n", result[:data][:output])
     else 
-        printf("%-40s status=%s\n", result[:sender], result[:statusmsg]) unless result[:statuscode] == 0
+        if [1,2,3].include?(exitcode)
+            printf("%-40s status=%s\n", result[:sender], result[:statusmsg])
+            printf("    %-40s\n\n", result[:data][:output]) if result[:data][:output]
+        end
     end
 end
 
