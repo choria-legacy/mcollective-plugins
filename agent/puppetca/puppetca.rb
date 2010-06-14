@@ -1,21 +1,22 @@
 module MCollective
     module Agent
         class Puppetca<RPC::Agent
+            metadata    :name        => "SimpleRPC Service Agent",
+                        :description => "Agent to manage services using the Puppet service provider", 
+                        :author      => "R.I.Pienaar",
+                        :license     => "Apache 2.0",
+                        :version     => "1.1",
+                        :url         => "http://mcollective-plugins.googlecode.com/",
+                        :timeout     => 20
+
             def startup_hook
-                meta[:license] = "Apache License 2.0"
-                meta[:author] = "R.I.Pienaar"
-                meta[:version] = "1.0"
-                meta[:url] = "http://mcollective-plugins.googlecode.com/"
-
-                @timeout = 20
-
                 @puppetca = @config.pluginconf["puppetca.puppetca"] || "/usr/sbin/puppetca"
                 @cadir  = @config.pluginconf["puppetca.cadir"]   || "/var/lib/puppet/ssl/ca"
             end
 
             # Does what puppetca would do, deletes signed and csr
             # not just invoking puppetca since its slow.
-            def clean_action
+            action "clean" do
                  validate :certname, :shellsafe
 
                  certname = request[:certname]
@@ -43,14 +44,14 @@ module MCollective
 
             # revoke a cert, do the slow call to puppetca so we're 100%
             # certain we're doing the right thing
-            def revoke_action
+            action "revoke" do
                  validate :certname, :shellsafe
 
                  reply[:out] = %x[#{@puppetca} --color=none --revoke '#{request[:certname]}']
             end
 
             # sign a cert if we have one waiting
-            def sign_action
+            action "sign" do
                  validate :certname, :shellsafe
 
                  certname = request[:certname]
@@ -65,20 +66,14 @@ module MCollective
             end
 
             # list all certs, signed and waiting
-            def list_action
+            action "list" do
                 reply[:certs] = {}
 
-		requests = Dir.entries("#{@cadir}/requests").grep(/pem/)
-		signed = Dir.entries("#{@cadir}/signed").grep(/pem/)
-
+                requests = Dir.entries("#{@cadir}/requests").grep(/pem/)
+                signed = Dir.entries("#{@cadir}/signed").grep(/pem/)
 
                 reply[:certs][:requests] = requests.map{|r| File.basename(r, ".pem")}
                 reply[:certs][:signed] = signed.map{|r| File.basename(r, ".pem")}
-            end
-
-            def help
-                <<-EOH
-                EOH
             end
 
             private
