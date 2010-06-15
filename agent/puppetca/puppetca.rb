@@ -1,8 +1,8 @@
 module MCollective
     module Agent
         class Puppetca<RPC::Agent
-            metadata    :name        => "SimpleRPC Service Agent",
-                        :description => "Agent to manage services using the Puppet service provider", 
+            metadata    :name        => "Puppet CA Manager",
+                        :description => "Agent to manage Puppet certificates", 
                         :author      => "R.I.Pienaar",
                         :license     => "Apache 2.0",
                         :version     => "1.1",
