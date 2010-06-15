@@ -56,7 +56,7 @@ ps.list(limits).each_with_index do |result, i|
     
             stats[:count] += 1
             stats[:vsize] += proc[:vsize]
-            stats[:rss] += proc[:rss]
+            stats[:rss] += proc[:rss] * 1024
         end
     
         puts
