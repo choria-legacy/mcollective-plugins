@@ -49,7 +49,13 @@ action "sign", :description => "Signs a certificate request" do
 end
 
 action "list", :description => "Lists all requested and signed certificates" do
-    output :certs,
-           :description => "Hash of :requests and :signed",
-           :display_as  => "Certificates"
+    #display :always
+
+    output :requests,
+           :description => "Waiting CSR Requests",
+           :display_as  => "Waiting CSRs"
+
+    output :signed,
+           :description => "Signed Certificates",
+           :display_as  => "Signed"
 end

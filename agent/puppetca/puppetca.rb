@@ -67,13 +67,11 @@ module MCollective
 
             # list all certs, signed and waiting
             action "list" do
-                reply[:certs] = {}
-
                 requests = Dir.entries("#{@cadir}/requests").grep(/pem/)
                 signed = Dir.entries("#{@cadir}/signed").grep(/pem/)
 
-                reply[:certs][:requests] = requests.map{|r| File.basename(r, ".pem")}
-                reply[:certs][:signed] = signed.map{|r| File.basename(r, ".pem")}
+                reply[:requests] = requests.map{|r| File.basename(r, ".pem")}
+                reply[:signed] = signed.map{|r| File.basename(r, ".pem")}
             end
 
             private
