@@ -70,8 +70,8 @@ module MCollective
                 requests = Dir.entries("#{@cadir}/requests").grep(/pem/)
                 signed = Dir.entries("#{@cadir}/signed").grep(/pem/)
 
-                reply[:requests] = requests.map{|r| File.basename(r, ".pem")}
-                reply[:signed] = signed.map{|r| File.basename(r, ".pem")}
+                reply[:requests] = requests.map{|r| File.basename(r, ".pem")}.sort
+                reply[:signed] = signed.map{|r| File.basename(r, ".pem")}.sort
             end
 
             private
