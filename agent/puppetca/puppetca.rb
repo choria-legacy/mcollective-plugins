@@ -36,7 +36,7 @@ module MCollective
                  end
 
                  if msg.size == 0
-                     reply[:msg] = "Could not find any certs to delete"
+                     reply.fail "Could not find any certs to delete"
                  else
                     reply[:msg] = msg.join("  ")
                  end
@@ -56,12 +56,12 @@ module MCollective
 
                  certname = request[:certname]
 
-                 fail! "Already have a cert for #{certname} not attempting to sign again" if has_cert?(certname)
+                 reply.fail! "Already have a cert for #{certname} not attempting to sign again" if has_cert?(certname)
 
                  if cert_waiting?(certname)
                      reply[:out] = %x[#{@puppetca} --color=none --sign '#{request[:certname]}']
                  else
-                     reply[:out] = "No cert found to sign"
+                     reply.fail "No cert found to sign"
                  end
             end
 
