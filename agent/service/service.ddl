@@ -24,7 +24,7 @@ end
 
 ["stop", "start", "restart"].each do |act|
     action act, :description => "#{act.capitalize} a service" do
-        display :fail
+        display :failed
     
         input :service, 
               :prompt      => "Service Name",
