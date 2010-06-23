@@ -6,31 +6,20 @@ module MCollective
         #
         # Released under the terms of the GPL, same as Puppet
         #
-        # Agent is based on Simple RPC so needs mcollective 0.4.0 or newer
+        # Agent is based on Simple RPC so needs mcollective 0.4.7 or newer
         class Service<RPC::Agent
-            def startup_hook
-                meta[:license] = "GPLv2"
-                meta[:author] = "R.I.Pienaar"
-                meta[:version] = "1.1"
-                meta[:url] = "http://mcollective-plugins.googlecode.com/"
+            metadata    :name        => "SimpleRPC Service Agent",
+                        :description => "Agent to manage services",
+                        :author      => "R.I.Pienaar",
+                        :license     => "GPLv2",
+                        :version     => "1.2",
+                        :url         => "http://mcollective-plugins.googlecode.com/",
+                        :timeout     => 60
 
-                @timeout = 60
-            end
-
-            def restart_action
-                do_service_action("restart")
-            end
-
-            def stop_action
-                do_service_action("stop")
-            end
-
-            def start_action
-                do_service_action("start")
-            end
-
-            def status_action
-                do_service_action("status")
+            ["stop", "start", "restart", "status"].each do |act|
+                action act do
+                    do_service_action(act)
+                end
             end
 
             private
@@ -45,11 +34,11 @@ module MCollective
                 if @config.pluginconf.include?("service.hasrestart")
                     hasrestart = true if @config.pluginconf["service.hasrestart"] =~ /^1|y|t/
                 end
-                    
+
                 if @config.pluginconf.include?("service.hasstatus")
                     hasstatus = true if @config.pluginconf["service.hasstatus"] =~ /^1|y|t/
                 end
-                    
+
                 require 'puppet'
 
                 if Puppet.version =~ /0.24/
@@ -82,24 +71,6 @@ module MCollective
                 rescue Exception => e
                     reply.fail "#{e}"
                 end
-            end
-
-            def help
-                <<-EOH
-                Simple RPC Service Agent
-                ========================
-
-                Agent to manage services using the Puppet service provider
-
-                ACTIONS:
-                    start, stop, restart and status
-
-                INPUT:
-                    :service    the name of the service to manage
-
-                OUTPUT:
-                    :status     the status from puppet
-                EOH
             end
         end
     end
