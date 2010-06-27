@@ -6,43 +6,22 @@ module MCollective
         #
         # Released under the terms of the GPL, same as Puppet
         class Package<RPC::Agent
-            attr_reader :timeout, :meta
+            metadata    :name        => "SimpleRPC Agent For Package Management",
+                        :description => "Agent To Manage Packages",
+                        :author      => "R.I.Pienaar",
+                        :license     => "GPLv2",
+                        :version     => "1.2",
+                        :url         => "http://mcollective-plugins.googlecode.com/",
+                        :timeout     => 180
 
-            def startup_hook
-                meta[:license] = "GPLv2"
-                meta[:author] = "R.I.Pienaar"
-                meta[:version] = "1.1"
-                meta[:url] = "http://mcollective-plugins.googlecode.com/"
-
-                @timeout = 180
+            ["install", "update", "uninstall", "purge", "status"].each do |act|
+                action act do
+                    validate :package, :shellsafe
+                    do_pkg_action(request[:package], act.to_sym)
+                end
             end
 
-            def install_action
-                validate :package, :shellsafe
-                do_pkg_action(request[:package], :install)
-            end
-
-            def update_action
-                validate :package, :shellsafe
-                do_pkg_action(request[:package], :update)
-            end
-
-            def uninstall_action
-                validate :package, :shellsafe
-                do_pkg_action(request[:package], :uninstall)
-            end
-
-            def purge_action
-                validate :package, :shellsafe
-                do_pkg_action(request[:package], :purge)
-            end
-
-            def status_action
-                validate :package, :shellsafe
-                do_pkg_action(request[:package], :status)
-            end
-
-            def yum_clean_action
+            action "yum_clean" do
                 if File.exist?("/usr/bin/yum")
                     reply[:output] = %x[/usr/bin/yum clean all]
                 else
@@ -91,30 +70,6 @@ module MCollective
                 rescue Exception => e
                     reply.fail e.to_s
                 end
-            end
-
-            def help
-                <<-EOH
-                Simple RPC Package agent using Puppet Providers
-                ===============================================
-
-                This is a package management agent that uses the Reductive Labs Puppet
-                providers under the hood to achieve platform independance
-
-                ACTION:
-                    install, update, uninstall, purge, status, yum_clean
-
-                INPUT:
-                    :package    The package to affect n/a for yum_clean
-
-                OUTPUT:
-                    install, update, uninstall, purge, status:
-                       :output     Output from Puppet - usually this is just nil
-                       :properties The state of the package after the action was performed
-
-                    yum_clean:
-                       :output     Output from yum clean all
-                EOH
             end
         end
     end
