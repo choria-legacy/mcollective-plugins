@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+# Nagios check for the mcollective nrpe agent found at http://code.google.com/p/mcollective-plugins/
+#
+# Returns std Nagios exit codes and performance data
+
+require 'mcollective'
+
+include MCollective::RPC
+
+nrpe = rpcclient("nrpe")
+nrpe.progress = false
+
+if ARGV.length > 0
+    command = ARGV.shift
+else
+    puts("UNKNOWN: NRPE command not specified")
+    exit 3
+end
+
+
+stats = [0, 0, 0, 0]
+statuscodes = [0]
+
+nrpe_results = nrpe.runcommand(:command => command)
+
+nrpe_results.each do |result|
+    exitcode = result[:data][:exitcode].to_i
+    statuscodes << exitcode
+    stats[exitcode] += 1
+end
+
+# Nodes that don't respond are UNKNOWNs
+if nrpe.stats[:noresponsefrom].size > 0
+    stats[3] += nrpe.stats[:noresponsefrom].size
+    statuscodes << 3
+end
+
+puts("OK: %d WARNING: %d CRITICAL: %d UNNOWN: %d|total=%d ok=%d warn=%d crit=%d unknown=%d checktime=%f" % [stats[0], stats[1], stats[2], stats[3], nrpe_results.size, stats[0], stats[1], stats[2], stats[3], nrpe.stats.blocktime])
+
+exit statuscodes.max
+
+# vi:tabstop=4:expandtab:ai
