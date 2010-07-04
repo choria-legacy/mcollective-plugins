@@ -43,7 +43,7 @@ end
 # If we didn't discover any then thats an unknown
 statuscodes << 3 if nrpe.discover.size == 0
 
-puts("OK: %d WARNING: %d CRITICAL: %d UNKNOWN: %d|total=%d ok=%d warn=%d crit=%d unknown=%d checktime=%f" % [stats[0].size, stats[1].size, stats[2].size, stats[3].size, nrpe_results.size, stats[0].size, stats[1].size, stats[2].size, stats[3].size, nrpe.stats.blocktime])
+puts("#{command}: OK: %d WARNING: %d CRITICAL: %d UNKNOWN: %d|total=%d ok=%d warn=%d crit=%d unknown=%d checktime=%f" % [stats[0].size, stats[1].size, stats[2].size, stats[3].size, nrpe_results.size, stats[0].size, stats[1].size, stats[2].size, stats[3].size, nrpe.stats.blocktime])
 
 [2,1,3].each do |e|
     if stats[e].size > 0
@@ -52,6 +52,14 @@ puts("OK: %d WARNING: %d CRITICAL: %d UNKNOWN: %d|total=%d ok=%d warn=%d crit=%d
     end
 end
 
-exit statuscodes.max
+# if there's any critical checks, exit critical
+# else just take the highest.  UNKNOWN is 3 while
+# critical is 2, just exiting with max would hide
+# the fact that there are criticals.
+if statuscodes.include?(2) 
+    exit 2
+else
+    exit statuscodes.max
+end
 
 # vi:tabstop=4:expandtab:ai
