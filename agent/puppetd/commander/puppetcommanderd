@@ -200,10 +200,14 @@ def background
             pidfile.puts $$ 
         end
         
-        Signal.trap("HUP", "IGNORE")
-
         loop do
-            run(@config[:interval], @config[:concurrency])
+            begin
+                run(@config[:interval], @config[:concurrency])
+            rescue Exception => e
+                log("Runner raised an exception: #{e.class}: #{e}")
+                sleep 5
+                retry
+            end
         end
     end        
     
@@ -213,8 +217,10 @@ end
 log("Looping clients with an interval of #{@config[:interval]} minutes")
 log("Restricting to #{@config[:concurrency]} concurrent puppet runs") if @config[:concurrency]
 
-Signal.trap("TERM") do
-    exit!
+["TERM", "HUP"].each do |sig|
+    Signal.trap(sig) do
+        exit!
+    end
 end
 
 if @config[:daemonize]
