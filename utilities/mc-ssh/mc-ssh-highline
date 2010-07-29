@@ -38,6 +38,8 @@ client.options = options
 
 # Shows a list of options and lets the user choose one
 def pick(choices, title)
+    return choices[0][1] if choices.size == 1
+
     choose do |menu|
         menu.prompt = title
 
