@@ -35,8 +35,10 @@ module MCollective
 
             def handlemsg(msg, connection)
                 request = msg[:body]
+    
+                log = request.to_hash.merge({:senderid => msg[:senderid], :requestid => request.uniqid, :caller => "#{request.caller}@#{request.sender}"})
 
-                @coll.save(request.to_hash)
+                @coll.save(log)
 
                 # never reply
                 nil
