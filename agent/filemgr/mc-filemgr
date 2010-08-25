@@ -6,9 +6,9 @@ include MCollective::RPC
  
 options = rpcoptions do |parser, options|
    parser.define_head "Generic File Manager Client"
-   parser.banner = "Usage: mc-filemgr [--file FILE] [touch|remove]"
+   parser.banner = "Usage: mc-filemgr [--file FILE] [touch|remove|status]"
 
-   parser.on('-f', '--file MSG', 'Message to pass') do |v|
+   parser.on('-f', '--file MSG', 'file to manage') do |v|
       options[:file] = v
    end
 end
@@ -22,11 +22,11 @@ end
 mc = rpcclient("filemgr", :options => options)
 
 if command == "remove"
-    unless options.include?(:file)
-        puts "remove command requires --file FILE"
-        exit 1
+    if options[:file]
+        printrpc mc.remove(:file => options[:file])
+    else
+        printrpc mc.remove()
     end
-    printrpc mc.remove(:file => options[:file])
 
 elsif command == "touch"
     if options[:file]
@@ -35,8 +35,13 @@ elsif command == "touch"
         printrpc mc.touch()
     end
 
+elsif command == "status"
+    mc.status(:file => options[:file]).each do |resp|
+       printf("%-40s: %s\n", resp[:sender], resp[:data][:output] || resp[:statusmsg] ) 
+    end
+
 else
-    puts "Valid commands are 'touch' and 'remove'"
+    puts "Valid commands are 'touch', 'status', and 'remove'"
     exit 1
 end
 
