@@ -5,7 +5,7 @@
 # puppet daemons run at a set interval and it will control the concurrency
 # across the cluster as a whole.
 #
-# The object is to make best use of the puppetmaster resources and to provide 
+# The object is to make best use of the puppetmaster resources and to provide
 # a nice predictable utilization graphs of a master to assist in capacity planning.
 #
 # We also give priority to the Systems Administrator, if she runs an interactive
@@ -46,7 +46,7 @@ if File.exist?("/etc/puppetcommander.cfg")
         if config.keys == @config.keys
             @config = YAML::load_file('/etc/puppetcommander.cfg')
         else
-            raise("Could not parse config, not all options given") 
+            raise("Could not parse config, not all options given")
         end
     rescue Exception => e
         puts "Failed to load config file /etc/puppetcommander.cfg: #{e}"
@@ -107,7 +107,7 @@ rescue Exception => e
     puts "Could not log '#{msg}': #{e}"
 end
 
-# Does a SimpleRPC call and calculates the total amount of 
+# Does a SimpleRPC call and calculates the total amount of
 # puppet daemons that are currently running a catalog
 def concurrent_count
     debug("Getting puppet status")
@@ -122,15 +122,15 @@ def run_client(client)
     @puppet.custom_request("runonce", {:forcerun => true}, client, {"identity" => client})
 end
 
-# This is the beef of things, we take a desired interval and 
+# This is the beef of things, we take a desired interval and
 # maximum allowed concurrency and basically performs the following
 # pseudo actions:
 #
 # - count the clients that match the supplied filter
-# - figure out a desired sleep interval to run the number of clients 
+# - figure out a desired sleep interval to run the number of clients
 #   in the supplied maximum interval
 # - optionally shuffle the list of nodes based on the :randomize config option
-# - traverse the list of discovered clients alphabetically and does a 
+# - traverse the list of discovered clients alphabetically and does a
 #   run of each one as long as the concurrency is below the limit.
 # - after running the node we sleep for the remaining time of the sleep interval
 # - once we've run all nodes, we rediscover and run again - this will pick
@@ -142,7 +142,7 @@ def run(interval, concurrency)
 
     clients = @puppet.discover :verbose => false
 
-    unless clients == nil
+    unless (clients == nil or clients.size < 1)
         begin
             sleeptime = interval * 60 / clients.size
 
@@ -156,7 +156,7 @@ def run(interval, concurrency)
 
             clients.each do |client|
                 starttime = Time.now.to_i
-        
+
                 cur_concurrency = concurrent_count
                 log("Current puppetd's running: #{cur_concurrency}")
 
@@ -173,7 +173,12 @@ def run(interval, concurrency)
                 sleeptime = (interval * 60 / clients.size) - (Time.now.to_i - starttime)
                 log("Sleeping for #{sleeptime} seconds")
 
-                sleep sleeptime - (Time.now.to_i - starttime)
+                sleepfor = sleeptime - (Time.now.to_i - starttime)
+                if sleepfor > 0
+                    sleep sleepfor
+                else
+                    sleep 1
+                end
             end
         rescue Exception => e
             log(e)
@@ -196,10 +201,10 @@ end
 # starts the worker loop in the background
 def background
     pid = fork do
-        File.open("/var/run/puppetcommander.pid", "w") do |pidfile| 
-            pidfile.puts $$ 
+        File.open("/var/run/puppetcommander.pid", "w") do |pidfile|
+            pidfile.puts $$
         end
-        
+
         loop do
             begin
                 run(@config[:interval], @config[:concurrency])
@@ -209,8 +214,8 @@ def background
                 retry
             end
         end
-    end        
-    
+    end
+
     Process.detach(pid)
 end
 
@@ -227,4 +232,4 @@ if @config[:daemonize]
     background
 else
     foreground
-end   
+end
