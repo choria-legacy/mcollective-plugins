@@ -34,11 +34,11 @@ module MCollective
                 begin
                     require 'puppet'
 
-                    if Puppet.version =~ /0.24/
-                        Puppet::Type.type(:package).clear
-                        pkg = Puppet::Type.type(:package).create(:name => package).provider
+                    if ::Puppet.version =~ /0.24/
+                        ::Puppet::Type.type(:package).clear
+                        pkg = ::Puppet::Type.type(:package).create(:name => package).provider
                     else
-                        pkg = Puppet::Type.type(:package).new(:name => package).provider
+                        pkg = ::Puppet::Type.type(:package).new(:name => package).provider
                     end
 
                     reply[:output] = ""
