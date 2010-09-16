@@ -41,11 +41,11 @@ module MCollective
 
                 require 'puppet'
 
-                if Puppet.version =~ /0.24/
-                    Puppet::Type.type(:service).clear
-                    svc = Puppet::Type.type(:service).create(:name => service, :hasstatus => hasstatus, :hasrestart => hasrestart).provider
+                if ::Puppet.version =~ /0.24/
+                    ::Puppet::Type.type(:service).clear
+                    svc = ::Puppet::Type.type(:service).create(:name => service, :hasstatus => hasstatus, :hasrestart => hasrestart).provider
                 else
-                    svc = Puppet::Type.type(:service).new(:name => service, :hasstatus => hasstatus, :hasrestart => hasrestart).provider
+                    svc = ::Puppet::Type.type(:service).new(:name => service, :hasstatus => hasstatus, :hasrestart => hasrestart).provider
                 end
 
                 svc
