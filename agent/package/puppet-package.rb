@@ -10,7 +10,7 @@ module MCollective
                         :description => "Agent To Manage Packages",
                         :author      => "R.I.Pienaar",
                         :license     => "GPLv2",
-                        :version     => "1.2",
+                        :version     => "1.3",
                         :url         => "http://mcollective-plugins.googlecode.com/",
                         :timeout     => 180
 
