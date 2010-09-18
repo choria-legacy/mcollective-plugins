@@ -22,11 +22,19 @@ module MCollective
             end
 
             action "yum_clean" do
-                if File.exist?("/usr/bin/yum")
-                    reply[:output] = %x[/usr/bin/yum clean all]
-                else
-                    reply.fail "Cannot find yum at /usr/bin/yum"
-                end
+                reply.fail! "Cannot find yum at /usr/bin/yum" unless File.exist?("/usr/bin/yum")
+                reply[:output] = %x[/usr/bin/yum clean all]
+                reply[:exitcode] = $?.exitstatus
+
+                reply.fail! "Yum clean failed, exit code was #{reply[:exitcode]}" unless reply[:exitcode] == 0
+            end
+
+            action "apt_update" do
+                reply.fail! "Cannot find apt-get at /usr/bin/apt-get" unless File.exist?("/usr/bin/apt-get")
+                reply[:output] = %x[/usr/bin/apt-get update]
+                reply[:exitcode] = $?.exitstatus
+
+                reply.fail! "apt-get update failed, exit code was #{reply[:exitcode]}" unless reply[:exitcode] == 0
             end
 
             private

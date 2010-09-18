@@ -51,4 +51,17 @@ action "yum_clean", :description => "Clean the YUM cache" do
            :description => "Output from YUM",
            :display_as  => "Output"
 
+    output :exitcode,
+           :description => "The exitcode from the yum command",
+           :display_as => "Exit Code"
+end
+
+action "apt_update", :description => "Updated the apt cache" do
+    output :output,
+           :description => "Output from apt-get",
+           :display_as  => "Output"
+
+    output :exitcode,
+           :description => "The exitcode from the apt-get command",
+           :display_as => "Exit Code"
 end
