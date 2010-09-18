@@ -100,7 +100,7 @@ case "$1" in
 	status)
 		if [ -f ${lock} ]; then
 			if [ -s ${pidfile} ]; then
-				if [ -e /proc/ `cat ${pidfile}` ]; then
+				if [ -e /proc/`cat ${pidfile}` ]; then
 					echo "PuppetCommander `cat ${pidfile}` is running."
 					exit 0
 				else
