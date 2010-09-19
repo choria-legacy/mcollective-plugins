@@ -35,12 +35,14 @@ module MCollective
                         @@last_facts_load = Time.now.to_i
                         logger.debug("Resetting facter cache after #{cache_time} seconds")
                         ::Facter.reset
+
+                        @@facts = ::Facter.to_hash
                     end
                 rescue
                     @@last_facts_load = Time.now.to_i
                 end
     
-                ::Facter.to_hash
+                @@facts
             end
         end
     end
