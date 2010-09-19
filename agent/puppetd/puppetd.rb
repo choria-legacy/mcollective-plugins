@@ -1,81 +1,45 @@
 module MCollective
     module Agent
+        # An agent to manage the Puppet Daemon
+        # 
+        # Configuration Options:
+        #    puppetd.splaytime - How long to splay for, no splay by default
+        #    puppetd.statefile - Where to find the state.yaml file defaults to
+        #                        /var/lib/puppet/state/state.yaml
+        #    puppetd.lockfile  - Where to find the lock file defaults to 
+        #                        /var/lib/puppet/state/puppetdlock
+        #    puppetd.puppetd   - Where to find the puppetd, defaults to 
+        #                        /usr/sbin/puppetd
         class Puppetd<RPC::Agent
+            metadata    :name        => "SimpleRPC Puppet Agent",
+                        :description => "Agent to manage the puppet daemon",
+                        :author      => "R.I.Pienaar",
+                        :license     => "Apache License 2.0",
+                        :version     => "1.3",
+                        :url         => "http://mcollective-plugins.googlecode.com/",
+                        :timeout     => 20
+
             def startup_hook
-                meta[:license] = "Apache License 2.0"
-                meta[:author] = "R.I.Pienaar"
-                meta[:version] = "1.2"
-                meta[:url] = "http://mcollective-plugins.googlecode.com/"
-
-                @timeout = 20
-
                 @splaytime = @config.pluginconf["puppetd.splaytime"].to_i || 0
                 @lockfile = @config.pluginconf["puppetd.lockfile"] || "/var/lib/puppet/state/puppetdlock"
                 @statefile = @config.pluginconf["puppetd.statefile"] || "/var/lib/puppet/state/state.yaml"
                 @puppetd = @config.pluginconf["puppetd.puppetd"] || "/usr/sbin/puppetd"
             end
 
-            def enable_action
+            action "enable" do
                 enable
             end
 
-            def disable_action
+            action "disable" do
                 disable
             end
 
-            def runonce_action
+            action "runonce" do
                 runonce
             end
 
-            def status_action
+            action "status" do
                 status
-            end
-
-            def metadata_action
-                reply[:facts] = PluginManager["facts_plugin"].get_facts
-                reply[:classes] = []
-
-                cfile = Config.instance.classesfile
-                if File.exist?(cfile)
-                    reply[:classes] = File.readlines(cfile).map {|i| i.chomp}
-                end
-            end
-
-            def help
-                <<-EOH
-                Simple RPC Puppetd Agent
-                ========================
-    
-                Agent to enable, disable and run the puppet agent
-    
-                ACTIONS:
-                    enable, disable, status, runonce, metadata
-
-                INPUT:
-                    :forcerun   For the runonce action, when set to true this
-                                force an immediate run without waiting for any 
-                                configured splay
-
-                OUTPUT:
-                    :output     A string showing some human parsable status
-                    :enabled    for the status action, 1 if the daemon is enabled, 0 otherwise
-                    :running    for the status action, 1 if currently running, 0 otherwise
-
-                    metadata action
-                    :classes    List of classes in an Array
-                    :facts      Facts in a Hash
-
-                CONFIGURATION 
-                -------------
-
-                puppetd.splaytime - How long to splay for, no splay by default
-                puppetd.statefile - Where to find the state.yaml file defaults to
-                                    /var/lib/puppet/state/state.yaml
-                puppetd.lockfile  - Where to find the lock file defaults to 
-                                    /var/lib/puppet/state/puppetdlock
-                puppetd.puppetd   - Where to find the puppetd, defaults to 
-                                    /usr/sbin/puppetd
-                EOH
             end
 
             private
