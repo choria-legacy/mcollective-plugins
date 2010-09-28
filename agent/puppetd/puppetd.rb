@@ -1,14 +1,14 @@
 module MCollective
     module Agent
         # An agent to manage the Puppet Daemon
-        # 
+        #
         # Configuration Options:
         #    puppetd.splaytime - How long to splay for, no splay by default
         #    puppetd.statefile - Where to find the state.yaml file defaults to
         #                        /var/lib/puppet/state/state.yaml
-        #    puppetd.lockfile  - Where to find the lock file defaults to 
+        #    puppetd.lockfile  - Where to find the lock file defaults to
         #                        /var/lib/puppet/state/puppetdlock
-        #    puppetd.puppetd   - Where to find the puppetd, defaults to 
+        #    puppetd.puppetd   - Where to find the puppetd, defaults to
         #                        /usr/sbin/puppetd
         class Puppetd<RPC::Agent
             metadata    :name        => "SimpleRPC Puppet Agent",
@@ -51,12 +51,12 @@ module MCollective
                 if File.exists?(@lockfile)
                     if File::Stat.new(@lockfile).zero?
                         reply[:output] = "Disabled, not running"
-		            else
+                    else
                         reply[:output] = "Enabled, running"
                         reply[:enabled] = 1
                         reply[:running] = 1
-		            end
-           	    else
+                    end
+                else
                         reply[:output] = "Enabled, not running"
                         reply[:enabled] = 1
                 end
