@@ -6,7 +6,7 @@ module MCollective
         #
         # This plugin by default works with puppet facts loaded via pluginsync
         # and the deprecated factsync. If your facts are in a custom location, or
-        # you use non-standard puppet dirs, then set plugin.facter.facterlib 
+        # you use non-standard puppet dirs, then set plugin.facter.facterlib
         # in the server.cfg
         #
         # It caches facts for 300 seconds to speed things up a bit,
@@ -19,9 +19,9 @@ module MCollective
         # Plugin released under the terms of the GPL.
         class Facter<Base
             @@last_facts_load = 0
+            @@facts = {}
 
             def get_facts
-
                 config = Config.instance
                 logger = Log.instance
 
@@ -29,20 +29,33 @@ module MCollective
                 cache_time = config.pluginconf["facter.cache_time"] || 300
 
                 logger.debug("Have FACTERLIB: #{ENV['FACTERLIB']}")
+                logger.debug("Last facts load time i #{@@last_facts_load} cache time is #{cache_time}")
 
-                begin 
-                    if (Time.now.to_i - @@last_facts_load > cache_time.to_i )
+                Thread.exclusive do
+                    begin
+                        if (Time.now.to_i - @@last_facts_load > cache_time.to_i )
+                            logger.debug("Resetting facter cache after #{cache_time} seconds")
+                            reload_facts
+                        end
+                    rescue Exception => e
+                        logger.error("Failed to load facts: #{e}")
                         @@last_facts_load = Time.now.to_i
-                        logger.debug("Resetting facter cache after #{cache_time} seconds")
-                        ::Facter.reset
-
-                        @@facts = ::Facter.to_hash
                     end
-                rescue
-                    @@last_facts_load = Time.now.to_i
+
+                    return @@facts
                 end
-    
-                @@facts
+            end
+
+            private
+            def reload_facts
+                @@last_facts_load = Time.now.to_i
+                ::Facter.reset
+
+                @@facts = {}
+
+                ::Facter.to_hash.each_pair do |key,value|
+                    @@facts[key] = value.to_s
+                end
             end
         end
     end
