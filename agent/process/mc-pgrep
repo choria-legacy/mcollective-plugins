@@ -52,7 +52,7 @@ ps.list(limits).each_with_index do |result, i|
         result[:data][:pslist].each do |proc|
             proc[:state] == "Z" ? cmdline = "[#{proc[:cmdline]}]" : cmdline = proc[:cmdline]
 
-            puts " %10s  %5d  %s" % [proc[:username][0,10], proc[:pid], cmdline[0,60] ] if proc[:cmdline].match limits[:pattern]
+            puts "%5d %-10s  %s  %s" % [proc[:pid], proc[:username][0,10], proc[:vsize].bytes_to_human, cmdline[0,60] ] if proc[:cmdline].match limits[:pattern]
     
             stats[:count] += 1
             stats[:vsize] += proc[:vsize]
