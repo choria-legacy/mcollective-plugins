@@ -20,6 +20,7 @@ module MCollective
         class Facter<Base
             @@last_facts_load = 0
             @@facts = {}
+            @@last_good_facts = {}
 
             def get_facts
                 config = Config.instance
@@ -29,7 +30,7 @@ module MCollective
                 cache_time = config.pluginconf["facter.cache_time"] || 300
 
                 logger.debug("Have FACTERLIB: #{ENV['FACTERLIB']}")
-                logger.debug("Last facts load time i #{@@last_facts_load} cache time is #{cache_time}")
+                logger.debug("Last facts load time is #{@@last_facts_load} cache time is #{cache_time}")
 
                 Thread.exclusive do
                     begin
@@ -48,14 +49,27 @@ module MCollective
 
             private
             def reload_facts
-                @@last_facts_load = Time.now.to_i
                 ::Facter.reset
 
                 @@facts = {}
 
-                ::Facter.to_hash.each_pair do |key,value|
+                facts = ::Facter.to_hash
+                Log.instance.info("Loaded #{facts.keys.size} facts from Facter")
+
+                facts.each_pair do |key,value|
                     @@facts[key] = value.to_s
                 end
+
+                # Somehow, sometimes, we get empty fact hashes?
+                if @@facts.empty?
+                    Log.instance.error("Got empty facts, resetting to last known good")
+
+                    @@facts = @last_good_facts.clone
+                else
+                    @@last_good_facts = @@facts.clone
+                end
+
+                @@last_facts_load = Time.now.to_i
             end
         end
     end
