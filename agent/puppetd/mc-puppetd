@@ -36,7 +36,7 @@ def log(msg)
     puts("#{Time.now}> #{msg}")
 end
 
-# Checks concurrent runs every second and returns once its 
+# Checks concurrent runs every second and returns once its
 # below the given threshold
 def waitfor(concurrency, client)
     logged = false
@@ -44,13 +44,13 @@ def waitfor(concurrency, client)
     loop do
         running = client.status.inject(0) {|s,v| s += v[:data][:running] }
 
-        return running if running <= concurrency
+        return running if running < concurrency
 
         log("Currently #{running} nodes running, waiting") unless logged
 
         logged = true
 
-        sleep 0.5
+        sleep 1
     end
 end
 
