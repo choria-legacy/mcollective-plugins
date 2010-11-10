@@ -69,8 +69,6 @@ module MCollective
             def runonce
                 if File.exists?(@lockfile)
                     reply.fail "Lock file exists, puppetd is already running or it's disabled"
-                elsif File.exist?(@pidfile)
-                    reply.fail "Pid file exist, puppetd is already running"
                 else
                     if request[:forcerun]
                         reply[:output] = %x[#{@puppetd} --onetime]
