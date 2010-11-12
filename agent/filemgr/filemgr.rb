@@ -64,7 +64,11 @@ module MCollective
                     reply[:output] = "present"
                     reply[:present] = 1
 
-                    stat = File.stat(file)
+                    if File.symlink?(file)
+                        stat = File.lstat(file)
+                    else
+                        stat = File.stat(file)
+                    end
 
                     [:size, :mtime, :ctime, :atime, :uid, :gid].each do |item|
                         reply[item] = stat.send(item)
