@@ -19,6 +19,18 @@ module MCollective
                 reply[:destaddr] = peer[3]
             end
 
+            action "reconnect" do
+                PluginManager["connector_plugin"].disconnect
+
+                sleep 0.5
+
+                PluginManager["connector_plugin"].connect
+
+                ::Process.kill("USR1", $$)
+
+                reply[:restarted] = 1
+            end
+
             private
             def get_pid(process)
                 pid = `pidof #{process}`.chomp.grep(/\d+/)

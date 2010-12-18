@@ -25,3 +25,11 @@ action "peer_info", :description => "Get STOMP Connection Peer" do
            :description => "Destination Address",
            :display_as => "Address"
 end
+
+action "reconnect", :description => "Re-creates the connection to the STOMP network" do
+    display :always
+
+    output :restarted,
+           :description => "Did the restart complete succesfully?",
+           :display_as => "Restarted"
+end
