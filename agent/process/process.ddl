@@ -4,7 +4,7 @@ metadata    :name        => "SimpleRPC Agent For Process Management",
             :license     => "Apache 2.0",
             :version     => "1.1",
             :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
-            :timeout     => 3
+            :timeout     => 10
 
 action "list", :description => "List Processes" do
     input :pattern,
