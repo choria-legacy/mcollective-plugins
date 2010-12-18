@@ -1,17 +1,16 @@
 module MCollective
     module Agent
         class Process<RPC::Agent
-            def startup_hook
-                meta[:license] = "Apache License 2.0"
-                meta[:author] = "R.I.Pienaar"
-                meta[:version] = "1.0"
-                meta[:url] = "http://mcollective-plugins.googlecode.com/"
-
-                @timeout = 1
-            end
+            metadata    :name        => "SimpleRPC Agent For Process Management",
+                        :description => "Agent To Manage Processes",
+                        :author      => "R.I.Pienaar",
+                        :license     => "Apache 2.0",
+                        :version     => "1.1",
+                        :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
+                        :timeout     => 3
 
             # List all processes, accepts an optional pattern
-            def list_action
+            action "list" do
                 pattern = request[:pattern] || "."
                 zombies = request[:just_zombies] || false
 
@@ -19,7 +18,7 @@ module MCollective
             end
 
             # Kills a certain pid with a signal
-            def kill_action
+            action "kill" do
                 validate :signal, :shellsafe
                 validate :pid, /^\d+$/
 
@@ -34,7 +33,7 @@ module MCollective
 
             # Kills all processes matching a pattern
             # with a given signal
-            def pkill_action
+            action "pkill" do
                 validate :signal, :shellsafe
                 validate :pattern, String
 
@@ -44,14 +43,14 @@ module MCollective
                     pids_to_kill << ps[:pid]
                 end
 
-                # Sanity check                                                                                                                                                                
+                # Sanity check
                 if get_proc_list(".", false).size == pids_to_kill.size
                     reply.fail "Pattern matches all (#{pids_to_kill.size}) processes, refusing to kill"
                     return
                 else
                     reply[:killed] = 0
 
-                    pids_to_kill.each do |pid| 
+                    pids_to_kill.each do |pid|
                         system("logger -t mcolletive 'killing pid #{pid} based on pattern #{request[:pattern]}'")
 
                         killpid(request[:signal], pid)
@@ -62,37 +61,6 @@ module MCollective
                         reply[:killed] += 1
                     end
                 end
-            end
-
-            def help
-                <<-EOH
-                Simple RPC Process Management Agent
-                ===================================
-                
-                Agent that manages processes.
-
-                This plugin requires http://raa.ruby-lang.org/project/sys-proctable/ to be 
-                available on your machines
-
-                ACTIONS:
-                    list, kill, pkill
-
-                INPUT:
-                    list:
-                        :pattern        Optional pattern to grep command line for
-
-                    kill
-                        :pid            The pid to kill
-                        :signal         The signal to send, integer or POSIX name
-
-                    pkill
-                        :pattern        The pattern to look for 
-                        :signal         The signal to send, integer or POSIX name
-
-                OUTPUT:
-                    :killed             For pkill and kill the amount of processes killed
-                    :pslist             The processlist for list action
-                EOH
             end
 
             private
