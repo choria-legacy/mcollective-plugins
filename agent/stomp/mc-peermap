@@ -1,0 +1,82 @@
+#!/usr/bin/ruby
+
+# Produce a simple textual map of a STOMP based
+# mcollective network
+#
+# If you give a fact name as argument each STOMP
+# server will display this fact next to some stats
+
+require 'mcollective'
+
+include MCollective::RPC
+
+if ARGV.size > 0
+    fact = ARGV[0]
+else
+    fact = nil
+end
+
+# gets all the peers from the network
+def getpeers(client)
+    peers = {}
+    peer_resp_times = {}
+
+    starttime = nil
+
+    client.peer_info do |resp|
+        starttime = Time.now.to_f unless starttime
+
+        data = resp[:body][:data]
+        desthost = data[:desthost]
+
+        peers[desthost] ||= {:hosts => [], :pings => []}
+
+        peers[desthost][:hosts] << resp[:senderid]
+        peers[desthost][:pings] << Time.now.to_f - starttime
+    end
+
+    peers
+end
+
+# Shows all the nodes connected to a specific stomp server
+def showserver(peers, server, fact)
+    rpc = rpcclient("rpcutil")
+    rpc.progress = false
+
+    facts = rpc.custom_request("get_fact", {:fact => fact}, server, {"identity" => server}) if fact
+
+    nodecount = peers[server][:hosts].size
+    avgping = peers[server][:pings].inject{ |sum, el| sum + el } / peers[server][:pings].size * 1000
+
+    if fact
+        puts "%s -+ %i nodes with %.2fms average ping [%s] " % [server, nodecount, avgping, facts.first[:data][:value] ]
+    else
+        puts "%s -+ %i nodes with %.2fms average ping" % [server, nodecount, avgping ]
+    end
+
+    peers[server][:hosts].each do |s|
+        print " " * server.length
+        puts "  |-#{s}"
+    end
+end
+
+# Walks all the servers and shows each
+def shownetwork(peers, server=nil, fact=nil)
+    if server
+        if peers.include?(server)
+            showserver(peers, server, fact)
+        else
+            puts "The network doesn't include #{server}"
+        end
+    else
+        peers.keys.sort.each do |peer|
+            showserver(peers, peer, fact)
+            puts
+        end
+    end
+end
+
+shelper = rpcclient("stomputil")
+shelper.progress = false
+
+shownetwork(getpeers(shelper), nil, fact)
