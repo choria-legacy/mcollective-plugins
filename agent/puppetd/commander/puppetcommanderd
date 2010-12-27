@@ -74,22 +74,6 @@ end
     end
 end
 
-# Only process the config filters if we didn't receive any on the command line
-# which would be in options[:filter]
-#
-# The final filter that should be active is stored in @options
-if @options[:filter]["fact"] == [] && @options[:filter]["agent"] == []
-    @config[:filter].split(" ").each do |f|
-        if f =~ /^(.+?)=(.+)/
-            @options[:filter]["fact"] << {:fact => $1, :value => $2}
-        else
-            @options[:filter]["cf_class"] << filter
-        end
-
-    end
-
-end
-
 @logger = Logger.new(@config[:logfile])
 
 def log(msg)
@@ -140,21 +124,25 @@ end
 def run(interval, concurrency)
     @puppet.reset
 
-    clients = @puppet.discover :verbose => false
+    log("Doing discovery start of run")
+    Timeout::timeout(5) {
+        @clients = @puppet.discover :verbose => false
+    }
+    log("Discovered #{@puppet.discover.size} nodes")
 
-    unless (clients == nil or clients.size < 1)
+    unless @clients == nil
         begin
-            sleeptime = interval * 60 / clients.size
+            sleeptime = interval * 60 / @clients.size
 
-            log("Found #{clients.size} puppet nodes, sleeping for ~#{sleeptime} seconds between runs")
+            log("Found #{@clients.size} puppet nodes, sleeping for ~#{sleeptime} seconds between runs")
 
             if @config[:randomize]
-                clients = clients.sort_by { rand }
+                @clients = @clients.sort_by { rand }
             else
-                clients.sort!
+                @clients.sort!
             end
 
-            clients.each do |client|
+            @clients.each do |client|
                 starttime = Time.now.to_i
 
                 cur_concurrency = concurrent_count
@@ -170,15 +158,10 @@ def run(interval, concurrency)
                     run_client(client)
                 end
 
-                sleeptime = (interval * 60 / clients.size) - (Time.now.to_i - starttime)
+                sleeptime = (interval * 60 / @clients.size) - (Time.now.to_i - starttime)
                 log("Sleeping for #{sleeptime} seconds")
 
-                sleepfor = sleeptime - (Time.now.to_i - starttime)
-                if sleepfor > 0
-                    sleep sleepfor
-                else
-                    sleep 1
-                end
+                sleep sleeptime - (Time.now.to_i - starttime)
             end
         rescue Exception => e
             log(e)
@@ -190,6 +173,18 @@ end
 
 @puppet = rpcclient("puppetd", :options => @options)
 @puppet.progress = false
+
+# do some naive parsing of the filter, this is pretty poor and should be set using
+# the new in 1.1.0 MCOLLECTIVE_EXTRA_OPTS setting
+if @puppet.options[:filter]["fact"] == [] || @puppet.options[:filter]["cf_class"] == []
+    @config[:filter].split(" ").each do |f|
+        if f =~ /^(.+?)=(.+)/
+            @puppet.fact_filter $1, $2
+        else
+            @puppet.class_filter f
+        end
+    end
+end
 
 # starts the worker loop in the foreground
 def foreground
@@ -207,7 +202,9 @@ def background
 
         loop do
             begin
+		log("Starting run: interval: #{@config[:interval]} concurrency: #{@config[:concurrency]}")
                 run(@config[:interval], @config[:concurrency])
+		log("Run ended, restarting")
             rescue Exception => e
                 log("Runner raised an exception: #{e.class}: #{e}")
                 sleep 5
