@@ -8,14 +8,14 @@ module MCollective
         # generally though using this plugin will slow down discovery by
         # a couple of seconds
         #
-        # See: http://code.google.com/p/mcollective-plugins/wiki/FactsOpsCodeOhai
+        # See: http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/FactsOhai
         #
         # Plugin released under the terms of the Apache Licence v 2.
         class Opscodeohai<Base
             @@last_facts_load = 0
 
             def get_facts
-                begin 
+                begin
                     if (Time.now.to_i - @@last_facts_load > 3000)
                         Log.instance.debug("Reloading facts from Ohai")
                         oh = Ohai::System.new
@@ -32,7 +32,7 @@ module MCollective
                 rescue
                     @@last_facts_load = Time.now.to_i
                 end
-    
+
                 @@facts
             end
 
@@ -45,7 +45,7 @@ module MCollective
                 if val.is_a?(Mash)
                     val.each_pair do |nkey, nval|
                         ohai_flatten(nkey, nval, keys, result)
-            
+
                         keys.delete_at(keys.size - 1)
                     end
                 else
