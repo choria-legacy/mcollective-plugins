@@ -71,6 +71,7 @@ if command == "status"
 elsif command == "count"
     running = enabled = total = 0
 
+    puppetd.progress = false
     puppetd.status do |resp|
         begin
             running += resp[:body][:data][:running].to_i
