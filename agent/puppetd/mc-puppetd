@@ -42,7 +42,15 @@ def waitfor(concurrency, client)
     logged = false
 
     loop do
-        running = client.status.inject(0) {|s,v| s += v[:data][:running] }
+        running = 0
+
+        client.status do |resp|
+            begin
+                running += resp[:body][:data][:running].to_i
+            rescue Exception => e
+                log("Failed to get node status: #{e}, continuing")
+            end
+        end
 
         return running if running < concurrency
 
@@ -50,7 +58,7 @@ def waitfor(concurrency, client)
 
         logged = true
 
-        sleep 1
+        sleep 2
     end
 end
 
@@ -61,11 +69,19 @@ if command == "status"
         puts "%-40s %s" % [ node[:sender], msg ]
     end
 elsif command == "count"
-    status = puppetd.status
+    running = enabled = total = 0
 
-    running = status.inject(0) {|s,v| s += v[:data][:running] }
-    enabled = status.inject(0) {|s,v| s += v[:data][:enabled] }
-    disabled = status.size - enabled
+    puppetd.status do |resp|
+        begin
+            running += resp[:body][:data][:running].to_i
+            enabled += resp[:body][:data][:enabled].to_i
+            total += 1
+        rescue Exception => e
+            log("Failed to get node status: #{e}, continuing")
+        end
+    end
+
+    disabled = total - enabled
 
     puts
 
