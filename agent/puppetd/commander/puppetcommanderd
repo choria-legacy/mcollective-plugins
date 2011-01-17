@@ -96,7 +96,17 @@ end
 def concurrent_count
     debug("Getting puppet status")
 
-    @puppet.status.inject(0) {|s,v| s += v[:data][:running] }
+    running = 0
+
+    @puppet.status do |resp|
+        begin
+            running += resp[:body][:data][:running].to_i
+        rescue Exception => e
+            debug("Failed to get node status: #{e}, continuing")
+        end
+    end
+
+    running
 end
 
 # This sends a request to a specific client only.
