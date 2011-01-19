@@ -45,21 +45,25 @@ stats = {:count => 0,
          :rss   => 0}
 
 ps.list(limits).each_with_index do |result, i|
-    if result[:data][:pslist].size > 0
-        puts result[:sender]
-        stats[:hosts] += 1
+    begin
+        if result[:data][:pslist].size > 0
+            puts result[:sender]
+            stats[:hosts] += 1
 
-        result[:data][:pslist].each do |proc|
-            proc[:state] == "Z" ? cmdline = "[#{proc[:cmdline]}]" : cmdline = proc[:cmdline]
+            result[:data][:pslist].each do |proc|
+                proc[:state] == "Z" ? cmdline = "[#{proc[:cmdline]}]" : cmdline = proc[:cmdline]
 
-            puts "%5d %-10s  %s  %s" % [proc[:pid], proc[:username][0,10], proc[:vsize].bytes_to_human, cmdline[0,60] ] if proc[:cmdline].match limits[:pattern]
-    
-            stats[:count] += 1
-            stats[:vsize] += proc[:vsize]
-            stats[:rss] += proc[:rss] * 1024
+                puts "%5d %-10s  %s  %s" % [proc[:pid], proc[:username][0,10], proc[:vsize].bytes_to_human, cmdline[0,60] ] if proc[:cmdline].match limits[:pattern]
+
+                stats[:count] += 1
+                stats[:vsize] += proc[:vsize]
+                stats[:rss] += proc[:rss] * 1024
+            end
+
+            puts
         end
-    
-        puts
+    rescue
+        STDERR.puts "Failed to get results from #{result[:sender]}"
     end
 end
 
