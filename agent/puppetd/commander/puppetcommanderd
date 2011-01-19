@@ -206,6 +206,14 @@ end
 # starts the worker loop in the background
 def background
     pid = fork do
+        Process.setsid
+        exit if fork
+
+        Dir.chdir('/tmp')
+        STDIN.reopen('/dev/null')
+        STDOUT.reopen('/dev/null', 'a')
+        STDERR.reopen('/dev/null', 'a')
+
         File.open("/var/run/puppetcommander.pid", "w") do |pidfile|
             pidfile.puts $$
         end
