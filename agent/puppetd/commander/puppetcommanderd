@@ -171,7 +171,7 @@ def run(interval, concurrency)
                 sleeptime = (interval * 60 / @clients.size) - (Time.now.to_i - starttime)
                 log("Sleeping for #{sleeptime} seconds")
 
-                sleep sleeptime - (Time.now.to_i - starttime)
+                sleep sleeptime
             end
         rescue Exception => e
             log(e)
@@ -212,11 +212,12 @@ def background
 
         loop do
             begin
-		log("Starting run: interval: #{@config[:interval]} concurrency: #{@config[:concurrency]}")
+                log("Starting run: interval: #{@config[:interval]} concurrency: #{@config[:concurrency]}")
                 run(@config[:interval], @config[:concurrency])
-		log("Run ended, restarting")
+                log("Run ended, restarting")
             rescue Exception => e
-                log("Runner raised an exception: #{e.class}: #{e}")
+                log("Runner raised an exception: #{e}")
+                log(e)
                 sleep 5
                 retry
             end
