@@ -140,21 +140,21 @@ def run(interval, concurrency)
     }
     log("Discovered #{@puppet.discover.size} nodes")
 
-    unless @clients == nil
-        begin
-            sleeptime = interval * 60 / @clients.size
+    unless @clients.nil? or @clients.size == 0
+        sleeptime = interval * 60 / @clients.size
 
-            log("Found #{@clients.size} puppet nodes, sleeping for ~#{sleeptime} seconds between runs")
+        log("Found #{@clients.size} puppet nodes, sleeping for ~#{sleeptime} seconds between runs")
 
-            if @config[:randomize]
-                @clients = @clients.sort_by { rand }
-            else
-                @clients.sort!
-            end
+        if @config[:randomize]
+            @clients = @clients.sort_by { rand }
+        else
+            @clients.sort!
+        end
 
-            @clients.each do |client|
-                starttime = Time.now.to_i
+        @clients.each do |client|
+            starttime = Time.now.to_i
 
+            begin
                 cur_concurrency = concurrent_count
                 log("Current puppetd's running: #{cur_concurrency}")
 
@@ -167,14 +167,15 @@ def run(interval, concurrency)
                 else
                     run_client(client)
                 end
-
+            rescue Exception => e
+                log("Runner raised an exception for client #{client}: #{e}")
+                log(e)
+            ensure
                 sleeptime = (interval * 60 / @clients.size) - (Time.now.to_i - starttime)
                 log("Sleeping for #{sleeptime} seconds")
 
-                sleep sleeptime
+                sleep(sleeptime > 0 ? sleeptime : 1)
             end
-        rescue Exception => e
-            log(e)
         end
     else
         log("No Puppet clients found.")
