@@ -65,3 +65,17 @@ action "apt_update", :description => "Updated the apt cache" do
            :description => "The exitcode from the apt-get command",
            :display_as => "Exit Code"
 end
+
+action "yum_checkupdates", :description => "Check for YUM updates" do
+    output :output,
+           :description => "Output from YUM",
+           :display_as  => "Output"
+
+    output :oudated_packages,
+           :description => "Outdated packages YUM",
+           :display_as  => "Outdated Packages"
+
+    output :exitcode,
+           :description => "The exitcode from the yum command",
+           :display_as => "Exit Code"
+end
