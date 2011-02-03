@@ -47,6 +47,23 @@ module MCollective
 
                 logger.debug("Looking for policy in #{policyfile}")
 
+                # if a policy file with the same name doesn't exist, check if we've enabled
+                # default policies.  if so change policyfile to default and check again after
+                if !File.exist?(policyfile)
+                    if config.pluginconf.include?("actionpolicy.enable_default")
+                        if config.pluginconf["actionpolicy.enable_default"] =~ /^1|y/i
+                            # did user set a custom default policyfile name?
+                            if config.pluginconf.include?("actionpolicy.default_name")
+                                defaultname = config.pluginconf["actionpolicy.default_name"]
+                            else
+                                defaultname = "default"
+                            end
+                            policyfile = "#{configdir}/policies/#{defaultname}.policy"
+                            logger.debug("Initial lookup failed, looking for policy in #{policyfile}")
+                        end
+                    end
+                end
+
                 if File.exist?(policyfile)
                     File.open(policyfile).each do |line|
                         next if line =~ /^#/
