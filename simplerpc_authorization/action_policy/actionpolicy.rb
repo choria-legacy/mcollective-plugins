@@ -49,7 +49,7 @@ module MCollective
 
                 # if a policy file with the same name doesn't exist, check if we've enabled
                 # default policies.  if so change policyfile to default and check again after
-                if !File.exist?(policyfile)
+                unless File.exist?(policyfile)
                     if config.pluginconf.include?("actionpolicy.enable_default")
                         if config.pluginconf["actionpolicy.enable_default"] =~ /^1|y/i
                             # did user set a custom default policyfile name?
