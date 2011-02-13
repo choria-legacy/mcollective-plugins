@@ -16,7 +16,7 @@ options = rpcoptions do |parser, options|
 end
 
 if MCollective::Util.empty_filter?(options[:filter])
-    print("Do you really want to operate on services unfiltered? (y/n): ")
+    print("Do you really want to operate on packages unfiltered? (y/n): ")
     STDOUT.flush
 
     exit unless STDIN.gets.chomp =~ /^y$/
@@ -51,16 +51,16 @@ versions = {}
 
 pkg.send(action, {:package => package}).each do |resp|
     status = resp[:data][:properties]
-    
+
     if resp[:statuscode] == 0
         if status.include?(:version)
             version = "#{status[:version]}-#{status[:release]}"
         elsif status.include?(:ensure)
             version = status[:ensure].to_s
         end
-    
+
         versions.include?(version) ? versions[version] += 1 : versions[version] = 1
-    
+
         printf("%-40s version = %s-%s\n", resp[:sender], status[:name], version)
     else
         printf("%-40s error = %s\n", resp[:sender], resp[:statusmsg])
