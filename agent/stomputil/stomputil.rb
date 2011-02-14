@@ -7,7 +7,7 @@ module MCollective
                         :license     => "Apache v 2.0",
                         :version     => "1.0",
                         :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
-                        :timeout     => 5
+                        :timeout     => 10
 
             # Get the Stomp connection peer information
             action "peer_info" do
@@ -19,6 +19,12 @@ module MCollective
                 reply[:destaddr] = peer[3]
             end
 
+            action "collective_info" do
+                config = Config.instance
+                reply[:main_collective] = config.main_collective
+                reply[:collectives] = config.collectives
+            end
+
             action "reconnect" do
                 PluginManager["connector_plugin"].disconnect
 
@@ -27,6 +33,8 @@ module MCollective
                 PluginManager["connector_plugin"].connect
 
                 ::Process.kill("USR1", $$)
+
+                logger.info("Reconnected to middleware and reloaded all agents")
 
                 reply[:restarted] = 1
             end

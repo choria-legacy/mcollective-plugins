@@ -1,0 +1,48 @@
+#!/usr/bin/ruby
+
+# Given a MCollective 1.1.3 or newer collective
+# this will print as a dot graph a map of the collective
+# and sub collectives
+
+require 'mcollective'
+
+include MCollective::RPC
+
+def getcollectives(client)
+    collectives = {}
+
+    client.collective_info do |resp|
+        data = resp[:body][:data]
+
+        if data.include?(:collectives)
+            data[:collectives].each do |c|
+                collectives[c] = [] unless collectives.include?(c)
+
+                collectives[c] << resp[:senderid]
+            end
+        end
+    end
+
+    collectives
+end
+
+shelper = rpcclient("stomputil")
+shelper.progress = false
+
+collectives = getcollectives(shelper)
+
+puts "graph {"
+
+collectives.keys.sort.each do |collective|
+    puts "\tsubgraph #{collective} {"
+
+    collectives[collective].each do |member|
+        member_name = member.gsub('.', '_').gsub('-', '_')
+
+        puts "\t\t'#{member}' -- #{collective};"
+    end
+
+    puts "\t}"
+end
+
+puts "}"

@@ -4,7 +4,19 @@ metadata    :name        => "STOMP Connector Utility Agent",
             :license     => "Apache v 2.0",
             :version     => "1.0",
             :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
-            :timeout     => 5
+            :timeout     => 12
+
+action "collective_info", :description => "Info about the main and sub collectives" do
+    display :always
+
+    output :main_collective,
+           :description => "The main collective",
+           :display_as => "Main Collective"
+
+    output :collectives,
+           :description => "The sub collectives",
+           :display_as => "Sub Collectives"
+end
 
 action "peer_info", :description => "Get STOMP Connection Peer" do
     display :always
