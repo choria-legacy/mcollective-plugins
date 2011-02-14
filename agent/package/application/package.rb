@@ -37,7 +37,7 @@ class MCollective::Application::Package<MCollective::Application
     end
 
     def main
-        pkg = rpcclient("package")
+        pkg = rpcclient("package", :options => options)
 
         versions = {}
 
