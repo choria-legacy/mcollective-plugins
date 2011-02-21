@@ -1,19 +1,19 @@
 module MCollective
     module Util
         # A class to do Simple RPC authorization checks using a per agent
-        # policy file, policy files can allow or deny requests based on 
+        # policy file, policy files can allow or deny requests based on
         # facts and classes on the node and the unix user id of the caller.
         #
         # A policy file gets stored in /etc/mcollective/policies/<agent>.policy
         #
-        # Sample: 
+        # Sample:
         # policy default deny
         # allow    uid=500 status enable disable   country=uk     apache
         # allow    uid=0   *                       *              *
         #
         # This will deny all service agent requests except for requests for
         # actions status, enable and disable on nodes with fact country=uk
-        # that also have the class apache from caller userid 500.  
+        # that also have the class apache from caller userid 500.
         #
         # Unix UID 0 will be able to do all actions regardless of facts and classes
         #
@@ -22,7 +22,7 @@ module MCollective
         # you can specify multiple facts, actions and classes in space seperated lists
         #
         # If no policy for an agent is found this plugin will by default not allow
-        # the request.  You can set plugin.actionpolicy.allow_unconfigured = 1 to 
+        # the request.  You can set plugin.actionpolicy.allow_unconfigured = 1 to
         # allow these requests.  Not recommended.
         #
         # Released under the Apache v2 License - R.I.Pienaar <rip@devco.net>
@@ -69,7 +69,7 @@ module MCollective
                         next if line =~ /^#/
                         next if line =~ /^$/
 
-                        if line =~ /^policy default (.+)/
+                        if line =~ /^policy\sdefault\s(\w+)/
                             $1 == "allow" ? policy_allow = true : policy_allow = false
 
                         elsif line =~ /^(allow|deny)\t+(.+?)\t+(.+?)\t+(.+?)\t+(.+?)$/
@@ -89,7 +89,7 @@ module MCollective
                     end
                 end
 
-                # If we get here then none of the policy lines matched so 
+                # If we get here then none of the policy lines matched so
                 # we should just do whatever the default policy states
                 if policy_allow == true
                     return true
