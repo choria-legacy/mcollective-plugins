@@ -34,6 +34,10 @@ module MCollective
                 isblocked(request[:ipaddr])
             end
 
+            action "listblocked" do
+                reply[:blocked] = listblocked
+            end
+
             private
             # Deals with requests to block an ip
             def blockip(ip)
@@ -102,6 +106,12 @@ module MCollective
                 matches = %x[/sbin/iptables -L junk_filter -n 2>&1].split("\n").grep(/^#{target}.+#{ip}/).size
 
                 matches >= 1
+            end
+
+            # Returns a list of blocked ips
+            def listblocked
+                out = %x[/sbin/iptables -L junk_filter -n 2>&1].split("\n").grep(/^#{target}/)
+                out.map {|l| l.split(/\s+/)[3]}
             end
 
             # Returns the target to use for rules

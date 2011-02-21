@@ -8,7 +8,7 @@ metadata    :name        => "SimpleRPC IP Tables Agent",
 
 ["block", "unblock"].each do |act|
     action act, :description => "#{act.capitalize} an IP" do
-        input :ipaddr, 
+        input :ipaddr,
               :prompt      => "IP address",
               :description => "The IP address to #{act}",
               :type        => :string,
@@ -22,10 +22,18 @@ metadata    :name        => "SimpleRPC IP Tables Agent",
     end
 end
 
+action "listblocked", :description => "Returns list of blocked ips" do
+    display :always
+
+    output :blocked,
+           :description => "Blocked IPs",
+           :display_as => "Blocked"
+end
+
 action "isblocked", :description => "Check if an IP is blocked" do
     display :always
 
-    input :ipaddr, 
+    input :ipaddr,
           :prompt      => "IP address",
           :description => "The IP address to check",
           :type        => :string,
