@@ -65,7 +65,7 @@ module MCollective
             end
 
             action "apt_checkupdates" do
-                reply.fail! "Cannot find yum at /usr/bin/apt-get" unless File.exist?("/usr/bin/apt-get")
+                reply.fail! "Cannot find apt at /usr/bin/apt-get" unless File.exist?("/usr/bin/apt-get")
                 reply[:output] = %x[/usr/bin/apt-get --simulate dist-upgrade]
                 reply[:exitcode] = $?.exitstatus
                 reply[:outdated_packages] = []
