@@ -37,17 +37,52 @@ module MCollective
                 reply.fail! "apt-get update failed, exit code was #{reply[:exitcode]}" unless reply[:exitcode] == 0
             end
 
+            action "checkupdates" do
+                if File.exist?("/usr/bin/yum")
+                    reply[:package_manager] = "yum"
+                    yum_checkupdates_action
+                elsif File.exist?("/usr/bin/apt-get")
+                    reply[:package_manager] = "apt"
+                    apt_checkupdates_action
+                else
+                    reply.fail! "Cannot find a compatible package system to check updates for"
+                end
+            end
+
             action "yum_checkupdates" do
                 reply.fail! "Cannot find yum at /usr/bin/yum" unless File.exist?("/usr/bin/yum")
                 reply[:output] = %x[/usr/bin/yum -q check-update]
                 reply[:exitcode] = $?.exitstatus
-                if reply[:exitcode] == 0 
+
+                if reply[:exitcode] == 0
                     reply[:outdated_packages] = []
                 # Exit code 100 means package updates available
                 elsif reply[:exitcode] == 100
                     reply[:outdated_packages] = do_yum_outdated_packages(reply[:output])
                 else
                     reply.fail! "Yum check-update failed, exit code was #{reply[:exitcode]}"
+                end
+            end
+
+            action "apt_checkupdates" do
+                reply.fail! "Cannot find yum at /usr/bin/apt-get" unless File.exist?("/usr/bin/apt-get")
+                reply[:output] = %x[/usr/bin/apt-get --simulate dist-upgrade]
+                reply[:exitcode] = $?.exitstatus
+                reply[:outdated_packages] = []
+
+                if reply[:exitcode] == 0
+                    reply[:output].each_line do |line|
+                        next unless line =~ /^Inst/
+
+                        # Inst emacs23 [23.1+1-4ubuntu7] (23.1+1-4ubuntu7.1 Ubuntu:10.04/lucid-updates) []
+                        if line =~ /Inst (.+?) \[.+?] \((.+?)\s(.+?)\)/
+                                reply[:outdated_packages] << {:package => $1.strip,
+                                                              :version => $2.strip,
+                                                              :repo => $3.strip}
+                        end
+                    end
+                else
+                    reply.fail! "APT check-update failed, exit code was #{reply[:exitcode]}"
                 end
             end
 
