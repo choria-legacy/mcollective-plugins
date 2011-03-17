@@ -109,7 +109,7 @@ action "checkupdates", :description => "Check for updates" do
            :description => "Output from Package Manager",
            :display_as  => "Output"
 
-    output :oudated_packages,
+    output :outdated_packages,
            :description => "Outdated packages",
            :display_as  => "Outdated Packages"
 
