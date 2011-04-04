@@ -8,7 +8,16 @@ module MCollective
             def audit_request(request, connection)
                 begin
                     config = Config.instance
-                    target = MCollective::Util.make_target("centralrpclog", :command)
+
+                    # First try the new sub collectives method of obtaining the required collective, if that fails
+                    # because make_target doesnt take a collective fall back to old behavior
+                    begin
+                        log_collective = Config.instance.pluginconf["centralrpclog.collective"] || config.main_collective
+                        target = Util.make_target("centralrpclog", :command, log_collective)
+                    rescue
+                        target = Util.make_target("centralrpclog", :command)
+                    end
+
                     reqid = Digest::MD5.hexdigest("#{config.identity}-#{Time.now.to_f.to_s}-#{target}")
                     filter = {"agent" => "centralrpclog"}
 
