@@ -28,7 +28,9 @@ puts
 nrpe_results.each do |result|
     exitcode = result[:data][:exitcode].to_i
     statuscodes << exitcode
-    stats[exitcode] += 1
+    if exitcode >=0 and exitcode < 4
+      stats[exitcode] += 1
+    end
 
     if nrpe.verbose
         printf("%-40s status=%s\n", result[:sender], result[:statusmsg]) 
