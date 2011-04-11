@@ -106,10 +106,10 @@ module MCollective
                             reply[:output] = pkg.install if pkg.properties[:ensure] == :absent
 
                         when :update
-                            reply[:output] = pkg.update if pkg.properties[:ensure] != :absent
+                            reply[:output] = pkg.update unless pkg.properties[:ensure] == :absent
 
                         when :uninstall
-                            reply[:output] = pkg.uninstall
+                            reply[:output] = pkg.uninstall unless pkg.properties[:ensure] == :absent
 
                         when :status
                             pkg.flush

@@ -53,7 +53,11 @@ class MCollective::Application::Package<MCollective::Application
 
                 versions.include?(version) ? versions[version] += 1 : versions[version] = 1
 
-                printf("%-40s version = %s-%s\n", resp[:sender], status[:name], version)
+                if status[:name]
+                    printf("%-40s version = %s-%s\n", resp[:sender], status[:name], version)
+                else
+                    printf("%-40s version = %s\n", resp[:sender], version)
+                end
             else
                 printf("%-40s error = %s\n", resp[:sender], resp[:statusmsg])
             end
