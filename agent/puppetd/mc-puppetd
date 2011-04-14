@@ -12,7 +12,7 @@ include MCollective::RPC
 
 options = rpcoptions do |parser, options|
     parser.define_head "Manage remote puppet daemons"
-    parser.banner = "Usage: mc-puppetd [enable|disable|runonce|status|count|runall] [concurrency]"
+    parser.banner = "Usage: mc-puppetd [enable|disable|runonce|status|count|runall|summary] [concurrency]"
 
     parser.separator ""
     parser.separator "Run Options"
@@ -134,6 +134,11 @@ elsif command == "runall"
         puts("Please specify a maximum concurrency")
         exit 1
     end
+elsif command == "summary"
+    printrpc puppetd.last_run_summary
+
+    printrpcstats
+
 elsif command == "runonce"
     printrpc puppetd.runonce(:forcerun => @force)
 

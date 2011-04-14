@@ -25,6 +25,11 @@ module MCollective
                 @statefile = @config.pluginconf["puppetd.statefile"] || "/var/lib/puppet/state/state.yaml"
                 @pidfile = @config.pluginconf["puppet.pidfile"] || "/var/run/puppet/agent.pid"
                 @puppetd = @config.pluginconf["puppetd.puppetd"] || "/usr/sbin/puppetd"
+                @last_summary = @config.pluginconf["puppet.summary"] || "/var/lib/puppet/state/last_run_summary.yaml"
+            end
+
+            action "last_run_summary" do
+                last_run_summary
             end
 
             action "enable" do
@@ -44,6 +49,16 @@ module MCollective
             end
 
             private
+            def last_run_summary
+                summary = YAML.load_file(@last_summary)
+
+                reply[:resources] = {"failed"=>0, "changed"=>0, "total"=>0, "restarted"=>0, "out_of_sync"=>0}.merge(summary["resources"])
+
+                ["time", "events", "changes"].each do |dat|
+                    reply[dat.to_sym] = summary[dat]
+                end
+            end
+
             def status
                 reply[:enabled] = 0
                 reply[:running] = 0
