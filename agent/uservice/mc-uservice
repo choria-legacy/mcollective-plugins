@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+# Client program for the mcollective service agent
+# Copyright 2011 Canonical Ltd.
+# Released under Apache License
+
+require 'mcollective'
+
+include MCollective::RPC
+
+options = rpcoptions do |parser, options|
+    parser.define_head "Manage Ubuntu services"
+    parser.banner = "Usage: mc-uservice [-options] [start|stop|restart|status] [service_name]"
+
+    parser.separator ""
+    parser.separator "Run Options"
+end
+
+servicerpc = rpcclient("uservice", {:options => options})
+
+def log(msg)
+    puts("#{Time.now} - #{msg}")
+end
+
+def summarize(stats)
+    puts("\n---- service agent summary ----")
+    puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
+    printf("    Elapsed Time: %.2f s\n\n", stats[:blocktime])
+end
+
+if  ARGV.length == 2
+    action = ARGV.shift
+    servicename = ARGV.shift
+
+    unless action =~ /^(start|stop|restart|status)$/
+        puts("Action has to be start, stop, restart or status")
+        exit 1
+    end
+    servicerpc.send(action, {:service => servicename}).each do |node|
+        begin
+            if node[:data][:output].nil?
+                printf("%-40s %s\n", node[:sender], node[:statusmsg])
+            else
+                printf("%-40s %s\n", node[:sender], node[:data][:output])
+            end
+        rescue StandardError => e
+            log "The RPC agent #{node[:sender]} returned an error: #{e}"
+        end
+    end
+else
+    puts("Usage: mc-uservice [-options] [start|stop|restart|status] [service]")
+    exit 1
+end
+
+summarize(servicerpc.stats)
+
+servicerpc.disconnect
+# vi:tabstop=4:expandtab:ai

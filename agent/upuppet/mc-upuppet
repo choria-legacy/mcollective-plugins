@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+# Client program for the mcollective upuppet agent
+# Copyright 2011 Canonical Ltd.
+# Released under Apache License
+
+require 'mcollective'
+
+include MCollective::RPC
+
+options = rpcoptions do |parser, options|
+    parser.define_head "Manage puppet on Ubuntu"
+    parser.banner = "Usage: mc-upuppet [-options] [start|stop|restart|cycle_run] {numtimes}"
+
+    parser.separator ""
+    parser.separator "Run Options"
+end
+
+upuppetrpc = rpcclient("upuppet", {:options => options})
+
+def log(msg)
+    puts("#{Time.now} - #{msg}")
+end
+
+def summarize(stats)
+    puts("\n---- upuppet agent summary ----")
+    puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
+    printf("    Elapsed Time: %.2f s\n\n", stats[:blocktime])
+end
+
+if  ARGV.length == 2
+    action = ARGV.shift
+    numtimes = ARGV.shift
+
+    unless action =~ /^(cycle_run)$/
+        puts("Action has to be cycle_run")
+        exit 1
+    end
+    upuppetrpc.send(action, {:numtimes => numtimes}).each do |node|
+        begin
+            printf("%-40s %s\n", node[:sender], node[:statusmsg])
+        rescue StandardError => e
+            log "The RPC agent #{node[:sender]} returned an error: #{e}"
+        end
+    end
+elsif  ARGV.length == 1
+    action = ARGV.shift
+
+    unless action =~ /^(start|stop|restart)$/
+        puts("Action has to be start,stop or restart")
+        exit 1
+    end
+    upuppetrpc.send(action).each do |node|
+        begin
+            printf("%-40s %s\n", node[:sender], node[:statusmsg])
+        rescue StandardError => e
+            log "The RPC agent #{node[:sender]} returned an error: #{e}"
+        end
+    end
+else
+    puts("Usage: mc-upuppet [-options] [start|stop|restart|cycle_run] {numtimes}")
+    exit 1
+end
+
+summarize(upuppetrpc.stats)
+
+upuppetrpc.disconnect
+# vi:tabstop=4:expandtab:ai
