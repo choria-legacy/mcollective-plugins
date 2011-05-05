@@ -5,7 +5,7 @@ module MCollective
         # - all facts
         # - all agents
         # - all classes if applicable
-        # 
+        #
         # will add cf classes soon
         #
         # http://code.google.com/p/mcollective-plugins/wiki/RegistrationMetaData
@@ -19,12 +19,10 @@ module MCollective
 
                 cfile = Config.instance.classesfile
 
-                Log.instance.info("Reading classes from #{cfile}")
-
                 if File.exist?(cfile)
                     result[:classes] = File.readlines(cfile).map {|i| i.chomp}
                 end
-                
+
                 result[:agentlist] = Agents.agentlist
                 result[:facts] = PluginManager["facts_plugin"].get_facts
 
