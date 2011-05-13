@@ -75,7 +75,7 @@ module MCollective
                         next unless line =~ /^Inst/
 
                         # Inst emacs23 [23.1+1-4ubuntu7] (23.1+1-4ubuntu7.1 Ubuntu:10.04/lucid-updates) []
-                        if line =~ /Inst (.+?) \[.+?] \((.+?)\s(.+?)\)/
+                        if line =~ /Inst (.+?) \[.+?\] \((.+?)\s(.+?)\)/
                                 reply[:outdated_packages] << {:package => $1.strip,
                                                               :version => $2.strip,
                                                               :repo => $3.strip}
