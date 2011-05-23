@@ -23,8 +23,12 @@ module MCollective
                     return
                 end
 
-                reply[:output] = %x[#{command[:cmd]}].chomp
-                reply[:exitcode] = $?.exitstatus
+                if respond_to?(:run)
+                    reply[:exitcode] = run(command[:cmd], :stdout => :output, :chomp => true)
+                else
+                    reply[:output] = %x[#{command[:cmd]}].chomp
+                    reply[:exitcode] = $?.exitstatus
+                end
 
                 case reply[:exitcode]
                     when 0
