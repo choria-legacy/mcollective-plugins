@@ -45,7 +45,13 @@ module MCollective
 
                 # if he's already blocked we just dont bother doing it again
                 unless isblocked?(ip)
-                    out = %x[/sbin/iptables -A junk_filter -s #{ip} -j #{target} 2>&1]
+                    if respond_to?(:run)
+                        out = []
+                        err = ""
+                        run("/sbin/iptables -A junk_filter -s #{ip} -j #{target} 2>&1", :stdout => out, :stderr => err, :chomp => true)
+                    else
+                        out = %x[/sbin/iptables -A junk_filter -s #{ip} -j #{target} 2>&1]
+                    end
                     system("/usr/bin/logger -i -t mcollective 'Attempted to add #{ip} to iptables junk_filter chain on #{Socket.gethostname}'")
                 else
                     reply.fail! "#{ip} was already blocked"
@@ -71,7 +77,13 @@ module MCollective
 
                 # remove it if it's blocked
                 if isblocked?(ip)
-                    out = %x[/sbin/iptables -D junk_filter -s #{ip} -j #{target} 2>&1]
+                    if respond_to?(:run)
+                        out = []
+                        err = ""
+                        out = run("/sbin/iptables -D junk_filter -s #{ip} -j #{target} 2>&1", :stdout => out, :stderr => err, :chomp => true)
+                    else
+                        out = %x[/sbin/iptables -D junk_filter -s #{ip} -j #{target} 2>&1]
+                    end
                     system("/usr/bin/logger -i -t mcollective 'Attempted to remove #{ip} from iptables junk_filter chain on #{Socket.gethostname}'")
                 else
                     reply.fail! "#{ip} was already unblocked"
@@ -103,14 +115,28 @@ module MCollective
             def isblocked?(ip)
                 logger.debug("Checking if #{ip} is blocked with target #{target}")
 
-                matches = %x[/sbin/iptables -L junk_filter -n 2>&1].split("\n").grep(/^#{target}.+#{ip}/).size
+                if respond_to?(:run)
+                    prematches = []
+                    err = ""
+                    run("/sbin/iptables -L junk_filter -n 2>&1", :stdout => prematches, :stderr => err, :chomp => true)
+                else
+                    prematches = %x[/sbin/iptables -L junk_filter -n 2>&1]
+                end
 
+                matches = prematches.split("\n").grep(/^#{target}.+#{ip}/).size
                 matches >= 1
             end
 
             # Returns a list of blocked ips
             def listblocked
-                out = %x[/sbin/iptables -L junk_filter -n 2>&1].split("\n").grep(/^#{target}/)
+                    if respond_to?(:run)
+                        preout = []
+                        err = ""
+                        run("/sbin/iptables -L junk_filter -n 2>&1", :stdout => preout, :stderr => err, :chomp => true)
+                    else
+                        preout = %x[/sbin/iptables -L junk_filter -n 2>&1]
+                    end
+                out = preout.split("\n").grep(/^#{target}/)
                 out.map {|l| l.split(/\s+/)[3]}
             end
 
