@@ -4,9 +4,9 @@ module MCollective
             metadata    :name        => "SimpleRPC Agent For NRPE Commands",
                         :description => "Agent to query NRPE commands via MCollective",
                         :author      => "R.I.Pienaar",
-                        :license     => "Apache License 2.0",
-                        :version     => "1.2",
-                        :url         => "http://mcollective-plugins.googlecode.com/",
+                        :license     => "Apache 2",
+                        :version     => "1.3",
+                        :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                         :timeout     => 5
 
             action "runcommand" do
