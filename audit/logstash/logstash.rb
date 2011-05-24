@@ -30,7 +30,11 @@ module MCollective
 
                 target = Config.instance.pluginconf["logstash.target"] || "/queue/mcollective.audit"
 
-                connection.send(target, audit_entry.to_json)
+                if connection.respond_to?(:publish)
+                    connection.publish(target, req)
+                else
+                    connection.send(target, req)
+                end
             end
 
         end

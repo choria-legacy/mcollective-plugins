@@ -23,7 +23,11 @@ module MCollective
 
                     req = PluginManager["security_plugin"].encoderequest(config.identity, target, request, reqid, filter)
 
-                    connection.send(target, req)
+                    if connection.respond_to?(:publish)
+                        connection.publish(target, req)
+                    else
+                        connection.send(target, req)
+                    end
                 rescue Exception => e
                     Log.instance.error("Failed to send audit request: #{e}")
                 end
