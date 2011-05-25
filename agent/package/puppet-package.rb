@@ -9,9 +9,9 @@ module MCollective
             metadata    :name        => "SimpleRPC Agent For Package Management",
                         :description => "Agent To Manage Packages",
                         :author      => "R.I.Pienaar",
-                        :license     => "GPLv2",
-                        :version     => "1.3",
-                        :url         => "http://mcollective-plugins.googlecode.com/",
+                        :license     => "Apache 2",
+                        :version     => "1.4",
+                        :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                         :timeout     => 180
 
             ["install", "update", "uninstall", "purge", "status"].each do |act|
