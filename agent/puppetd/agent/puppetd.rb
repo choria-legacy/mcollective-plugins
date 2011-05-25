@@ -10,14 +10,17 @@ module MCollective
         #                        /var/lib/puppet/state/puppetdlock
         #    puppetd.puppetd   - Where to find the puppetd, defaults to
         #                        /usr/sbin/puppetd
+        #    puppetd.summary   - Where to find the summary file written by Puppet
+        #                        2.6.8 and newer
+        #    puppetd.pidfile   - Where to find the Puppet pid file
         class Puppetd<RPC::Agent
             metadata    :name        => "SimpleRPC Puppet Agent",
                         :description => "Agent to manage the puppet daemon",
                         :author      => "R.I.Pienaar",
                         :license     => "Apache License 2.0",
-                        :version     => "1.3",
-                        :url         => "http://mcollective-plugins.googlecode.com/",
-                        :timeout     => 20
+                        :version     => "1.4",
+                        :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
+                        :timeout     => 30
 
             def startup_hook
                 @splaytime = @config.pluginconf["puppetd.splaytime"].to_i || 0
@@ -85,14 +88,20 @@ module MCollective
                 if File.exists?(@lockfile)
                     reply.fail "Lock file exists, puppetd is already running or it's disabled"
                 else
-                    if request[:forcerun]
-                        reply[:output] = %x[#{@puppetd} --onetime]
+                    cmd = [@puppetd, "--onetime"]
 
-                    elsif @splaytime > 0
-                        reply[:output] = %x[#{@puppetd} --onetime --splaylimit #{@splaytime} --splay]
+                    unless request[:forcerun]
+                        if @splaytime > 0
+                            cmd << "--splaylimit" << @splaytime << "--splay"
+                        end
+                    end
 
+                    cmd = cmd.join(" ")
+
+                    if respond_to?(:run)
+                        run(cmd, :stdout => :output, :chomp => true)
                     else
-                        reply[:output] = %x[#{@puppetd} --onetime]
+                        reply[:output] = %x[#{cmd}]
                     end
                 end
             end
