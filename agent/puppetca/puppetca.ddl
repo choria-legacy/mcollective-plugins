@@ -1,5 +1,5 @@
 metadata    :name        => "SimpleRPC Service Agent",
-            :description => "Agent to manage services using the Puppet service provider", 
+            :description => "Agent to manage services using the Puppet service provider",
             :author      => "R.I.Pienaar",
             :license     => "Apache 2.0",
             :version     => "1.1",
@@ -7,7 +7,7 @@ metadata    :name        => "SimpleRPC Service Agent",
             :timeout     => 20
 
 action "clean", :description => "Performs a puppetca --clean on a certficate" do
-    input :certname, 
+    input :certname,
           :prompt      => "Certificate Name",
           :description => "Certificate Name to clean",
           :type        => :string,
@@ -21,7 +21,7 @@ action "clean", :description => "Performs a puppetca --clean on a certficate" do
 end
 
 action "revoke", :description => "Revokes a certificate" do
-    input :certname, 
+    input :certname,
           :prompt      => "Certificate Name",
           :description => "Certificate Name to revoke",
           :type        => :string,
@@ -35,7 +35,7 @@ action "revoke", :description => "Revokes a certificate" do
 end
 
 action "sign", :description => "Signs a certificate request" do
-    input :certname, 
+    input :certname,
           :prompt      => "Certificate Name",
           :description => "Certificate Name to sign",
           :type        => :string,
@@ -49,7 +49,7 @@ action "sign", :description => "Signs a certificate request" do
 end
 
 action "list", :description => "Lists all requested and signed certificates" do
-    #display :always
+    display :always
 
     output :requests,
            :description => "Waiting CSR Requests",
