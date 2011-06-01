@@ -133,7 +133,7 @@ module MCollective
 
                         reply[:output] = "Lock created"
                     rescue Exception => e
-                        reply[:output] = "Could not create lock: #{e}"
+                        reply.fail "Could not create lock: #{e}"
                     end
                 end
             end
