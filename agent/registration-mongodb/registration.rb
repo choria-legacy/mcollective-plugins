@@ -55,34 +55,26 @@ module MCollective
             def handlemsg(msg, connection)
                 req = msg[:body]
 
-                req["fqdn"] = req[:facts]["fqdn"]
-                req["lastseen"] = Time.now.to_i
+                req[:fqdn] = req[:facts]["fqdn"]
+                req[:lastseen] = Time.now.to_i
 
                 # Sometimes facter doesnt send a fqdn?!
-                if req["fqdn"].nil?
+                if req[:fqdn].nil?
                     Log.instance.debug("Got stats without a FQDN in facts")
                     return nil
                 end
 
-                # try to find a current document
-                id = @coll.find({"fqdn" => req["fqdn"]})
-
-                # Found none? then insert one else update the current one
-                if id.count == 0
-                    before = Time.now.to_f
-                    id = @coll.save(req)
-                    after = Time.now.to_f
-
-                    Log.instance.debug("Adding new data for host #{req["fqdn"]} in #{after - before}s")
-                else
-                    firstid = id.next_document['_id']
-
-                    req["_id"] = firstid
-
-                    before = Time.now.to_f
-                    @coll.save(req)
-                    after = Time.now.to_f
-                    Log.instance.debug("Updated data for host #{req["fqdn"]} with id #{firstid} in #{after - before}s")
+                by_fqdn = {:fqdn => req[:fqdn]}
+                doc_id = nil
+                before = Time.now.to_f
+                begin
+                  doc = @coll.find_and_modify(:query => by_fqdn, :update => {'$set' => req}, :new => true)
+                  doc_id = doc['_id']
+                rescue Mongo::OperationFailure
+                  doc_id = @coll.insert(req, {:safe => true})
+                ensure
+                  after = Time.now.to_f
+                  Log.instance.debug("Updated data for host #{req[:fqdn]} with id #{doc_id} in #{after - before}s")
                 end
 
                 nil
