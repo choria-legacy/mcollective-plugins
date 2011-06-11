@@ -55,6 +55,11 @@ module MCollective
             def handlemsg(msg, connection)
                 req = msg[:body]
 
+                if (req.kind_of?(Array))
+                    Log.instance.warn("Got no facts - did you forget to add 'registration = Meta' to your server.cfg?");
+                    return nill
+                end
+
                 req[:fqdn] = req[:facts]["fqdn"]
                 req[:lastseen] = Time.now.to_i
 
