@@ -2,7 +2,7 @@ metadata    :name        => "SimpleRPC Service Agent",
             :description => "Agent to manage services using the Puppet service provider",
             :author      => "R.I.Pienaar",
             :license     => "Apache 2.0",
-            :version     => "1.1",
+            :version     => "1.2",
             :url         => "http://mcollective-plugins.googlecode.com/",
             :timeout     => 20
 

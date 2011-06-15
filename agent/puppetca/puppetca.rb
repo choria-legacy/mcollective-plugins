@@ -2,10 +2,10 @@ module MCollective
     module Agent
         class Puppetca<RPC::Agent
             metadata    :name        => "Puppet CA Manager",
-                        :description => "Agent to manage Puppet certificates", 
+                        :description => "Agent to manage Puppet certificates",
                         :author      => "R.I.Pienaar",
                         :license     => "Apache 2.0",
-                        :version     => "1.1",
+                        :version     => "1.2",
                         :url         => "http://mcollective-plugins.googlecode.com/",
                         :timeout     => 20
 
@@ -47,7 +47,11 @@ module MCollective
             action "revoke" do
                  validate :certname, :shellsafe
 
-                 reply[:out] = %x[#{@puppetca} --color=none --revoke '#{request[:certname]}']
+                 if respond_to?(:run)
+                     reply[:out] = run("#{@puppetca} --color=none --revoke '#{request[:certname]}'", :stdout => :output, :chomp => true)
+                 else
+                      reply[:out] = %x[#{@puppetca} --color=none --revoke '#{request[:certname]}']
+                 end
             end
 
             # sign a cert if we have one waiting
@@ -59,7 +63,11 @@ module MCollective
                  reply.fail! "Already have a cert for #{certname} not attempting to sign again" if has_cert?(certname)
 
                  if cert_waiting?(certname)
-                     reply[:out] = %x[#{@puppetca} --color=none --sign '#{request[:certname]}']
+                     if respond_to?(:run)
+                         reply[:out] = run("#{@puppetca} --color=none --sign '#{request[:certname]}'", :stdout => :output, :chomp => true)
+                     else
+                         reply[:out] = %x[#{@puppetca} --color=none --sign '#{request[:certname]}']
+                     end
                  else
                      reply.fail "No cert found to sign"
                  end
