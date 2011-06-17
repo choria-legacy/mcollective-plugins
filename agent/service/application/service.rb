@@ -47,7 +47,7 @@ The ACTION can be one of the following:
                 action  = ARGV.shift
 
                 unless action.match(/^(start|stop|restart|status)$/)
-                    raise "Action can only to be start, stop, restart or status"
+                    raise "Action can only be start, stop, restart or status"
                 end
 
                 configuration[:service] = service
