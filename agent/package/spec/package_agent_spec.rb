@@ -12,12 +12,14 @@ describe "package agent" do
             File.expects(:exist?).with("/usr/bin/yum").returns(false)
             result = @agent.call(:yum_clean)
             result.should be_aborted_error
+            result[:statusmsg].should == "Cannot find yum at /usr/bin/yum"
         end
 
         it "should succeed if the agent responds to 'run' and the run method returns 0" do
             File.expects(:exist?).with("/usr/bin/yum").returns(true)
             @agent.expects(:run).with("/usr/bin/yum clean all", :stdout => :output, :chomp => true).returns(0)
             result = @agent.call(:yum_clean)
+            result.should have_data_items(:exitcode => 0)
             result.should be_successful
         end
 
@@ -25,6 +27,7 @@ describe "package agent" do
             File.expects(:exist?).with("/usr/bin/yum").returns(true)
             @agent.expects(:run).with("/usr/bin/yum clean all", :stdout => :output, :chomp => true).returns(1)
             result = @agent.call(:yum_clean)
+            result.should have_data_items(:exitcode => 1)
             result.should be_aborted_error
         end
     end
@@ -34,12 +37,14 @@ describe "package agent" do
             File.expects(:exist?).with("/usr/bin/apt-get").returns(false)
             result = @agent.call(:apt_update)
             result.should be_aborted_error
+            result[:statusmsg].should == "Cannot find apt-get at /usr/bin/apt-get"
         end
 
         it "should succeed if the agent responds to 'run' and the run method returns 0" do
             File.expects(:exist?).with("/usr/bin/apt-get").returns(true)
             @agent.expects(:run).with("/usr/bin/apt-get update", :stdout => :output, :chomp => true).returns(0)
             result = @agent.call(:apt_update)
+            result.should have_data_items(:exitcode => 0)
             result.should be_successful
         end
 
@@ -47,6 +52,7 @@ describe "package agent" do
             File.expects(:exist?).with("/usr/bin/apt-get").returns(true)
             @agent.expects(:run).with("/usr/bin/apt-get update", :stdout => :output, :chomp => true).returns(1)
             result = @agent.call(:apt_update)
+            result.should have_data_items(:exitcode => 1)
             result.should be_aborted_error
         end
     end
@@ -57,6 +63,7 @@ describe "package agent" do
             File.expects(:exist?).with("/usr/bin/apt-get").returns(false)
             result = @agent.call(:checkupdates)
             result.should be_aborted_error
+            result[:statusmsg].should == "Cannot find a compatible package system to check updates for"
         end
 
         it "should call yum_checkupdates if /usr/bin/yum exists" do
@@ -64,6 +71,7 @@ describe "package agent" do
             @agent.expects(:yum_checkupdates_action).returns(true)
             result = @agent.call(:checkupdates)
             result.should be_true
+            result.should have_data_items(:package_manager=>"yum")
         end
 
         it "should call apt_checkupdates if /usr/bin/apt-get exists" do
@@ -71,6 +79,7 @@ describe "package agent" do
             File.expects(:exist?).with("/usr/bin/apt-get").returns(true)
             @agent.expects(:apt_checkupdates_action).returns(true)
             result = @agent.call(:checkupdates)
+            result.should have_data_items(:package_manager=>"apt")
             result.should be_true
         end
     end
@@ -80,6 +89,7 @@ describe "package agent" do
             File.expects(:exist?).with("/usr/bin/yum").returns(false)
             result = @agent.call(:yum_checkupdates)
             result.should be_aborted_error
+            result[:statusmsg].should == "Cannot find yum at /usr/bin/yum"
         end
 
         it "should succeed if it responds to run and there are no packages to update" do
@@ -87,6 +97,7 @@ describe "package agent" do
             @agent.expects(:run).with("/usr/bin/yum -q check-update", :stdout => :output, :chomp => true).returns(0)
             result = @agent.call(:yum_checkupdates)
             result.should be_successful
+            result.should have_data_items(:exitcode=>0, :outdated_packages=>[])
         end
 
         it "should succeed if it responds to run and there are packages to update" do
@@ -95,6 +106,7 @@ describe "package agent" do
             @agent.expects(:do_yum_outdated_packages)
             result = @agent.call(:yum_checkupdates)
             result.should be_successful
+            result.should have_data_items(:outdated_packages=>nil, :exitcode=>100)
         end
 
         it "should fail if it responds to run but returns a different exit code than 0 or 100" do
@@ -102,6 +114,7 @@ describe "package agent" do
             @agent.expects(:run).with("/usr/bin/yum -q check-update", :stdout => :output, :chomp => true).returns(2)
             result = @agent.call(:yum_checkupdates)
             result.should be_aborted_error
+            result.should have_data_items(:exitcode=>2)
         end
     end
 
@@ -110,6 +123,7 @@ describe "package agent" do
             File.expects(:exist?).with("/usr/bin/apt-get").returns(false)
             result = @agent.call(:apt_checkupdates)
             result.should be_aborted_error
+            result[:statusmsg].should == "Cannot find apt at /usr/bin/apt-get"
         end
 
         it "should succeed if it responds to run and returns exit code of 0" do
@@ -128,6 +142,7 @@ describe "package agent" do
             @agent.expects(:run).with("/usr/bin/apt-get --simulate dist-upgrade", :stdout => :output, :chomp => true).returns(1)
             result = @agent.call(:apt_checkupdates)
             result.should be_aborted_error
+            result.should have_data_items(:outdated_packages=>[], :exitcode=>1)
         end
     end
 
@@ -161,7 +176,7 @@ describe "package agent" do
 
                 result = @agent.call(:install, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == 0
+                result.should have_data_items(:properties=>{:ensure=>:absent}, :output=>0)
 
             end
 
@@ -179,11 +194,10 @@ describe "package agent" do
 
                 result = @agent.call(:install, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == 0
+                result.should have_data_items(:properties=>{:ensure=>:absent}, :output=>0)
 
             end
         end
-
 
         describe "#install" do
             it "should install if ensure is set to absent" do
@@ -201,8 +215,7 @@ describe "package agent" do
 
                 result = @agent.call(:install, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == 0
-
+                result.should have_data_items(:properties=>{:ensure=>:absent}, :output=>0)
             end
 
             it "should not install if ensure is not set to absent" do
@@ -219,7 +232,7 @@ describe "package agent" do
 
                 result = @agent.call(:install, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == ""
+                result.should have_data_items(:properties=>{:ensure=>:not_absent}, :output=>"")
             end
         end
 
@@ -239,7 +252,7 @@ describe "package agent" do
 
                 result = @agent.call(:update, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == 0
+                result.should have_data_items(:properties=>{:ensure=>:not_absent}, :output=>0)
             end
 
             it "should not update if ensure is set to absent" do
@@ -256,7 +269,7 @@ describe "package agent" do
 
                 result = @agent.call(:update, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == ""
+                result.should have_data_items(:properties=>{:ensure=>:absent}, :output=>"")
             end
         end
 
@@ -276,7 +289,7 @@ describe "package agent" do
 
                 result = @agent.call(:uninstall, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == 0
+                result.should have_data_items(:properties=>{:ensure=>:not_absent}, :output=>0)
             end
 
             it "should not uninstall if ensure is set to absent" do
@@ -293,7 +306,7 @@ describe "package agent" do
 
                 result = @agent.call(:uninstall, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == ""
+                result.should have_data_items(:properties=>{:ensure=>:absent}, :output=>"")
             end
         end
 
@@ -312,7 +325,7 @@ describe "package agent" do
 
                 result = @agent.call(:status, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == "Package Status"
+                result.should have_data_items(:properties=>"Package Status", :output=>"Package Status")
             end
         end
         describe "#purge" do
@@ -331,7 +344,7 @@ describe "package agent" do
 
                 result = @agent.call(:purge, :package => "package")
                 result.should be_successful
-                result[:data][:output].should == "Purged"
+                result.should have_data_items(:properties=>nil, :output=>"Purged")
             end
         end
         describe "#Exceptions" do
@@ -339,6 +352,7 @@ describe "package agent" do
                 @agent.expects(:require).raises("Exception")
                 result = @agent.call(:install, :package => "package")
                 result.should be_aborted_error
+                result[:statusmsg].should == "Exception"
             end
         end
     end
@@ -355,7 +369,7 @@ describe "package agent" do
         it "should return packages which need to be updated" do
             File.expects(:exist?).with("/usr/bin/yum").returns(true)
             @agent.expects(:run).with("/usr/bin/yum -q check-update", :stdout => :output, :chomp => true).returns(100)
-            @agent.stubs(:reply).returns(:output => "Package version repo", :outdated_packages => "")
+            @agent.stubs(:reply).returns(:output => "Package version repo", :outdated_packages => "foo")
 
             result = @agent.call(:yum_checkupdates)
             result.should be_successful

@@ -22,7 +22,14 @@ describe "puppetd agent" do
 
             result = @agent.call(:last_run_summary)
             result.should be_successful
-            result.should have_data_items(:changes, :events, :resources, :time)
+            result.should have_data_items({:changes => nil,
+                                           :events => nil,
+                                           :resources => {"failed"=>0,
+                                                          "changed"=>0,
+                                                          "total"=>0,
+                                                          "restarted"=>0,
+                                                          "out_of_sync"=>0},
+                                           :time => nil})
         end
     end
 
@@ -31,6 +38,7 @@ describe "puppetd agent" do
             File.expects(:exists?).returns(false)
             result = @agent.call(:enable)
             result.should be_aborted_error
+            result[:statusmsg].should == "Already unlocked"
         end
 
         it "should attempt to remove zero byte lockfiles" do
@@ -43,7 +51,7 @@ describe "puppetd agent" do
 
             result = @agent.call(:enable)
             result.should be_successful
-            result[:data][:output].should == "Lock removed"
+            result.should have_data_items(:output=>"Lock removed")
         end
 
         it "should not remove lock files for running puppetds" do
@@ -54,7 +62,7 @@ describe "puppetd agent" do
             File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
 
             result = @agent.call(:enable)
-            result[:data][:output].should == "Currently runing"
+            result.should have_data_items(:output=>"Currently runing")
         end
     end
 
@@ -68,7 +76,7 @@ describe "puppetd agent" do
 
             result = @agent.call(:disable)
             result.should be_aborted_error
-
+            result[:statusmsg].should == "Already disabled"
         end
 
         it "should fail if puppetd is running" do
@@ -80,7 +88,7 @@ describe "puppetd agent" do
 
             result = @agent.call(:disable)
             result.should be_aborted_error
-
+            result[:statusmsg].should == "Currently running"
         end
 
         it "should create the lock if the lockfile doesn't exist" do
@@ -88,7 +96,7 @@ describe "puppetd agent" do
             File.expects(:open).with("spec_test_lock_file", "w").yields(nil)
 
             result = @agent.call(:disable)
-            result[:data][:output].should == "Lock created"
+            result.should have_data_items(:output=>"Lock created")
         end
 
         #Note, this test will not pass until the puppetd agent's
@@ -99,7 +107,7 @@ describe "puppetd agent" do
 
             result = @agent.call(:disable)
             result.should be_aborted_error
-
+            result[:statusmsg].should == "Could not create lock: foo"
         end
     end
 
@@ -108,6 +116,7 @@ describe "puppetd agent" do
             File.expects(:exists?).with("spec_test_lock_file").returns(true)
             result = @agent.call(:runonce)
             result.should be_aborted_error
+            result[:statusmsg].should == "Lock file exists, puppetd is already running or it's disabled"
         end
 
         it "runs puppet if it is not already running, with splaytime if request[:forcerun] is true" do
@@ -136,38 +145,49 @@ describe "puppetd agent" do
         it "is disabled when the lockfile exists and its size is 0" do
             stat = mock
             stat.stubs(:zero?).returns(true)
+            @agent.instance_variable_set("@statefile", "spec_test_state_file")
 
             File.expects(:exists?).with("spec_test_lock_file").returns(true)
             File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
+            File.expects(:exists?).with("spec_test_state_file").returns(false)
 
             result = @agent.call(:status)
-
-            result[:data][:output].should == "Disabled, not running"
-            result.should have_data_items(:running, :enabled, :lastrun, :output)
+            result.should be_successful
+            result.should have_data_items({:running => 0,
+                                           :enabled => 0,
+                                           :lastrun => 0,
+                                           :output => /Disabled, not running, last run/})
 
         end
 
         it "is enabled and running when the lockfile exists and its size is not 0" do
             stat = mock
             stat.stubs(:zero?).returns(false)
+            @agent.instance_variable_set("@statefile", "spec_test_state_file")
+
             File.expects(:exists?).with("spec_test_lock_file").returns(true)
             File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
+            File.expects(:exists?).with("spec_test_state_file").returns(false)
 
             result = @agent.call(:status)
-
-            result[:data][:output].should == "Enabled, running"
-            result.should have_data_items(:running, :enabled, :lastrun, :output)
+            result.should be_successful
+            result.should have_data_items({:running => 1,
+                                           :enabled => 1,
+                                           :lastrun => 0,
+                                           :output => /Enabled, running, last run/})
         end
 
         it "is enabled and not running if the lockfile does not exist" do
             File.expects(:exists?).with("spec_test_lock_file").returns(false)
+            File.expects(:exists?).with("spec_test_state_file").returns(false)
+            @agent.instance_variable_set("@statefile", "spec_test_state_file")
 
             result = @agent.call(:status)
-
-            result[:data][:output].should == "Enabled, not running"
-            result.should have_data_items(:running, :enabled, :lastrun, :output)
+            result.should be_successful
+            result.should have_data_items({:running => 0,
+                                           :enabled => 1,
+                                           :lastrun => 0,
+                                           :output => /Enabled, not running, last run/})
         end
-
     end
-
 end
