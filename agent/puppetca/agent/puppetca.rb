@@ -17,60 +17,60 @@ module MCollective
             # Does what puppetca would do, deletes signed and csr
             # not just invoking puppetca since its slow.
             action "clean" do
-                 validate :certname, :shellsafe
+                validate :certname, :shellsafe
 
-                 certname = request[:certname]
-                 signed = paths_for_cert(certname)[:signed]
-                 csr = paths_for_cert(certname)[:request]
+                certname = request[:certname]
+                signed = paths_for_cert(certname)[:signed]
+                csr = paths_for_cert(certname)[:request]
 
-                 msg = []
+                msg = []
 
-                 if has_cert?(certname)
-                     File.unlink(signed)
-                     msg << "Removed signed cert: #{signed}."
-                 end
+                if has_cert?(certname)
+                    File.unlink(signed)
+                    msg << "Removed signed cert: #{signed}."
+                end
 
-                 if cert_waiting?(certname)
+                if cert_waiting?(certname)
                     File.unlink(csr)
                     msg << "Removed csr: #{csr}."
-                 end
+                end
 
-                 if msg.size == 0
-                     reply.fail "Could not find any certs to delete"
-                 else
+                if msg.size == 0
+                    reply.fail "Could not find any certs to delete"
+                else
                     reply[:msg] = msg.join("  ")
-                 end
+                end
             end
 
             # revoke a cert, do the slow call to puppetca so we're 100%
             # certain we're doing the right thing
             action "revoke" do
-                 validate :certname, :shellsafe
+                validate :certname, :shellsafe
 
-                 if respond_to?(:run)
-                     reply[:out] = run("#{@puppetca} --color=none --revoke '#{request[:certname]}'", :stdout => :output, :chomp => true)
-                 else
-                      reply[:out] = %x[#{@puppetca} --color=none --revoke '#{request[:certname]}']
-                 end
+                if respond_to?(:run)
+                    reply[:out] = run("#{@puppetca} --color=none --revoke '#{request[:certname]}'", :stdout => :output, :chomp => true)
+                else
+                    reply[:out] = %x[#{@puppetca} --color=none --revoke '#{request[:certname]}']
+                end
             end
 
             # sign a cert if we have one waiting
             action "sign" do
-                 validate :certname, :shellsafe
+                validate :certname, :shellsafe
 
-                 certname = request[:certname]
+                certname = request[:certname]
 
-                 reply.fail! "Already have a cert for #{certname} not attempting to sign again" if has_cert?(certname)
+                reply.fail! "Already have a cert for #{certname} not attempting to sign again" if has_cert?(certname)
 
-                 if cert_waiting?(certname)
-                     if respond_to?(:run)
-                         reply[:out] = run("#{@puppetca} --color=none --sign '#{request[:certname]}'", :stdout => :output, :chomp => true)
-                     else
-                         reply[:out] = %x[#{@puppetca} --color=none --sign '#{request[:certname]}']
-                     end
-                 else
-                     reply.fail "No cert found to sign"
-                 end
+                if cert_waiting?(certname)
+                    if respond_to?(:run)
+                        reply[:out] = run("#{@puppetca} --color=none --sign '#{request[:certname]}'", :stdout => :output, :chomp => true)
+                    else
+                        reply[:out] = %x[#{@puppetca} --color=none --sign '#{request[:certname]}']
+                    end
+                else
+                    reply.fail "No cert found to sign"
+                end
             end
 
             # list all certs, signed and waiting
