@@ -24,6 +24,11 @@ labels = ["OK", "WARNING", "CRITICAL", "UNKNOWN"]
 stats = [[], [], [], []]
 statuscodes = [0]
 
+if nrpe.discover.size == 0
+    puts("#{command}: UNKNOWN: did not discovery any nodes")
+    exit 3
+end
+
 nrpe_results = nrpe.runcommand(:command => command)
 
 nrpe_results.each do |result|
@@ -56,7 +61,7 @@ end
 # else just take the highest.  UNKNOWN is 3 while
 # critical is 2, just exiting with max would hide
 # the fact that there are criticals.
-if statuscodes.include?(2) 
+if statuscodes.include?(2)
     exit 2
 else
     exit statuscodes.max
