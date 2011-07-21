@@ -44,16 +44,16 @@ module MCollective
                 reply[:result] = "OK"
             end
 
-            action "get_resource_value" do
+            action "find" do
               require 'puppet'
 
               type = request[:type]
               name = request[:name]
 
               if name
-                reply[:result] = Puppet::Resource.find([type, name].join('/'))
+                reply[:result] = Puppet::Resource.find([type, name].join('/')).to_pson_data_hash
               else
-                reply[:result] = Puppet::Resource.search(type, {})
+                reply[:result] = Puppet::Resource.search(type, {}).to_pson_data_hash
               end
             end
         end
