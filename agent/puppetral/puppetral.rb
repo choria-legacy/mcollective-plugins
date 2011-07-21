@@ -22,12 +22,9 @@ module MCollective
                         :license     => "GPLv2",
                         :version     => "0.1",
                         :url         => "http://mcollective-plugins.googlecode.com/",
-                        :timeout     => 120
+                        :timeout     => 180
 
             action "do" do
-                validate :type, String
-                validate :name, String
-
                 require 'puppet'
 
                 params = request.data.clone
@@ -45,6 +42,19 @@ module MCollective
                 catalog.apply
 
                 reply[:result] = "OK"
+            end
+
+            action "get_resource_value" do
+              require 'puppet'
+
+              type = request[:type]
+              name = request[:name]
+
+              if name
+                reply[:result] = Puppet::Resource.find([type, name].join('/'))
+              else
+                reply[:result] = Puppet::Resource.search(type, {})
+              end
             end
         end
     end
