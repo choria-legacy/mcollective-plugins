@@ -1,3 +1,5 @@
+require 'puppet'
+
 module MCollective
     module Agent
         # A SimpleRPC agent that uses the Puppet RAL to perform any action
@@ -24,9 +26,7 @@ module MCollective
                         :url         => "http://mcollective-plugins.googlecode.com/",
                         :timeout     => 180
 
-            action "do" do
-                require 'puppet'
-
+            action "create" do
                 params = request.data.clone
 
                 type = request[:type]
@@ -35,26 +35,44 @@ module MCollective
                 params.delete :process_results
 
                 pup = Puppet::Type.type(type).new(params)
-
-                catalog = Puppet::Resource::Catalog.new
-                catalog.add_resource pup
-
-                catalog.apply
+                resource_add(pup)
 
                 reply[:result] = "OK"
             end
 
-            action "find" do
-              require 'puppet'
+            action "create_from_pson" do
+              data = request[:pson]
 
+              res = Puppet::Resource.from_pson(data).to_ral
+              resource_add(res)
+
+              reply[:result] = "OK"
+            end
+
+            action "find" do
               type = request[:type]
               name = request[:name]
 
-              if name
-                reply[:result] = Puppet::Resource.find([type, name].join('/')).to_pson_data_hash
+              reply[:result] = if name
+                resource_find([type, name].join('/'))
               else
-                reply[:result] = Puppet::Resource.search(type, {}).to_pson_data_hash
+                resource_search(type)
               end
+            end
+
+            def resource_find(title)
+              Puppet::Resource.find(title).to_pson_data_hash
+            end
+
+            def resource_search(type)
+              Puppet::Resource.search(type, {}).to_pson_data_hash
+            end
+
+            def resource_add(res)
+              catalog = Puppet::Resource::Catalog.new
+              catalog.add_resource(res)
+
+              catalog.apply
             end
         end
     end
