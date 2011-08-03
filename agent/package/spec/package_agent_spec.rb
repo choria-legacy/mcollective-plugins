@@ -149,7 +149,7 @@ describe "package agent" do
     describe "#do_pkg_action" do
         before(:all) do
             module Puppet
-                module Type
+                class Type
                 end
             end
         end
