@@ -27,17 +27,17 @@ module MCollective
                         :timeout     => 180
 
             action "create" do
-                params = request.data.clone
+              params = request.data.clone
 
-                type = request[:type]
+              type = request[:type]
 
-                params.delete :type
-                params.delete :process_results
+              params.delete :type
+              params.delete :process_results
 
-                pup = Puppet::Type.type(type).new(params)
-                resource_add(pup)
+              pup = Puppet::Type.type(type).new(params)
+              resource_add(pup)
 
-                reply[:result] = "OK"
+              reply[:result] = "OK"
             end
 
             action "create_from_pson" do
@@ -53,11 +53,13 @@ module MCollective
               type = request[:type]
               name = request[:name]
 
-              reply[:result] = if name
+              result = if name
                 resource_find([type, name].join('/'))
               else
                 resource_search(type)
               end
+
+              result.each { |k,v| reply[k] = v }
             end
 
             def resource_find(title)
