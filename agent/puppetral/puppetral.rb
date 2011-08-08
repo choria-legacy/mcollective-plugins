@@ -37,7 +37,12 @@ module MCollective
               pup = Puppet::Type.type(type).new(params)
               resource_add(pup)
 
-              reply[:result] = "OK"
+             #res = resource_find(pup.type, pup.name)
+             #if res[:parameters][:ensure] == "absent"
+             #  reply[:result] = "Resource was not created"
+             #else
+             #  reply[:result] = "Resource created"
+             #end
             end
 
             action "create_from_pson" do
@@ -54,7 +59,7 @@ module MCollective
               name = request[:name]
 
               result = if name
-                resource_find([type, name].join('/'))
+                resource_find(type, name)
               else
                 resource_search(type)
               end
@@ -62,12 +67,12 @@ module MCollective
               result.each { |k,v| reply[k] = v }
             end
 
-            def resource_find(title)
-              Puppet::Resource.find(title).to_pson_data_hash
+            def resource_find(type, name)
+              Puppet::Resource.indirection.find([type, name].join('/')).to_pson_data_hash
             end
 
             def resource_search(type)
-              Puppet::Resource.search(type, {}).to_pson_data_hash
+              Puppet::Resource.indirection.search(type, {}).map {|r| r.to_pson_data_hash}
             end
 
             def resource_add(res)
