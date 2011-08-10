@@ -58,21 +58,18 @@ module MCollective
               type = request[:type]
               name = request[:name]
 
-              result = if name
-                resource_find(type, name)
-              else
-                resource_search(type)
-              end
+              result = Puppet::Resource.indirection.find([type, name].join('/')).to_pson_data_hash
 
               result.each { |k,v| reply[k] = v }
             end
 
-            def resource_find(type, name)
-              Puppet::Resource.indirection.find([type, name].join('/')).to_pson_data_hash
-            end
+            action "search" do
+              type = request[:type]
+              name = request[:name]
 
-            def resource_search(type)
-              Puppet::Resource.indirection.search(type, {}).map {|r| r.to_pson_data_hash}
+              result = Puppet::Resource.indirection.search(type, {}).map {|r| r.to_pson_data_hash}
+
+              result.each {|r| reply[r[:title]] = r}
             end
 
             def resource_add(res)

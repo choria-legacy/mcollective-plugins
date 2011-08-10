@@ -69,3 +69,18 @@ action "find", :description => "Get the value of a resource" do
            :description => "Value of the inspected resource",
            :display_as  => "Result"
 end
+action "search", :description => "Get the value of all resources of a certain type" do
+    display :always
+
+    input :type,
+          :prompt      => "Resource type",
+          :description => "Type of resource to check",
+          :type        => :string,
+          :validation  => '.',
+          :optional    => false,
+          :maxlength   => 90
+
+    output :result,
+           :description => "Value of the inspected resources",
+           :display_as  => "Result"
+end
