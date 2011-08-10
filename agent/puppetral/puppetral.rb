@@ -69,7 +69,7 @@ module MCollective
 
               result = Puppet::Resource.indirection.search(type, {}).map {|r| r.to_pson_data_hash}
 
-              result.each {|r| reply[r[:title]] = r}
+              result.each {|r| reply[r["title"]] = r}
             end
 
             def resource_add(res)
