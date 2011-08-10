@@ -17,7 +17,7 @@ action "create", :description => "Add a resource to the RAL" do
           :optional    => false,
           :maxlength   => 90
 
-    input :name,
+    input :title,
           :prompt      => "Resource name",
           :description => "Name of resource to add",
           :type        => :string,

@@ -29,10 +29,7 @@ module MCollective
             action "create" do
               inputs = request.data.clone
 
-              type = inputs[:type]
-              name = inputs[:name]
-
-              res = Puppet::Resource.new(type, name, :parameters => inputs[:parameters]).save
+              res = Puppet::Resource.new(inputs[:type], inputs[:title], :parameters => inputs[:parameters]).save
 
               if res[:ensure] == :absent
                 reply[:output] = "Resource was not created"

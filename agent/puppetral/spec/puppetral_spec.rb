@@ -35,31 +35,31 @@ describe "puppetral agent" do
     end
 
     it "should create the resource described and respond with a success message" do
-      result = @agent.call(:create, :type => 'file', :name => @tmpfile,
-                           :ensure => 'present', :content => "Hello, world!")
+      result = @agent.call(:create, :type => 'file', :title => @tmpfile,
+                           :parameters => {:ensure => 'present', :content => "Hello, world!"})
       File.open(@tmpfile, 'r') { |f| f.read.should == "Hello, world!" }
       result[:data][:output].should == "Resource was created"
     end
 
     it "should respond with error information if creating the resource fails" do
       badpath = "\\thisisa/bad\\path!!"
-      result = @agent.call(:create, :type => 'file', :name => badpath,
-                           :ensure => 'present', :content => "Hello, world!")
+      result = @agent.call(:create, :type => 'file', :title => badpath,
+                           :parameters => {:ensure => 'present', :content => "Hello, world!"})
       result[:statusmsg].should =~ /File paths must be fully qualified/
       result[:statuscode].should_not == 0
     end
 
     it "should report an error if the resource was not created" do
       badpath = "/etc/notpermitted"
-      result = @agent.call(:create, :type => 'file', :name => badpath,
-                           :ensure => 'present', :content => "Hello, world!")
+      result = @agent.call(:create, :type => 'file', :title => badpath,
+                           :parameters => {:ensure => 'present', :content => "Hello, world!"})
       result[:data][:output].should == "Resource was not created"
     end
 
     it "should overwrite an existing resource with the same type and title with different properties" do
       File.open(@tmpfile,'w') { |f| f.puts "Goodbye, cruel world!" }
-      result = @agent.call(:create, :type => 'file', :name => @tmpfile,
-                           :ensure => 'present', :content => "Hello, world!")
+      result = @agent.call(:create, :type => 'file', :title => @tmpfile,
+                           :parameters => {:ensure => 'present', :content => "Hello, world!"})
       File.open(@tmpfile, 'r') { |f| f.read.should == "Hello, world!" }
     end
   end
