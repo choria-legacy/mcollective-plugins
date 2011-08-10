@@ -30,22 +30,6 @@ action "create", :description => "Add a resource to the RAL" do
            :display_as  => "Result"
 end
 
-action "create_from_pson", :description => "Add a resource to the RAL from PSON" do
-    display :always
-
-    input :pson,
-          :prompt      => "Resource PSON hash",
-          :description => "PSON data hash representing a Puppet resource",
-          :type        => :hash,
-          :validation  => '.',
-          :optional    => false,
-          :maxlength   => 90
-
-    output :result,
-           :description => "Result of the action",
-           :display_as  => "Result"
-end
-
 action "find", :description => "Get the value of a resource" do
     display :always
 

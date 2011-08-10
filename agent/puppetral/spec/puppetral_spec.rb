@@ -15,16 +15,6 @@ describe "puppetral agent" do
       @result = @agent.call(:find, :type => 'User', :name => 'bob')
     end
 
-    it "should use Puppet::Resource to find" do
-      @result[:statusmsg].should == "OK"
-      @result[:statuscode].should == 0
-    end
-
-    it "should return data with a resource type and title" do
-      @result.should have_data_items('type')
-      @result.should have_data_items('title')
-    end
-
     it "should retrieve information about the type and title passed" do
       @result[:data]['title'].should == "bob"
       @result[:data]['type'].should == "User"
@@ -41,40 +31,34 @@ describe "puppetral agent" do
     end
 
     after :each do
-      File.delete(@tmpfile)
+      File.delete(@tmpfile) if File.exist?(@tmpfile)
     end
 
-    it "should create the resource described" do
-      result = @agent.call(:create, :type => 'File', :path => @tmpfile,
+    it "should create the resource described and respond with a success message" do
+      result = @agent.call(:create, :type => 'file', :name => @tmpfile,
                            :ensure => 'present', :content => "Hello, world!")
       File.open(@tmpfile, 'r') { |f| f.read.should == "Hello, world!" }
+      result[:data][:output].should == "Resource was created"
     end
 
     it "should respond with error information if creating the resource fails" do
-      badpath = "this\isnot/apath!"
-      result = @agent.call(:create, :type => 'File', :path => badpath,
+      badpath = "\\thisisa/bad\\path!!"
+      result = @agent.call(:create, :type => 'file', :name => badpath,
                            :ensure => 'present', :content => "Hello, world!")
-      result[:data][:result].should == "Some error message"
+      result[:statusmsg].should =~ /File paths must be fully qualified/
+      result[:statuscode].should_not == 0
     end
 
-    it "should check whether the resource was actually created" do
-      Puppet::Resource.expects(:find).with(['file',@tmpfile].join('/'))
-      result = @agent.call(:create, :type => 'File', :path => @tmpfile,
+    it "should report an error if the resource was not created" do
+      badpath = "/etc/notpermitted"
+      result = @agent.call(:create, :type => 'file', :name => badpath,
                            :ensure => 'present', :content => "Hello, world!")
-    end
-
-    it "should report an error if the resource was not created"
-
-    it "should return 'already exists' if the resource already exists in an identical form" do
-      File.open(@tmpfile,'w') { |f| f.puts "Hello, world!" }
-      result = @agent.call(:create, :type => 'File', :path => @tmpfile,
-                           :ensure => 'present', :content => "Hello, world!")
-      result[:data][:result].should == "Resource already exists in specified form."
+      result[:data][:output].should == "Resource was not created"
     end
 
     it "should overwrite an existing resource with the same type and title with different properties" do
       File.open(@tmpfile,'w') { |f| f.puts "Goodbye, cruel world!" }
-      result = @agent.call(:create, :type => 'File', :path => @tmpfile,
+      result = @agent.call(:create, :type => 'file', :name => @tmpfile,
                            :ensure => 'present', :content => "Hello, world!")
       File.open(@tmpfile, 'r') { |f| f.read.should == "Hello, world!" }
     end

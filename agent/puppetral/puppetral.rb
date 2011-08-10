@@ -27,31 +27,18 @@ module MCollective
                         :timeout     => 180
 
             action "create" do
-              params = request.data.clone
+              inputs = request.data.clone
 
-              type = request[:type]
+              type = inputs[:type]
+              name = inputs[:name]
 
-              params.delete :type
-              params.delete :process_results
+              res = Puppet::Resource.new(type, name, :parameters => inputs[:parameters]).save
 
-              pup = Puppet::Type.type(type).new(params)
-              resource_add(pup)
-
-             #res = resource_find(pup.type, pup.name)
-             #if res[:parameters][:ensure] == "absent"
-             #  reply[:result] = "Resource was not created"
-             #else
-             #  reply[:result] = "Resource created"
-             #end
-            end
-
-            action "create_from_pson" do
-              data = request[:pson]
-
-              res = Puppet::Resource.from_pson(data).to_ral
-              resource_add(res)
-
-              reply[:result] = "OK"
+              if res[:ensure] == :absent
+                reply[:output] = "Resource was not created"
+              else
+                reply[:output] = "Resource was created"
+              end
             end
 
             action "find" do
@@ -73,10 +60,6 @@ module MCollective
             end
 
             def resource_add(res)
-              catalog = Puppet::Resource::Catalog.new
-              catalog.add_resource(res)
-
-              catalog.apply
             end
         end
     end
