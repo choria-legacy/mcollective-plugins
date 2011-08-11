@@ -23,6 +23,29 @@ describe "puppetral agent" do
     it "should specify an ensure value for the resource" do
       @result[:data]['parameters'].keys.should include :ensure
     end
+
+    it "should respond with an error if passed an invalid type" do
+      @result = @agent.call(:find, :type => 'Foobar', :name => 'Foobaz')
+
+      @result[:statusmsg].should =~ /Could not find type Foobar/
+    end
+  end
+
+  describe "#search" do
+    it "should return a list of all resources of the type passed indexed by resource title" do
+      result = @agent.call(:search, :type => 'User')
+      result[:statusmsg].should == "OK"
+      result[:data].each do |k,v|
+        k.class.should == String
+        v.keys.should =~ ["exported", "title", "parameters", "tags", "type"]
+      end
+    end
+
+    it "should respond with an error if passed an invalid type" do
+      result = @agent.call(:search, :type => 'Foobar')
+
+      result[:statusmsg].should =~ /Could not find type Foobar/
+    end
   end
 
   describe "#create" do
