@@ -19,10 +19,10 @@ module MCollective
     # needed properties that the type require etc.
     class Puppetral<RPC::Agent
       metadata :name        => "puppetral",
-               :description => "Uses the Puppet RAL to perform actions on a server",
-               :author      => "R.I.Pienaar <rip@devco.net>",
-               :license     => "GPLv2",
-               :version     => "0.1",
+               :description => "Agent to inspect and act on the RAL",
+               :author      => "R.I.Pienaar <rip@devco.net>, Max Martin <max@puppetlabs.com>",
+               :license     => "ASL2",
+               :version     => "0.2",
                :url         => "http://mcollective-plugins.googlecode.com/",
                :timeout     => 180
 

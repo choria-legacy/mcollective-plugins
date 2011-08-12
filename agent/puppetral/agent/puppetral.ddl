@@ -1,8 +1,8 @@
 metadata    :name        => "Agent for Puppet RAL interaction",
             :description => "Agent to inspect and act on the RAL",
             :author      => "R.I.Pienaar, Max Martin",
-            :license     => "GPLv2",
-            :version     => "1.3",
+            :license     => "ASL2",
+            :version     => "0.2",
             :url         => "http://mcollective-plugins.googlecode.com/",
             :timeout     => 180
 
