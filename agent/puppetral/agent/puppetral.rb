@@ -48,6 +48,14 @@ module MCollective
           result = Puppet::Resource.indirection.find([type, name].join('/')).to_pson_data_hash
 
           result.each { |k,v| reply[k] = v }
+
+          begin
+            managed_resources = File.readlines(`puppet agent --configprint resourcefile`.chomp)
+            managed_resources = managed_resources.map{|r|r.chomp}
+            reply[:managed] = managed_resources.include?("#{type}[#{name}]")
+          rescue
+            reply[:managed] = "unknown"
+          end
         end
       end
 
