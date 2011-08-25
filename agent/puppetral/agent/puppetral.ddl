@@ -25,8 +25,8 @@ action "create", :description => "Add a resource to the RAL" do
           :optional    => false,
           :maxlength   => 90
 
-    output :result,
-           :description => "Result of the action",
+    output :output,
+           :description => "Message indicating success or failure of the action",
            :display_as  => "Result"
 end
 
@@ -49,9 +49,25 @@ action "find", :description => "Get the value of a resource" do
           :optional    => true,
           :maxlength   => 90
 
-    output :result,
-           :description => "Value of the inspected resource",
-           :display_as  => "Result"
+    output :type,
+           :description => "Type of the inspected resource",
+           :display_as  => "Type"
+
+    ouput :title,
+    	  :description => "Title of the inspected resource",
+	  :display_as  => "Title"
+	  
+    output :tags,
+    	   :description => "Tags of the inspected resource",
+	   :display_as  => "Tags"
+
+    output :exported,
+       	   :description => "Boolean flag indicating export status",
+	   :display_as  => "Exported"
+
+    output :parameters,
+    	   :description => "Parameters of the inspected resource",
+	   :display_as  => "Parameters"
 end
 action "search", :description => "Get the value of all resources of a certain type" do
     display :always
