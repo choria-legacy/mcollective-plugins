@@ -50,7 +50,7 @@ module MCollective
           result.each { |k,v| reply[k] = v }
 
           begin
-            managed_resources = File.readlines(`puppet agent --configprint resourcefile`.chomp)
+            managed_resources = File.readlines(Puppet[:resourcefile])
             managed_resources = managed_resources.map{|r|r.chomp}
             reply[:managed] = managed_resources.include?("#{type}[#{title}]")
           rescue

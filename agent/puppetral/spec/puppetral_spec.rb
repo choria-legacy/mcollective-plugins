@@ -12,7 +12,7 @@ describe "puppetral agent" do
 
   describe "#find" do
     before :all do
-      @result = @agent.call(:find, :type => 'User', :name => 'bob')
+      @result = @agent.call(:find, :type => 'User', :title => 'bob')
     end
 
     it "should retrieve information about the type and title passed" do
