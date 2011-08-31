@@ -41,8 +41,8 @@ action "find", :description => "Get the value of a resource" do
           :optional    => false,
           :maxlength   => 90
 
-    input :name,
-          :prompt      => "Resource name",
+    input :title,
+          :prompt      => "Resource title",
           :description => "Name of resource to check",
           :type        => :string,
           :validation  => '.',
@@ -50,25 +50,26 @@ action "find", :description => "Get the value of a resource" do
           :maxlength   => 90
 
     output :type,
-           :description => "Type of the inspected resource",
-           :display_as  => "Type"
+          :description => "Type of the inspected resource",
+          :display_as  => "Type"
 
-    ouput :title,
-    	  :description => "Title of the inspected resource",
-	  :display_as  => "Title"
-	  
+    output :title,
+          :description => "Title of the inspected resource",
+          :display_as  => "Title"
+
     output :tags,
-    	   :description => "Tags of the inspected resource",
-	   :display_as  => "Tags"
+          :description => "Tags of the inspected resource",
+          :display_as  => "Tags"
 
     output :exported,
-       	   :description => "Boolean flag indicating export status",
-	   :display_as  => "Exported"
+          :description => "Boolean flag indicating export status",
+          :display_as  => "Exported"
 
     output :parameters,
-    	   :description => "Parameters of the inspected resource",
-	   :display_as  => "Parameters"
+          :description => "Parameters of the inspected resource",
+          :display_as  => "Parameters"
 end
+
 action "search", :description => "Get the value of all resources of a certain type" do
     display :always
 
