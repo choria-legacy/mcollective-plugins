@@ -20,6 +20,10 @@ options = rpcoptions do |parser, options|
     parser.on("--force", "-f", "Force the puppet run to happen immediately without splay") do
         @force = true
     end
+
+    parser.on("--environment", "-e ENVIRONMENT", "Environment option to invoke runonce or runall") do |v|
+        @env = v
+    end
 end
 
 puppetd = rpcclient("puppetd", :options => options)
@@ -62,6 +66,18 @@ def waitfor(concurrency, client)
     end
 end
 
+def get_opts(command)
+    #Always force for runall
+    opts = {:forcerun => command == "runall" ? true : @force}
+
+    if !@env.nil?
+        log("Passing explicit environment #{@env}")
+        opts[:env] = @env
+    end
+
+    return opts
+end
+
 if command == "status"
     puppetd.send(command).each do |node|
         node[:statuscode] == 0 ? msg = node[:data][:output] : msg = node[:statusmsg]
@@ -96,6 +112,7 @@ elsif command == "count"
 elsif command == "runall"
     if ARGV.length == 1
         concurrency = ARGV.shift.to_i
+        opts = get_opts(command)
 
         if concurrency > 0
             log("Running all machines with a concurrency of #{concurrency}")
@@ -116,7 +133,7 @@ elsif command == "runall"
 
                 log("Running #{host}, concurrency is #{running}")
 
-                result = puppetd.custom_request("runonce", {:forcerun => true}, host, {"identity" => host})
+                result = puppetd.custom_request("runonce", opts, host, {"identity" => host})
 
                 if result.is_a?(Array)
                     log("#{host} schedule status: #{result[0][:statusmsg]}")
@@ -140,10 +157,9 @@ elsif command == "summary"
     printrpcstats
 
 elsif command == "runonce"
-    printrpc puppetd.runonce(:forcerun => @force)
+    printrpc puppetd.runonce(get_opts(command))
 
     printrpcstats
-
 else
     printrpc puppetd.send(command)
 

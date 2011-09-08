@@ -96,6 +96,10 @@ module MCollective
                         end
                     end
 
+                    if request[:env]
+                        cmd << "--environment" << request[:env]
+                    end
+
                     cmd = cmd.join(" ")
 
                     if respond_to?(:run)
