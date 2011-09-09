@@ -19,6 +19,11 @@ class MCollective::Application::Puppetd<MCollective::Application
             unless configuration[:command].match(/^(enable|disable|runonce|runall|status|summary|count)$/)
                 raise "Command has to be enable, disable, runonce, runonce, runall, status, summary or count"
             end
+
+            #I would think the :bool type above would take care of this
+            unless configuration[:force]
+                configuration[:force] = false
+            end
         else
             raise "Please specify a command"
         end
@@ -140,3 +145,4 @@ class MCollective::Application::Puppetd<MCollective::Application
         printrpcstats
     end
 end
+# vi:tabstop=4:expandtab:ai:filetype=ruby
