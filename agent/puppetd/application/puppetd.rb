@@ -71,9 +71,9 @@ class MCollective::Application::Puppetd<MCollective::Application
                         log("Running #{host}, concurrency is #{running}")
                         result = mc.custom_request("runonce", {:forcerun => true}, host, {"identity" => host})
 
-                        if result.is_a?(Array)
+                        begin
                             log("#{host} schedule status: #{result[0][:statusmsg]}")
-                        else
+                        rescue
                             log("#{host} unknown output: #{result.pretty_inspect}")
                         end
 
