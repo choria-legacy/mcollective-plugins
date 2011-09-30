@@ -30,10 +30,14 @@ module MCollective
         inputs = request.data.clone
 
         resource = Puppet::Resource.new(inputs[:type], inputs[:title], :parameters => inputs[:parameters])
-        result = Puppet::Resource.indirection.save(resource)
+        result, report = Puppet::Resource.indirection.save(resource)
 
         if result[:ensure] == :absent
-          reply[:output] = "Resource was not created"
+          if report
+            reply[:output] = report.resource_statuses.first.last.events.first.message
+          else
+            reply[:output] = "Resource was not created"
+          end
         else
           reply[:output] = "Resource was created"
         end
@@ -45,10 +49,10 @@ module MCollective
         typeobj = Puppet::Type.type(type) or raise "Could not find type #{type}"
 
         if typeobj
-          result = Puppet::Resource.indirection.find([type, title].join('/')).to_pson_data_hash
+          resource = Puppet::Resource.indirection.find([type, title].join('/'))
+          result = resource.respond_to?(:prune_parameters) ?
+                   resource.prune_parameters.to_pson_data_hash : resource.to_pson_data_hash
 
-          properties = typeobj.properties.collect { |s| s.name.to_s }
-          result['parameters'].each { |p, v| result['parameters'].delete p if ((p.to_s != 'ensure' && v == :absent) || !(properties.include?(p.to_s))) }
           result.each { |k,v| reply[k] = v }
 
           begin
@@ -66,7 +70,9 @@ module MCollective
         typeobj = Puppet::Type.type(type) or raise "Could not find type #{type}"
 
         if typeobj
-          result = Puppet::Resource.indirection.search(type, {}).map {|r| r.to_pson_data_hash}
+          result = Puppet::Resource.indirection.search(type, {}).map do |r|
+            r.respond_to?(:prune_parameters) ? r.prune_parameters.to_pson_data_hash : r.to_pson_data_hash
+          end
 
           result.each {|r| reply[r["title"]] = r}
         end
