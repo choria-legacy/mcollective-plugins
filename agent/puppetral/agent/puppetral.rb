@@ -47,6 +47,8 @@ module MCollective
         if typeobj
           result = Puppet::Resource.indirection.find([type, title].join('/')).to_pson_data_hash
 
+          properties = typeobj.properties.collect { |s| s.name.to_s }
+          result['parameters'].each { |p, v| result['parameters'].delete p if ((p.to_s != 'ensure' && v == :absent) || !(properties.include?(p.to_s))) }
           result.each { |k,v| reply[k] = v }
 
           begin
