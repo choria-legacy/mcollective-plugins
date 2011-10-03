@@ -25,6 +25,14 @@ action "create", :description => "Add a resource to the RAL" do
           :optional    => false,
           :maxlength   => 90
 
+    input :avoid_conflict,
+          :prompt      => "Avoid conflict",
+          :description => "Resource property to ignore if there's a conflict",
+          :type        => :string,
+          :validation  => '.',
+          :optional    => true,
+          :maxlength   => 90
+
     output :output,
            :description => "Message indicating success or failure of the action",
            :display_as  => "Result"

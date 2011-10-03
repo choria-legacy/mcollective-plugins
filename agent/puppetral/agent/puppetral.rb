@@ -27,9 +27,22 @@ module MCollective
                :timeout     => 180
 
       action "create" do
-        inputs = request.data.clone
+        type = request[:type]
+        title = request[:title]
+        parameters = request[:parameters]
+        
+        # Remove the avoid_conflict property if it clashes with a pre-existing resource.
+        avoid_conflict_key = request[:avoid_conflict]
+        if avoid_conflict_key && parameters && parameters.has_key? avoid_conflict_key
+          avoid_conflict_value = parameters[avoid_conflict_key]
+          search_result = Puppet::Resource.indirection.search(type, {}).map {|r| r.to_pson_data_hash}
+          avoid_conflict_values = search_result.collect { |v| v[avoid_conflict_key] }
+          if avoid_conflict_values.include? avoid_conflict_value
+            parameters.delete avoid_conflict_key
+          end
+        end
 
-        resource = Puppet::Resource.new(inputs[:type], inputs[:title], :parameters => inputs[:parameters])
+        resource = Puppet::Resource.new(type, title, :parameters => parameters)
         result = Puppet::Resource.indirection.save(resource)
 
         if result[:ensure] == :absent
