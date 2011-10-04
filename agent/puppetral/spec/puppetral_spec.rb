@@ -25,9 +25,15 @@ describe "puppetral agent" do
     end
 
     it "should respond with an error if passed an invalid type" do
-      @result = @agent.call(:find, :type => 'Foobar', :name => 'Foobaz')
+      @result = @agent.call(:find, :type => 'Foobar', :title => 'Foobaz')
 
       @result[:statusmsg].should =~ /Could not find type Foobar/
+    end
+
+    it "should prune parameters from the result" do
+      @result = @agent.call(:find, :type => 'User', :title => 'root')
+
+      @result[:data]["parameters"].should_not have_key(:loglevel)
     end
   end
 
@@ -57,33 +63,76 @@ describe "puppetral agent" do
       File.delete(@tmpfile) if File.exist?(@tmpfile)
     end
 
-    it "should create the resource described and respond with a success message" do
-      result = @agent.call(:create, :type => 'file', :title => @tmpfile,
-                           :parameters => {:ensure => 'present', :content => "Hello, world!"})
-      File.open(@tmpfile, 'r') { |f| f.read.should == "Hello, world!" }
-      result[:data][:output].should == "Resource was created"
+    describe "when avoiding conflicts" do
+      it "should remove the passed parameter if there is a conflict with it" do
+        Puppet::Resource.expects(:new).with('group', 'testgroup', :parameters => {:ensure=>'present'})
+        Puppet::Resource.indirection.expects(:save).returns({:ensure=>:present})
+        Puppet::Resource.indirection.expects(:search).with('group', {}).returns(
+               [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
+                    "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
+                     :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
+                     :gid=>0}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
+        )
+        result = @agent.call(:create, :type => 'group', :title => 'testgroup',
+                             :parameters => {:ensure => 'present', :gid => "0"}, :avoid_conflict => :gid)
+      end
+
+      it "should remove the passed parameter if there is a resource with a conflicting title" do
+        Puppet::Resource.expects(:new).with('group', 'wheel', :parameters => {:ensure=>'present'})
+        Puppet::Resource.indirection.expects(:save).returns({:ensure=>:present})
+        Puppet::Resource.indirection.expects(:search).with('group', {}).returns(
+               [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
+                    "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
+                     :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
+                     :gid=>2}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
+        )
+        result = @agent.call(:create, :type => 'group', :title => 'wheel',
+                             :parameters => {:ensure => 'present', :gid => "0"}, :avoid_conflict => :gid)
+      end
+
+      it "should do nothing if there is no conflict" do
+        Puppet::Resource.expects(:new).with('group', 'testgroup', :parameters => {:ensure=>'present', :gid => '555'})
+        Puppet::Resource.indirection.expects(:save).returns({:ensure=>:present})
+        Puppet::Resource.indirection.expects(:search).with('group', {}).returns(
+               [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
+                    "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
+                     :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
+                     :gid=>0}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
+        )
+        result = @agent.call(:create, :type => 'group', :title => 'testgroup',
+                             :parameters => {:ensure => 'present', :gid => "555"}, :avoid_conflict => :gid)
+      end
     end
 
-    it "should respond with error information if creating the resource fails" do
-      badpath = "\\thisisa/bad\\path!!"
-      result = @agent.call(:create, :type => 'file', :title => badpath,
-                           :parameters => {:ensure => 'present', :content => "Hello, world!"})
-      result[:statusmsg].should =~ /File paths must be fully qualified/
-      result[:statuscode].should_not == 0
-    end
+    describe "when not avoiding conflicts" do
+      it "should create the resource described and respond with a success message" do
+        result = @agent.call(:create, :type => 'file', :title => @tmpfile,
+                             :parameters => {:ensure => 'present', :content => "Hello, world!"})
+        File.open(@tmpfile, 'r') { |f| f.read.should == "Hello, world!" }
+        result[:data][:output].should == "Resource was created"
+      end
 
-    it "should report an error if the resource was not created" do
-      badpath = "/etc/notpermitted"
-      result = @agent.call(:create, :type => 'file', :title => badpath,
-                           :parameters => {:ensure => 'present', :content => "Hello, world!"})
-      result[:data][:output].should == "Resource was not created"
-    end
+      it "should respond with error information if creating the resource fails" do
+        badpath = "\\thisisa/bad\\path!!"
+        result = @agent.call(:create, :type => 'file', :title => badpath,
+                             :parameters => {:ensure => 'present', :content => "Hello, world!"})
+        result[:statusmsg].should =~ /File paths must be fully qualified/
+        result[:statuscode].should_not == 0
+      end
 
-    it "should overwrite an existing resource with the same type and title with different properties" do
-      File.open(@tmpfile,'w') { |f| f.puts "Goodbye, cruel world!" }
-      result = @agent.call(:create, :type => 'file', :title => @tmpfile,
-                           :parameters => {:ensure => 'present', :content => "Hello, world!"})
-      File.open(@tmpfile, 'r') { |f| f.read.should == "Hello, world!" }
+      it "should report an error if the resource was not created" do
+        badpath = "/etc/notpermitted"
+        result = @agent.call(:create, :type => 'file', :title => badpath,
+                             :parameters => {:ensure => 'present', :content => "Hello, world!"})
+        result[:data][:output].should =~ /change from absent to present failed/
+      end
+
+      it "should overwrite an existing resource with the same type and title with different properties" do
+        File.open(@tmpfile,'w') { |f| f.puts "Goodbye, cruel world!" }
+        result = @agent.call(:create, :type => 'file', :title => @tmpfile,
+                             :parameters => {:ensure => 'present', :content => "Hello, world!"})
+        File.open(@tmpfile, 'r') { |f| f.read.should == "Hello, world!" }
+      end
     end
   end
 end

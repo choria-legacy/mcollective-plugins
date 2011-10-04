@@ -31,24 +31,7 @@ module MCollective
         title = request[:title]
         parameters = request[:parameters]
 
-        # Remove the avoid_conflict property if it clashes in one or more of 
-        # the following ways:
-        #   1) A resource of the same type exists and has the same value for 
-        #      the avoid_conflict property.
-        #   2) A resource of the same type and title exists.
-        avoid_conflict_key = request[:avoid_conflict]
-        if avoid_conflict_key && parameters && parameters.has_key? avoid_conflict_key
-          avoid_conflict_value = parameters[avoid_conflict_key]
-          search_result = Puppet::Resource.indirection.search(type, {})
-          search_result.each do |result|
-            resource = result.to_pson_data_hash
-            if ((resource[avoid_conflict_key] == avoid_conflict_value) ||
-                (resource['title'] == title))
-              parameters.delete avoid_conflict_key
-              break
-            end
-          end
-        end
+        parameters = remove_conflicts(type, title, parameters, request[:avoid_conflict])
 
         resource = Puppet::Resource.new(type, title, :parameters => parameters)
         result, report = Puppet::Resource.indirection.save(resource)
@@ -62,6 +45,26 @@ module MCollective
         else
           reply[:output] = "Resource was created"
         end
+      end
+
+      # Remove the avoid_conflict property if it clashes in one or more of
+      # the following ways:
+      #   1) A resource of the same type exists and has the same value for
+      #      the avoid_conflict property.
+      #   2) A resource of the same type and title exists.
+      def remove_conflicts(type, title, parameters, key)
+        if key && parameters.has_key?(key)
+          value = parameters[key]
+          search_result = Puppet::Resource.indirection.search(type, {})
+          search_result.each do |result|
+            resource = result.to_pson_data_hash
+            if resource['parameters'][key].to_s == value.to_s || resource['title'] == title
+              parameters.delete key
+              return parameters
+            end
+          end
+        end
+        parameters
       end
 
       action "find" do
