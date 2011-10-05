@@ -95,9 +95,9 @@ module Mcollective
                 rpcclient_mock.expects(:discover).returns(["node1","node2"])
                 @app.expects(:waitfor).with(1, rpcclient_mock).twice
                 rpcclient_mock.expects(:custom_request).with("runonce", {:forcerun => true}, "node1", {"identity" => "node1"}).returns([:statusmsg => "success"])
-                rpcclient_mock.expects(:custom_request).with("runonce", {:forcerun => true}, "node2", {"identity" => "node2"}).returns(0)
+                rpcclient_mock.expects(:custom_request).with("runonce", {:forcerun => true}, "node2", {"identity" => "node2"}).returns(false)
                 @app.expects(:log).with("node1 schedule status: success")
-                @app.expects(:log).with("node2 unknown output: 0\n")
+                @app.expects(:log).with("node2 unknown output: false\n")
                 @app.stubs(:sleep).with(1)
                 rpcclient_mock.expects(:disconnect)
 
