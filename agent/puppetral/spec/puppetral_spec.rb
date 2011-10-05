@@ -5,9 +5,9 @@ require File.join([File.dirname(__FILE__), '/../../../spec/spec_helper'])
 describe "puppetral agent" do
   before :all do
     @agent = MCollective::Test::LocalAgentTest.new(
-      "puppetral",
-      :agent_file => File.join([File.dirname(__FILE__), "../agent/puppetral.rb"])
-    ).plugin
+                                                   "puppetral",
+                                                   :agent_file => File.join([File.dirname(__FILE__), "../agent/puppetral.rb"])
+                                                   ).plugin
   end
 
   describe "#find" do
@@ -68,11 +68,11 @@ describe "puppetral agent" do
         Puppet::Resource.expects(:new).with('group', 'testgroup', :parameters => {:ensure=>'present'})
         Puppet::Resource.indirection.expects(:save).returns({:ensure=>:present})
         Puppet::Resource.indirection.expects(:search).with('group', {}).returns(
-               [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
-                    "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
-                     :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
-                     :gid=>0}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
-        )
+                                                                                [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
+                                                                                          "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
+                                                                                            :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
+                                                                                            :gid=>0}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
+                                                                                )
         result = @agent.call(:create, :type => 'group', :title => 'testgroup',
                              :parameters => {:ensure => 'present', :gid => "0"}, :avoid_conflict => :gid)
       end
@@ -81,11 +81,11 @@ describe "puppetral agent" do
         Puppet::Resource.expects(:new).with('group', 'wheel', :parameters => {:ensure=>'present'})
         Puppet::Resource.indirection.expects(:save).returns({:ensure=>:present})
         Puppet::Resource.indirection.expects(:search).with('group', {}).returns(
-               [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
-                    "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
-                     :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
-                     :gid=>2}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
-        )
+                                                                                [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
+                                                                                          "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
+                                                                                            :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
+                                                                                            :gid=>2}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
+                                                                                )
         result = @agent.call(:create, :type => 'group', :title => 'wheel',
                              :parameters => {:ensure => 'present', :gid => "0"}, :avoid_conflict => :gid)
       end
@@ -94,11 +94,11 @@ describe "puppetral agent" do
         Puppet::Resource.expects(:new).with('group', 'testgroup', :parameters => {:ensure=>'present', :gid => '555'})
         Puppet::Resource.indirection.expects(:save).returns({:ensure=>:present})
         Puppet::Resource.indirection.expects(:search).with('group', {}).returns(
-               [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
-                    "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
-                     :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
-                     :gid=>0}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
-        )
+                                                                                [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
+                                                                                          "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
+                                                                                            :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
+                                                                                            :gid=>0}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
+                                                                                )
         result = @agent.call(:create, :type => 'group', :title => 'testgroup',
                              :parameters => {:ensure => 'present', :gid => "555"}, :avoid_conflict => :gid)
       end

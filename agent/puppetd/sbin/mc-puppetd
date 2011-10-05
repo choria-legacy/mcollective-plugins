@@ -11,143 +11,143 @@ include MCollective::RPC
 @force = false
 
 options = rpcoptions do |parser, options|
-    parser.define_head "Manage remote puppet daemons"
-    parser.banner = "Usage: mc-puppetd [enable|disable|runonce|status|count|runall|summary] [concurrency]"
+  parser.define_head "Manage remote puppet daemons"
+  parser.banner = "Usage: mc-puppetd [enable|disable|runonce|status|count|runall|summary] [concurrency]"
 
-    parser.separator ""
-    parser.separator "Run Options"
+  parser.separator ""
+  parser.separator "Run Options"
 
-    parser.on("--force", "-f", "Force the puppet run to happen immediately without splay") do
-        @force = true
-    end
+  parser.on("--force", "-f", "Force the puppet run to happen immediately without splay") do
+    @force = true
+  end
 end
 
 puppetd = rpcclient("puppetd", :options => options)
 
 if ARGV.length >= 1
-    command = ARGV.shift
+  command = ARGV.shift
 else
-    puts("Please specify a command")
-    exit 1
+  puts("Please specify a command")
+  exit 1
 end
 
 # Prints a log statement with a time
 def log(msg)
-    puts("#{Time.now}> #{msg}")
+  puts("#{Time.now}> #{msg}")
 end
 
 # Checks concurrent runs every second and returns once its
 # below the given threshold
 def waitfor(concurrency, client)
-    logged = false
+  logged = false
 
-    loop do
-        running = 0
+  loop do
+    running = 0
 
-        client.status do |resp|
-            begin
-                running += resp[:body][:data][:running].to_i
-            rescue Exception => e
-                log("Failed to get node status: #{e}, continuing")
-            end
-        end
-
-        return running if running < concurrency
-
-        log("Currently #{running} nodes running, waiting") unless logged
-
-        logged = true
-
-        sleep 2
+    client.status do |resp|
+      begin
+        running += resp[:body][:data][:running].to_i
+      rescue Exception => e
+        log("Failed to get node status: #{e}, continuing")
+      end
     end
+
+    return running if running < concurrency
+
+    log("Currently #{running} nodes running, waiting") unless logged
+
+    logged = true
+
+    sleep 2
+  end
 end
 
 if command == "status"
-    puppetd.send(command).each do |node|
-        node[:statuscode] == 0 ? msg = node[:data][:output] : msg = node[:statusmsg]
+  puppetd.send(command).each do |node|
+    node[:statuscode] == 0 ? msg = node[:data][:output] : msg = node[:statusmsg]
 
-        puts "%-40s %s" % [ node[:sender], msg ]
-    end
+    puts "%-40s %s" % [ node[:sender], msg ]
+  end
 elsif command == "count"
-    running = enabled = total = 0
+  running = enabled = total = 0
 
-    puppetd.progress = false
-    puppetd.status do |resp|
-        begin
-            running += resp[:body][:data][:running].to_i
-            enabled += resp[:body][:data][:enabled].to_i
-            total += 1
-        rescue Exception => e
-            log("Failed to get node status: #{e}, continuing")
-        end
+  puppetd.progress = false
+  puppetd.status do |resp|
+    begin
+      running += resp[:body][:data][:running].to_i
+      enabled += resp[:body][:data][:enabled].to_i
+      total += 1
+    rescue Exception => e
+      log("Failed to get node status: #{e}, continuing")
     end
+  end
 
-    disabled = total - enabled
+  disabled = total - enabled
 
-    puts
+  puts
 
-    puts "Nodes currently doing puppet runs: #{running}"
-    puts "          Nodes currently enabled: #{enabled}"
-    puts "         Nodes currently disabled: #{disabled}"
+  puts "Nodes currently doing puppet runs: #{running}"
+  puts "          Nodes currently enabled: #{enabled}"
+  puts "         Nodes currently disabled: #{disabled}"
 
-    puts
+  puts
 
-    printrpcstats
+  printrpcstats
 elsif command == "runall"
-    if ARGV.length == 1
-        concurrency = ARGV.shift.to_i
+  if ARGV.length == 1
+    concurrency = ARGV.shift.to_i
 
-        if concurrency > 0
-            log("Running all machines with a concurrency of #{concurrency}")
-            log("Discovering hosts to run")
+    if concurrency > 0
+      log("Running all machines with a concurrency of #{concurrency}")
+      log("Discovering hosts to run")
 
-            puppetd.progress = false
-            hosts = puppetd.discover.sort
+      puppetd.progress = false
+      hosts = puppetd.discover.sort
 
-            log("Found #{hosts.size} hosts")
+      log("Found #{hosts.size} hosts")
 
-            # For all hosts:
-            #  - check for concurrent runs, wait till its below threshold
-            #  - do a run on the single host, regardless of if its already running
-            #  - log the output from the schedule command
-            #  - sleep a second
-            hosts.each do |host|
-                running = waitfor(concurrency, puppetd)
+      # For all hosts:
+      #  - check for concurrent runs, wait till its below threshold
+      #  - do a run on the single host, regardless of if its already running
+      #  - log the output from the schedule command
+      #  - sleep a second
+      hosts.each do |host|
+        running = waitfor(concurrency, puppetd)
 
-                log("Running #{host}, concurrency is #{running}")
+        log("Running #{host}, concurrency is #{running}")
 
-                result = puppetd.custom_request("runonce", {:forcerun => true}, host, {"identity" => host})
+        result = puppetd.custom_request("runonce", {:forcerun => true}, host, {"identity" => host})
 
-                if result.is_a?(Array)
-                    log("#{host} schedule status: #{result[0][:statusmsg]}")
-                else
-                    log("#{host} unknown output: #{result.pretty_inspect}")
-                end
-
-                sleep 1
-            end
+        if result.is_a?(Array)
+          log("#{host} schedule status: #{result[0][:statusmsg]}")
         else
-            puts("Concurrency is #{concurrency}, not running any nodes")
-            exit 1
+          log("#{host} unknown output: #{result.pretty_inspect}")
         end
-    else
-        puts("Please specify a maximum concurrency")
-        exit 1
-    end
-elsif command == "summary"
-    printrpc puppetd.last_run_summary
 
-    printrpcstats
+        sleep 1
+      end
+    else
+      puts("Concurrency is #{concurrency}, not running any nodes")
+      exit 1
+    end
+  else
+    puts("Please specify a maximum concurrency")
+    exit 1
+  end
+elsif command == "summary"
+  printrpc puppetd.last_run_summary
+
+  printrpcstats
 
 elsif command == "runonce"
-    printrpc puppetd.runonce(:forcerun => @force)
+  printrpc puppetd.runonce(:forcerun => @force)
 
-    printrpcstats
+  printrpcstats
 
 else
-    printrpc puppetd.send(command)
+  printrpc puppetd.send(command)
 
-    printrpcstats
+  printrpcstats
 end
 
 # vi:tabstop=4:expandtab:ai
