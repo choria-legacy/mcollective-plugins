@@ -7,6 +7,7 @@ describe "puppetd agent" do
     agent_file = File.join([File.dirname(__FILE__), "../agent/puppetd.rb"])
     @agent = MCollective::Test::LocalAgentTest.new("puppetd", :agent_file => agent_file).plugin
     @agent.instance_variable_set("@lockfile", "spec_test_lock_file")
+    @agent.instance_variable_set("@pidfile",  "spec_test_pid_file")
   end
 
   describe "#meta" do
@@ -112,11 +113,31 @@ describe "puppetd agent" do
   end
 
   describe "#runonce" do
-    it "is already running" do
+    it "with puppet agent disabled" do
       File.expects(:exists?).with("spec_test_lock_file").returns(true)
+      File.expects(:exists?).with("spec_test_pid_file").returns(false)
       result = @agent.call(:runonce)
       result.should be_aborted_error
-      result[:statusmsg].should == "Lock file exists, puppetd is already running or it's disabled"
+      result[:statusmsg].should == "Lock file exists, but no PID file; puppet agent looks disabled."
+    end
+
+    it "with puppet agent running as a daemon" do
+      File.expects(:exists?).with("spec_test_lock_file").returns(true)
+      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+      File.expects(:read).with("spec_test_pid_file").returns("99999999\n")
+      Process.expects(:kill).with("USR1", "99999999").once
+      result = @agent.call(:runonce)
+      result.should be_successful
+      result[:data][:output].should == "Sent SIGUSR1 to the Puppet daemon at 99999999"
+    end
+
+    it "with PID file containing rubbish" do
+      File.expects(:exists?).with("spec_test_lock_file").returns(true)
+      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+      File.expects(:read).with("spec_test_pid_file").returns("fred\nwilma\nbarney\n")
+      result = @agent.call(:runonce)
+      result.should be_aborted_error
+      result[:statusmsg].should == "PID file does not contain a PID; got \"fred\""
     end
 
     it "runs puppet if it is not already running, with splaytime if request[:forcerun] is true" do

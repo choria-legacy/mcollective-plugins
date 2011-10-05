@@ -84,10 +84,41 @@ module MCollective
         reply[:output] += ", last run #{Time.now.to_i - reply[:lastrun]} seconds ago"
       end
 
-      def runonce
+      def puppet_daemon_status
         if File.exists?(@lockfile)
-          reply.fail "Lock file exists, puppetd is already running or it's disabled"
+          if File.exists?(@pidfile)
+            :running
+          else
+            :disabled
+          end
         else
+          :stopped
+        end
+      end
+
+      def runonce
+        case (state = puppet_daemon_status)
+        when :disabled then     # can't run
+          reply.fail "Lock file exists, but no PID file; puppet agent looks disabled."
+
+        when :running then      # signal daemon
+          pid = File.read(@pidfile).first.chomp
+          if pid !~ /^\d+$/
+            reply.fail "PID file does not contain a PID; got #{pid.inspect}"
+          else
+            # REVISIT: Should we add an extra round of security here, and
+            # ensure that the PID file is securely owned, or that the target
+            # process looks like Puppet?  Otherwise a malicious user could
+            # theoretically signal arbitrary processes with this...
+            begin
+              Process.kill("USR1", pid)
+              reply[:output] = "Sent SIGUSR1 to the Puppet daemon at #{pid}"
+            rescue Exception => e
+              reply.fail "Failed to signal the Puppet daemon at #{pid}: #{e}"
+            end
+          end
+
+        when :stopped then      # just run
           cmd = [@puppetd, "--onetime"]
 
           unless request[:forcerun]
@@ -103,6 +134,9 @@ module MCollective
           else
             reply[:output] = %x[#{cmd}]
           end
+
+        else
+          reply.fail "Unknown puppet daemon state #{state}"
         end
       end
 
