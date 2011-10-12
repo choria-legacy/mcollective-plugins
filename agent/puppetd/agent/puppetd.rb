@@ -92,7 +92,11 @@ module MCollective
             :disabled
           end
         else
-          :stopped
+          if File.exists?(@pidfile)
+            :idling
+          else
+            :stopped
+          end
         end
       end
 
@@ -101,7 +105,10 @@ module MCollective
         when :disabled then     # can't run
           reply.fail "Lock file exists, but no PID file; puppet agent looks disabled."
 
-        when :running then      # signal daemon
+        when :running then      # can't run two simultaniously
+          reply.fail "Lock file and PID file exists; puppet agent looks running."
+
+        when :idling then       # signal daemon
           pid = File.read(@pidfile).first.chomp
           if pid !~ /^\d+$/
             reply.fail "PID file does not contain a PID; got #{pid.inspect}"
@@ -111,7 +118,7 @@ module MCollective
             # process looks like Puppet?  Otherwise a malicious user could
             # theoretically signal arbitrary processes with this...
             begin
-              Process.kill("USR1", pid)
+              ::Process.kill("USR1", Integer(pid))
               reply[:output] = "Sent SIGUSR1 to the Puppet daemon at #{pid}"
             rescue Exception => e
               reply.fail "Failed to signal the Puppet daemon at #{pid}: #{e}"
