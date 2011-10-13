@@ -121,19 +121,34 @@ describe "puppetd agent" do
       result[:statusmsg].should == "Lock file exists, but no PID file; puppet agent looks disabled."
     end
 
-    it "with puppet agent running as a daemon" do
-      File.expects(:exists?).with("spec_test_lock_file").returns(true)
+    it "with puppet agent actively running" do
+      File.expects(:exists?).with("spec_test_lock_file").returns(false)
+      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+      result = @agent.call(:runonce)
+      result.should be_aborted_error
+      result[:statusmsg].should == "Lock file and PID file exist; puppet agent looks running."
+    end
+
+    it "with puppet agent stopped" do
+      File.expects(:exists?).with("spec_test_lock_file").returns(false)
+      File.expects(:exists?).with("spec_test_pid_file").returns(false)
+      result = @agent.call(:runonce)
+      result.should be_successful
+    end
+
+    it "with puppet agent idling as a daemon" do
+      File.expects(:exists?).with("spec_test_lock_file").returns(false)
       File.expects(:exists?).with("spec_test_pid_file").returns(true)
       File.expects(:read).with("spec_test_pid_file").returns("99999999\n")
-      Process.expects(:kill).with("USR1", "99999999").once
+      ::Process.expects(:kill).with("USR1", "99999999").once
       result = @agent.call(:runonce)
       result.should be_successful
       result[:data][:output].should == "Sent SIGUSR1 to the Puppet daemon at 99999999"
     end
 
     it "with PID file containing rubbish" do
-      File.expects(:exists?).with("spec_test_lock_file").returns(true)
-      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+      File.expects(:exists?).with("spec_test_lock_file").returns(false)
+      File.expects(:exists?).with("spec_test_pid_file").returns(false)
       File.expects(:read).with("spec_test_pid_file").returns("fred\nwilma\nbarney\n")
       result = @agent.call(:runonce)
       result.should be_aborted_error
