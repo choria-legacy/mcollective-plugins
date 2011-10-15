@@ -36,15 +36,13 @@ module MCollective
         resource = Puppet::Resource.new(type, title, :parameters => parameters)
         result, report = Puppet::Resource.indirection.save(resource)
 
-        if result[:ensure] == :absent
-          if report
-            reply[:output] = report.resource_statuses.first.last.events.first.message
-          else
-            reply[:output] = "Resource was not created"
-          end
-        else
-          reply[:output] = "Resource was created"
+        success = true
+        if report && report.resource_statuses.first.last.failed
+          reply[:output] = report.resource_statuses.first.last.events.first.message
+          success = false
         end
+
+        reply[:output] = "Resource was created" if success
       end
 
       # Remove the avoid_conflict property if it clashes in one or more of
@@ -58,7 +56,7 @@ module MCollective
           search_result = Puppet::Resource.indirection.search(type, {})
           search_result.each do |result|
             resource = result.to_pson_data_hash
-            if resource['parameters'][key].to_s == value.to_s || resource['title'] == title
+            if resource['parameters'][key.to_sym].to_s == value.to_s || resource['title'] == title
               parameters.delete key
               return parameters
             end
