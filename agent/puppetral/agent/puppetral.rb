@@ -65,6 +65,17 @@ module MCollective
         parameters
       end
 
+      # Before returning resources we will prune the parameters
+      # so only properties remain, but certain types should have some of their
+      # parameters retained (mostly, packages need provider info)
+      def retain_params(resource)
+        provider = resource[:provider] if resource.type.downcase == 'package'
+        result = resource.respond_to?(:prune_parameters) ?
+          resource.prune_parameters.to_pson_data_hash : resource.to_pson_data_hash
+        result['parameters'][:provider] = provider if provider
+        result
+      end
+
       action "find" do
         type = request[:type]
         title = request[:title]
@@ -72,10 +83,7 @@ module MCollective
 
         if typeobj
           resource = Puppet::Resource.indirection.find([type, title].join('/'))
-          result = resource.respond_to?(:prune_parameters) ?
-                   resource.prune_parameters.to_pson_data_hash : resource.to_pson_data_hash
-
-          result.each { |k,v| reply[k] = v }
+          retain_params(resource).each { |k,v| reply[k] = v }
 
           begin
             managed_resources = File.readlines(Puppet[:resourcefile])
@@ -93,7 +101,7 @@ module MCollective
 
         if typeobj
           result = Puppet::Resource.indirection.search(type, {}).map do |r|
-            r.respond_to?(:prune_parameters) ? r.prune_parameters.to_pson_data_hash : r.to_pson_data_hash
+            retain_params(r)
           end
 
           result.each {|r| reply[r["title"]] = r}
