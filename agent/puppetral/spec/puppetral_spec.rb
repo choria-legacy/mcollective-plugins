@@ -11,29 +11,30 @@ describe "puppetral agent" do
   end
 
   describe "#find" do
-    before :all do
-      @result = @agent.call(:find, :type => 'User', :title => 'bob')
-    end
-
     it "should retrieve information about the type and title passed" do
-      @result[:data]['title'].should == "bob"
-      @result[:data]['type'].should == "User"
+      result = @agent.call(:find, :type => 'User', :title => 'bob')
+      result[:data]['title'].should == "bob"
+      result[:data]['type'].should == "User"
     end
 
     it "should specify an ensure value for the resource" do
-      @result[:data]['parameters'].keys.should include :ensure
+      result = @agent.call(:find, :type => 'User', :title => 'bob')
+      result[:data]['parameters'].keys.should include :ensure
     end
 
     it "should respond with an error if passed an invalid type" do
-      @result = @agent.call(:find, :type => 'Foobar', :title => 'Foobaz')
-
-      @result[:statusmsg].should =~ /Could not find type Foobar/
+      result = @agent.call(:find, :type => 'Foobar', :title => 'Foobaz')
+      result[:statusmsg].should =~ /Could not find type Foobar/
     end
 
     it "should prune parameters from the result" do
-      @result = @agent.call(:find, :type => 'User', :title => 'root')
+      result = @agent.call(:find, :type => 'User', :title => 'root')
+      result[:data]["parameters"].should_not have_key(:loglevel)
+    end
 
-      @result[:data]["parameters"].should_not have_key(:loglevel)
+    it "should leave the provider parameter on the result when looking up packages" do
+      result = @agent.call(:find, :type => 'Package', :title => 'rspec')
+      result[:data]['parameters'].should have_key(:provider)
     end
   end
 
