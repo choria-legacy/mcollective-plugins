@@ -7,6 +7,10 @@ class MCollective::Application::Puppetd<MCollective::Application
         :arguments      => ["--force", "-f"],
         :type           => :bool
 
+    option :env,
+        :description        => "Environment to pass to puppet when invoking runonce or runall",
+        :arguments        => ["--environment", "-e [ENV]"]
+
     def post_option_parser(configuration)
         if ARGV.length >= 1
             configuration[:command] = ARGV.shift
@@ -15,9 +19,23 @@ class MCollective::Application::Puppetd<MCollective::Application
             unless configuration[:command].match(/^(enable|disable|runonce|runall|status|summary|count)$/)
                 raise "Command has to be enable, disable, runonce, runonce, runall, status, summary or count"
             end
+
+            #I would think the :bool type above would take care of this
+            unless configuration[:force]
+                configuration[:force] = false
+            end
         else
             raise "Please specify a command"
         end
+    end
+
+    def get_opts
+        opts = {:forcerun => configuration[:command] == "runall" ? true : configuration[:force] }
+        if configuration[:env]
+            opts[:env] = configuration[:env]
+            log("Passing explicit environment #{opts[:env]}")
+        end
+        return opts
     end
 
     # Prints a log statement with a time
@@ -69,7 +87,7 @@ class MCollective::Application::Puppetd<MCollective::Application
                     hosts.each do |host|
                         running = waitfor(configuration[:concurrency], mc)
                         log("Running #{host}, concurrency is #{running}")
-                        result = mc.custom_request("runonce", {:forcerun => true}, host, {"identity" => host})
+                        result = mc.custom_request("runonce", get_opts, host, {"identity" => host})
 
                         begin
                             log("#{host} schedule status: #{result[0][:statusmsg]}")
@@ -85,7 +103,7 @@ class MCollective::Application::Puppetd<MCollective::Application
                 end
 
             when "runonce"
-                printrpc mc.runonce(:forcerun => configuration[:force])
+                printrpc mc.runonce(get_opts)
 
             when "status"
                 mc.send(configuration[:command]).each do |node|
@@ -127,3 +145,4 @@ class MCollective::Application::Puppetd<MCollective::Application
         printrpcstats
     end
 end
+# vi:tabstop=4:expandtab:ai:filetype=ruby
