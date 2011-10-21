@@ -122,17 +122,18 @@ describe "puppetd agent" do
     end
 
     it "with puppet agent actively running" do
-      File.expects(:exists?).with("spec_test_lock_file").returns(false)
+      File.expects(:exists?).with("spec_test_lock_file").returns(true)
       File.expects(:exists?).with("spec_test_pid_file").returns(true)
       result = @agent.call(:runonce)
+      result[:statusmsg].should == "Lock file and PID file exists; puppet agent looks running."
       result.should be_aborted_error
-      result[:statusmsg].should == "Lock file and PID file exist; puppet agent looks running."
     end
 
     it "with puppet agent stopped" do
       File.expects(:exists?).with("spec_test_lock_file").returns(false)
       File.expects(:exists?).with("spec_test_pid_file").returns(false)
       result = @agent.call(:runonce)
+      result[:statusmsg].should == "OK"
       result.should be_successful
     end
 
@@ -140,19 +141,21 @@ describe "puppetd agent" do
       File.expects(:exists?).with("spec_test_lock_file").returns(false)
       File.expects(:exists?).with("spec_test_pid_file").returns(true)
       File.expects(:read).with("spec_test_pid_file").returns("99999999\n")
-      ::Process.expects(:kill).with("USR1", "99999999").once
+      ::Process.expects(:kill).with(0, 99999999).returns(1)
+      ::Process.expects(:kill).with("USR1", 99999999).once
       result = @agent.call(:runonce)
-      result.should be_successful
+      result[:statusmsg].should == "OK"
       result[:data][:output].should == "Sent SIGUSR1 to the Puppet daemon at 99999999"
+      result.should be_successful
     end
 
     it "with PID file containing rubbish" do
       File.expects(:exists?).with("spec_test_lock_file").returns(false)
-      File.expects(:exists?).with("spec_test_pid_file").returns(false)
+      File.expects(:exists?).with("spec_test_pid_file").returns(true)
       File.expects(:read).with("spec_test_pid_file").returns("fred\nwilma\nbarney\n")
       result = @agent.call(:runonce)
+      result[:statusmsg].should == "PID file does not contain a PID; got \"fred\\nwilma\\nbarney\\n\""
       result.should be_aborted_error
-      result[:statusmsg].should == "PID file does not contain a PID; got \"fred\""
     end
 
     it "runs puppet if it is not already running, with splaytime if request[:forcerun] is true" do

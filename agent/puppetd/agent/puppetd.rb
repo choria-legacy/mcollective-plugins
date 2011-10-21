@@ -109,41 +109,51 @@ module MCollective
           reply.fail "Lock file and PID file exists; puppet agent looks running."
 
         when :idling then       # signal daemon
-          pid = File.read(@pidfile).first.chomp
+          pid = File.read(@pidfile)
           if pid !~ /^\d+$/
             reply.fail "PID file does not contain a PID; got #{pid.inspect}"
           else
-            # REVISIT: Should we add an extra round of security here, and
-            # ensure that the PID file is securely owned, or that the target
-            # process looks like Puppet?  Otherwise a malicious user could
-            # theoretically signal arbitrary processes with this...
             begin
-              ::Process.kill("USR1", Integer(pid))
-              reply[:output] = "Sent SIGUSR1 to the Puppet daemon at #{pid}"
-            rescue Exception => e
-              reply.fail "Failed to signal the Puppet daemon at #{pid}: #{e}"
+              ::Process.kill(0, Integer(pid)) # check that pid is alive
+              # REVISIT: Should we add an extra round of security here, and
+              # ensure that the PID file is securely owned, or that the target
+              # process looks like Puppet?  Otherwise a malicious user could
+              # theoretically signal arbitrary processes with this...
+              begin
+                ::Process.kill("USR1", Integer(pid))
+                reply[:output] = "Sent SIGUSR1 to the Puppet daemon at #{Integer(pid)}"
+              rescue Exception => e
+                reply.fail "Failed to signal the Puppet daemon at #{pid}: #{e}"
+              end
+            rescue Errno::ESRCH => e
+              # PID is invalid, run puppet onetime as usual
+              runonce_background
             end
           end
 
         when :stopped then      # just run
-          cmd = [@puppetd, "--onetime"]
-
-          unless request[:forcerun]
-            if @splaytime > 0
-              cmd << "--splaylimit" << @splaytime << "--splay"
-            end
-          end
-
-          cmd = cmd.join(" ")
-
-          if respond_to?(:run)
-            run(cmd, :stdout => :output, :chomp => true)
-          else
-            reply[:output] = %x[#{cmd}]
-          end
+          runonce_background
 
         else
           reply.fail "Unknown puppet daemon state #{state}"
+        end
+      end
+
+      def runonce_background
+        cmd = [@puppetd, "--onetime"]
+
+        unless request[:forcerun]
+          if @splaytime && @splaytime > 0
+            cmd << "--splaylimit" << @splaytime << "--splay"
+          end
+        end
+
+        cmd = cmd.join(" ")
+
+        if respond_to?(:run)
+          run(cmd, :stdout => :output, :chomp => true)
+        else
+          reply[:output] = %x[#{cmd}]
         end
       end
 
