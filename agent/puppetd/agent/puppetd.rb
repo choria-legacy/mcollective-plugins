@@ -84,20 +84,15 @@ module MCollective
         reply[:output] += ", last run #{Time.now.to_i - reply[:lastrun]} seconds ago"
       end
 
+
+      # We would like to merge this method with the above status method some day
       def puppet_daemon_status
-        if File.exists?(@lockfile)
-          if File.exists?(@pidfile)
-            :running
-          else
-            :disabled
-          end
-        else
-          if File.exists?(@pidfile)
-            :idling
-          else
-            :stopped
-          end
-        end
+        locked = File.exists?(@lockfile)
+        has_pid = File.exists?(@pidfile)
+        return :running  if   locked &&   has_pid
+        return :disabled if   locked && ! has_pid
+        return :idling   if ! locked &&   has_pid
+        return :stopped  if ! locked && ! has_pid
       end
 
       def runonce

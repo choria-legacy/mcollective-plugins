@@ -132,6 +132,8 @@ describe "puppetd agent" do
     it "with puppet agent stopped" do
       File.expects(:exists?).with("spec_test_lock_file").returns(false)
       File.expects(:exists?).with("spec_test_pid_file").returns(false)
+      @agent.instance_variable_set("@puppetd", "spec_test_puppetd")
+      @agent.expects(:run).with("spec_test_puppetd --onetime", :stdout => :output, :chomp => true)
       result = @agent.call(:runonce)
       result[:statusmsg].should == "OK"
       result.should be_successful
