@@ -1,36 +1,36 @@
 module MCollective
-    module Agent
-        class Registration
-            attr_reader :timeout, :meta
+  module Agent
+    class Registration
+      attr_reader :timeout, :meta
 
-            def initialize
-                @timeout = 1
+      def initialize
+        @timeout = 1
 
-                @config = Config.instance
+        @config = Config.instance
 
-                @meta = {:license => "GPLv2",
-                         :author => "R.I.Pienaar <rip@devco.net>",
-                         :url => "http://code.google.com/p/mcollective-plugins/"}
-            end
+        @meta = {:license => "GPLv2",
+          :author => "R.I.Pienaar <rip@devco.net>",
+          :url => "http://code.google.com/p/mcollective-plugins/"}
+      end
 
-            def handlemsg(msg, connection)
-                req = msg[:body]
+      def handlemsg(msg, connection)
+        req = msg[:body]
 
-                if @config.pluginconf.include?("registration.directory")
-                    dir = @config.pluginconf["registration.directory"]
-                else
-                    dir = "/var/tmp/mcollective"
-                end
+        if @config.pluginconf.include?("registration.directory")
+          dir = @config.pluginconf["registration.directory"]
+        else
+          dir = "/var/tmp/mcollective"
+        end
 
-                FileUtils.mkdir_p(dir) unless File.directory?(dir)
+        FileUtils.mkdir_p(dir) unless File.directory?(dir)
 
-                File.open("#{dir}/#{msg[:senderid]}", 'w') {|f| f.write(YAML.dump(req)) }
+        File.open("#{dir}/#{msg[:senderid]}", 'w') {|f| f.write(YAML.dump(req)) }
 
-                nil
-            end
+        nil
+      end
 
-            def help
-                <<-EOH
+      def help
+        <<-EOH
                 Registration Agent
                 =============
 
@@ -43,9 +43,9 @@ module MCollective
 
                 A simple nagios plugin is included to provide the monitoring..
                 EOH
-            end
-        end
+      end
     end
+  end
 end
 
-# vi:tabstop=4:expandtab:ai:filetype=ruby
+# vi:tabstop=2:expandtab:ai:filetype=ruby

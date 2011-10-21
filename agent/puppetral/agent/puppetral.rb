@@ -19,12 +19,12 @@ module MCollective
     # needed properties that the type require etc.
     class Puppetral<RPC::Agent
       metadata :name        => "puppetral",
-               :description => "Agent to inspect and act on the RAL",
-               :author      => "R.I.Pienaar <rip@devco.net>, Max Martin <max@puppetlabs.com>",
-               :license     => "ASL2",
-               :version     => "0.2",
-               :url         => "https://github.com/puppetlabs/mcollective-plugins",
-               :timeout     => 180
+      :description => "Agent to inspect and act on the RAL",
+      :author      => "R.I.Pienaar <rip@devco.net>, Max Martin <max@puppetlabs.com>",
+      :license     => "ASL2",
+      :version     => "0.2",
+      :url         => "https://github.com/puppetlabs/mcollective-plugins",
+      :timeout     => 180
 
       action "create" do
         type = request[:type]
@@ -84,6 +84,14 @@ module MCollective
         if typeobj
           resource = Puppet::Resource.indirection.find([type, title].join('/'))
           retain_params(resource).each { |k,v| reply[k] = v }
+          result = resource.respond_to?(:prune_parameters) ?
+                   resource.prune_parameters.to_pson_data_hash : resource.to_pson_data_hash
+
+          result.each { |k,v| reply[k] = v }
+          result = resource.respond_to?(:prune_parameters) ?
+          resource.prune_parameters.to_pson_data_hash : resource.to_pson_data_hash
+
+          result.each { |k,v| reply[k] = v }
 
           begin
             managed_resources = File.readlines(Puppet[:resourcefile])
