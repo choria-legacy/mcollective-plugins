@@ -149,6 +149,19 @@ describe "puppetd agent" do
       result.should be_successful
     end
 
+    it "with puppet agent stopped but PID file present" do
+      File.expects(:exists?).with("spec_test_lock_file").returns(false)
+      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+      File.expects(:read).with("spec_test_pid_file").returns("99999999\n")
+      ::Process.expects(:kill).with(0, 99999999).raises(Errno::ESRCH)
+      ::Process.expects(:kill).with("USR1", 99999999).never
+      @agent.instance_variable_set("@puppetd", "spec_test_puppetd")
+      @agent.expects(:run).with("spec_test_puppetd --onetime", :stdout => :output, :chomp => true)
+      result = @agent.call(:runonce)
+      result[:statusmsg].should == "OK"
+      result.should be_successful
+    end
+
     it "with PID file containing rubbish" do
       File.expects(:exists?).with("spec_test_lock_file").returns(false)
       File.expects(:exists?).with("spec_test_pid_file").returns(true)
