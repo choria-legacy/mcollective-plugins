@@ -43,7 +43,7 @@ module MCollective
       def blockip(ip)
         logger.debug("Blocking #{ip} with target #{target}")
 
-        out = nil
+        out = ""
 
         # if he's already blocked we just dont bother doing it again
         unless isblocked?(ip)
@@ -55,7 +55,7 @@ module MCollective
         end
 
         if isblocked?(ip)
-          if out
+          unless out == ""
             reply[:output] = out
           else
             reply[:output] = "#{ip} was blocked"
@@ -69,11 +69,11 @@ module MCollective
       def unblockip(ip)
         logger.debug("Unblocking #{ip} with target #{target}")
 
-        out = nil
+        out = ""
 
         # remove it if it's blocked
         if isblocked?(ip)
-          out = run("/sbin/iptables -D junk_filter -s #{ip} -j #{target} 2>&1", :stdout => out, :chomp => true)
+          run("/sbin/iptables -D junk_filter -s #{ip} -j #{target} 2>&1", :stdout => out, :chomp => true)
           run("/usr/bin/logger -i -t mcollective 'Attempted to remove #{ip} from iptables junk_filter chain on #{Socket.gethostname}'")
         else
           reply.fail! "#{ip} was already unblocked"
@@ -84,7 +84,7 @@ module MCollective
         if isblocked?(ip)
           reply.fail! "IP left blocked, iptables says: #{out}"
         else
-          if out
+          unless out == ""
             reply[:output] = out
           else
             reply[:output] = "#{ip} was unblocked"
