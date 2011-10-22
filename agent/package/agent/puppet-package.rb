@@ -7,12 +7,12 @@ module MCollective
     # Released under the terms of the GPL, same as Puppet
     class Package<RPC::Agent
       metadata    :name        => "SimpleRPC Agent For Package Management",
-      :description => "Agent To Manage Packages",
-      :author      => "R.I.Pienaar",
-      :license     => "Apache 2",
-      :version     => "1.4",
-      :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
-      :timeout     => 180
+                  :description => "Agent To Manage Packages",
+                  :author      => "R.I.Pienaar",
+                  :license     => "Apache 2",
+                  :version     => "1.4",
+                  :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
+                  :timeout     => 180
 
       ["install", "update", "uninstall", "purge", "status"].each do |act|
         action act do
@@ -23,24 +23,14 @@ module MCollective
 
       action "yum_clean" do
         reply.fail! "Cannot find yum at /usr/bin/yum" unless File.exist?("/usr/bin/yum")
-        if respond_to?(:run)
-          reply[:exitcode] = run("/usr/bin/yum clean all", :stdout => :output, :chomp => true)
-        else
-          reply[:output] = %x[/usr/bin/yum clean all]
-          reply[:exitcode] = $?.exitstatus
-        end
+        reply[:exitcode] = run("/usr/bin/yum clean all", :stdout => :output, :chomp => true)
 
         reply.fail! "Yum clean failed, exit code was #{reply[:exitcode]}" unless reply[:exitcode] == 0
       end
 
       action "apt_update" do
         reply.fail! "Cannot find apt-get at /usr/bin/apt-get" unless File.exist?("/usr/bin/apt-get")
-        if respond_to?(:run)
-          reply[:exitcode] = run("/usr/bin/apt-get update", :stdout => :output, :chomp => true)
-        else
-          reply[:output] = %x[/usr/bin/apt-get update]
-          reply[:exitcode] = $?.exitstatus
-        end
+        reply[:exitcode] = run("/usr/bin/apt-get update", :stdout => :output, :chomp => true)
 
         reply.fail! "apt-get update failed, exit code was #{reply[:exitcode]}" unless reply[:exitcode] == 0
       end
@@ -59,12 +49,7 @@ module MCollective
 
       action "yum_checkupdates" do
         reply.fail! "Cannot find yum at /usr/bin/yum" unless File.exist?("/usr/bin/yum")
-        if respond_to?(:run)
-          reply[:exitcode] = run("/usr/bin/yum -q check-update", :stdout => :output, :chomp => true)
-        else
-          reply[:output] = %x[/usr/bin/yum -q check-update]
-          reply[:exitcode] = $?.exitstatus
-        end
+        reply[:exitcode] = run("/usr/bin/yum -q check-update", :stdout => :output, :chomp => true)
 
         if reply[:exitcode] == 0
           reply[:outdated_packages] = []
@@ -78,12 +63,7 @@ module MCollective
 
       action "apt_checkupdates" do
         reply.fail! "Cannot find apt at /usr/bin/apt-get" unless File.exist?("/usr/bin/apt-get")
-        if respond_to?(:run)
-          reply[:exitcode] = run("/usr/bin/apt-get --simulate dist-upgrade", :stdout => :output, :chomp => true)
-        else
-          reply[:output] = %x[/usr/bin/apt-get --simulate dist-upgrade]
-          reply[:exitcode] = $?.exitstatus
-        end
+        reply[:exitcode] = run("/usr/bin/apt-get --simulate dist-upgrade", :stdout => :output, :chomp => true)
         reply[:outdated_packages] = []
 
         if reply[:exitcode] == 0

@@ -9,12 +9,12 @@ module MCollective
     # Agent is based on Simple RPC so needs mcollective 0.4.7 or newer
     class Service<RPC::Agent
       metadata    :name        => "SimpleRPC Service Agent",
-      :description => "Agent to manage services",
-      :author      => "R.I.Pienaar",
-      :license     => "GPLv2",
-      :version     => "1.2",
-      :url         => "http://mcollective-plugins.googlecode.com/",
-      :timeout     => 60
+                  :description => "Agent to manage services",
+                  :author      => "R.I.Pienaar",
+                  :license     => "GPLv2",
+                  :version     => "1.2",
+                  :url         => "http://mcollective-plugins.googlecode.com/",
+                  :timeout     => 60
 
       ["stop", "start", "restart", "status"].each do |act|
         action act do

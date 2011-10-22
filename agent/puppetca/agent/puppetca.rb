@@ -2,12 +2,12 @@ module MCollective
   module Agent
     class Puppetca<RPC::Agent
       metadata    :name        => "Puppet CA Manager",
-      :description => "Agent to manage Puppet certificates",
-      :author      => "R.I.Pienaar",
-      :license     => "Apache 2.0",
-      :version     => "1.2",
-      :url         => "http://mcollective-plugins.googlecode.com/",
-      :timeout     => 20
+                  :description => "Agent to manage Puppet certificates",
+                  :author      => "R.I.Pienaar",
+                  :license     => "Apache 2.0",
+                  :version     => "1.2",
+                  :url         => "http://mcollective-plugins.googlecode.com/",
+                  :timeout     => 20
 
       def startup_hook
         @puppetca = @config.pluginconf["puppetca.puppetca"] || "/usr/sbin/puppetca"
@@ -47,11 +47,7 @@ module MCollective
       action "revoke" do
         validate :certname, :shellsafe
 
-        if respond_to?(:run)
-          reply[:out] = run("#{@puppetca} --color=none --revoke '#{request[:certname]}'", :stdout => :output, :chomp => true)
-        else
-          reply[:out] = %x[#{@puppetca} --color=none --revoke '#{request[:certname]}']
-        end
+        reply[:out] = run("#{@puppetca} --color=none --revoke '#{request[:certname]}'", :stdout => :output, :chomp => true)
       end
 
       # sign a cert if we have one waiting
@@ -63,11 +59,7 @@ module MCollective
         reply.fail! "Already have a cert for #{certname} not attempting to sign again" if has_cert?(certname)
 
         if cert_waiting?(certname)
-          if respond_to?(:run)
-            reply[:out] = run("#{@puppetca} --color=none --sign '#{request[:certname]}'", :stdout => :output, :chomp => true)
-          else
-            reply[:out] = %x[#{@puppetca} --color=none --sign '#{request[:certname]}']
-          end
+          reply[:out] = run("#{@puppetca} --color=none --sign '#{request[:certname]}'", :stdout => :output, :chomp => true)
         else
           reply.fail "No cert found to sign"
         end

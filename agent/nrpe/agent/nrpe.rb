@@ -2,12 +2,12 @@ module MCollective
   module Agent
     class Nrpe<RPC::Agent
       metadata    :name        => "SimpleRPC Agent For NRPE Commands",
-      :description => "Agent to query NRPE commands via MCollective",
-      :author      => "R.I.Pienaar",
-      :license     => "Apache 2",
-      :version     => "2.0",
-      :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
-      :timeout     => 5
+                  :description => "Agent to query NRPE commands via MCollective",
+                  :author      => "R.I.Pienaar",
+                  :license     => "Apache 2",
+                  :version     => "2.0",
+                  :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
+                  :timeout     => 5
 
       action "runcommand" do
         validate :command, :shellsafe
@@ -23,12 +23,7 @@ module MCollective
           return
         end
 
-        if respond_to?(:run)
-          reply[:exitcode] = run(command[:cmd], :stdout => :output, :chomp => true)
-        else
-          reply[:output] = %x[#{command[:cmd]}].chomp
-          reply[:exitcode] = $?.exitstatus
-        end
+        reply[:exitcode] = run(command[:cmd], :stdout => :output, :chomp => true)
 
         case reply[:exitcode]
         when 0

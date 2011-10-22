@@ -18,13 +18,13 @@ module MCollective
     # You can call any Puppet type that makes sense, you need to supply all the
     # needed properties that the type require etc.
     class Puppetral<RPC::Agent
-      metadata :name        => "puppetral",
-      :description => "Agent to inspect and act on the RAL",
-      :author      => "R.I.Pienaar <rip@devco.net>, Max Martin <max@puppetlabs.com>",
-      :license     => "ASL2",
-      :version     => "0.2",
-      :url         => "https://github.com/puppetlabs/mcollective-plugins",
-      :timeout     => 180
+      metadata  :name        => "puppetral",
+                :description => "Agent to inspect and act on the RAL",
+                :author      => "R.I.Pienaar <rip@devco.net>, Max Martin <max@puppetlabs.com>",
+                :license     => "ASL2",
+                :version     => "0.2",
+                :url         => "https://github.com/puppetlabs/mcollective-plugins",
+                :timeout     => 180
 
       action "create" do
         type = request[:type]

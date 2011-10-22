@@ -11,12 +11,12 @@ module MCollective
     # or whatever is specified in the plugin.filemgr.touch_file setting
     class Filemgr<RPC::Agent
       metadata    :name        => "filemgr",
-      :description => "File Manager",
-      :author      => "Mike Pountney <mike.pountney@gmail.com>",
-      :license     => "Apache 2",
-      :version     => "0.3",
-      :url         => "http://www.puppetlabs.com/mcollective",
-      :timeout     => 5
+                  :description => "File Manager",
+                  :author      => "Mike Pountney <mike.pountney@gmail.com>",
+                  :license     => "Apache 2",
+                  :version     => "0.3",
+                  :url         => "http://www.puppetlabs.com/mcollective",
+                  :timeout     => 5
 
       # Basic file touch action - create (empty) file if it doesn't exist,
       # update last mod time otherwise.

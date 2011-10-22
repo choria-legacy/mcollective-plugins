@@ -6,26 +6,24 @@ require 'timeout'
 module MCollective
   module Agent
     class Nettest<RPC::Agent
-
-
       metadata    :name        => "Ping",
-      :description => "Agent to do network tests from a mcollective host",
-      :author      => "Dean Smith",
-      :license     => "BSD",
-      :version     => "1.0",
-      :url         => "http://github.com/deasmi",
-      :timeout     => 60
+                  :description => "Agent to do network tests from a mcollective host",
+                  :author      => "Dean Smith",
+                  :license     => "BSD",
+                  :version     => "1.0",
+                  :url         => "http://github.com/deasmi",
+                  :timeout     => 60
 
-      action "ping" do 
+      action "ping" do
         validate :fqdn,String
 
         fqdn = request[:fqdn]
 
         icmp = Net::Ping::ICMP.new(fqdn)
 
-        if icmp.ping? then 
+        if icmp.ping? then
           reply[:rtt] = (icmp.duration*1000).to_s
-        else 
+        else
           reply[:rtt]="Host did not respond"
         end
       end
@@ -38,7 +36,7 @@ module MCollective
         fqdn = request[:fqdn]
         port = request[:port]
 
-        begin 
+        begin
           Timeout::timeout(2) do
 
             begin

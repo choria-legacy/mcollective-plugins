@@ -15,12 +15,12 @@ module MCollective
     #    puppetd.pidfile   - Where to find the Puppet pid file
     class Puppetd<RPC::Agent
       metadata    :name        => "SimpleRPC Puppet Agent",
-      :description => "Agent to manage the puppet daemon",
-      :author      => "R.I.Pienaar",
-      :license     => "Apache License 2.0",
-      :version     => "1.4",
-      :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
-      :timeout     => 30
+                  :description => "Agent to manage the puppet daemon",
+                  :author      => "R.I.Pienaar",
+                  :license     => "Apache License 2.0",
+                  :version     => "1.4",
+                  :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
+                  :timeout     => 30
 
       def startup_hook
         @splaytime = @config.pluginconf["puppetd.splaytime"].to_i || 0
@@ -145,11 +145,7 @@ module MCollective
 
         cmd = cmd.join(" ")
 
-        if respond_to?(:run)
-          run(cmd, :stdout => :output, :chomp => true)
-        else
-          reply[:output] = %x[#{cmd}]
-        end
+        run(cmd, :stdout => :output, :chomp => true)
       end
 
       def enable
