@@ -10,7 +10,7 @@ module MCollective
                   :description => "Agent To Manage Packages",
                   :author      => "R.I.Pienaar",
                   :license     => "Apache 2",
-                  :version     => "1.4",
+                  :version     => "2.0",
                   :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                   :timeout     => 180
 

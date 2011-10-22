@@ -12,7 +12,7 @@ module MCollective
                   :description => "An agent that manipulates a chain called 'junkfilter' with iptables",
                   :author      => "R.I.Pienaar",
                   :license     => "Apache 2",
-                  :version     => "1.3",
+                  :version     => "2.0",
                   :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                   :timeout     => 2
 

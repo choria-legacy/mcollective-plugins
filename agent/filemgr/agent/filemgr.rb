@@ -14,7 +14,7 @@ module MCollective
                   :description => "File Manager",
                   :author      => "Mike Pountney <mike.pountney@gmail.com>",
                   :license     => "Apache 2",
-                  :version     => "0.3",
+                  :version     => "1.0",
                   :url         => "http://www.puppetlabs.com/mcollective",
                   :timeout     => 5
 

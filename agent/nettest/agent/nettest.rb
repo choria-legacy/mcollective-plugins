@@ -10,7 +10,7 @@ module MCollective
                   :description => "Agent to do network tests from a mcollective host",
                   :author      => "Dean Smith",
                   :license     => "BSD",
-                  :version     => "1.0",
+                  :version     => "2.0",
                   :url         => "http://github.com/deasmi",
                   :timeout     => 60
 
