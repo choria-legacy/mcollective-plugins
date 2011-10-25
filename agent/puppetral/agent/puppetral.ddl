@@ -33,9 +33,14 @@ action "create", :description => "Add a resource to the RAL" do
           :optional    => true,
           :maxlength   => 90
 
-    output :output,
+    output :status,
            :description => "Message indicating success or failure of the action",
-           :display_as  => "Result"
+           :display_as  => "Status"
+
+    output :resource,
+           :description => "Resource that was created",
+           :display_as  => "Resource"
+
 end
 
 action "find", :description => "Get the value of a resource" do
