@@ -38,11 +38,14 @@ module MCollective
 
         success = true
         if report && report.resource_statuses.first.last.failed
-          reply[:output] = report.resource_statuses.first.last.events.first.message
+          reply[:status] = report.resource_statuses.first.last.events.first.message
           success = false
         end
 
-        reply[:output] = "Resource was created" if success
+        if success
+          reply[:status] = "Resource was created"
+          reply[:resource] = result.to_pson_data_hash
+        end
       end
 
       # Remove the avoid_conflict property if it clashes in one or more of
