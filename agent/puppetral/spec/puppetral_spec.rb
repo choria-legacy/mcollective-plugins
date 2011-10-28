@@ -110,7 +110,7 @@ describe "puppetral agent" do
         result = @agent.call(:create, :type => 'file', :title => @tmpfile,
                              :parameters => {:ensure => 'present', :content => "Hello, world!"})
         File.open(@tmpfile, 'r') { |f| f.read.should == "Hello, world!" }
-        result[:data][:output].should == "Resource was created"
+        result[:data][:status].should == "Resource was created"
       end
 
       it "should respond with error information if creating the resource fails" do
@@ -125,7 +125,7 @@ describe "puppetral agent" do
         badpath = "/etc/notpermitted"
         result = @agent.call(:create, :type => 'file', :title => badpath,
                              :parameters => {:ensure => 'present', :content => "Hello, world!"})
-        result[:data][:output].should =~ /change from absent to present failed/
+        result[:data][:status].should =~ /change from absent to present failed/
       end
 
       it "should overwrite an existing resource with the same type and title with different properties" do
