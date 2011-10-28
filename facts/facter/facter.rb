@@ -14,7 +14,7 @@ module MCollective
     # a second or so.
     #   - the cache time can be altered by setting plugin.facter.cache_time in the server.cfg
     #
-    # See: http://code.google.com/p/mcollective-plugins/wiki/FactsRLFacter
+    # See: http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/FactsFacter
     #
     # Plugin released under the terms of the GPL.
     class Facter<Base

@@ -3,7 +3,7 @@ metadata    :name        => "Agent for Puppet RAL interaction",
             :author      => "R.I.Pienaar, Max Martin",
             :license     => "ASL2",
             :version     => "0.2",
-            :url         => "http://mcollective-plugins.googlecode.com/",
+            :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
 action "create", :description => "Add a resource to the RAL" do

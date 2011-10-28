@@ -2,7 +2,7 @@ module MCollective
   module Agent
     # An agent that uses Reductive Labs Puppet to manage packages
     #
-    # See http://code.google.com/p/mcollective-plugins/
+    # See https://github.com/puppetlabs/mcollective-plugins
     #
     # Released under the terms of the GPL, same as Puppet
     class Package<RPC::Agent

@@ -8,7 +8,7 @@ module MCollective
     #
     # will add cf classes soon
     #
-    # http://code.google.com/p/mcollective-plugins/wiki/RegistrationMetaData
+    # http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/RegistrationMetaData
     # Author: R.I.Pienaar <rip@devco.net>
     # Licence: Apache 2
     class Meta<Base

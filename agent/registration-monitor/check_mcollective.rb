@@ -3,7 +3,7 @@
 # Nagios plugin to check mcollective if the registration-monitor
 # is in use.
 #
-# http://code.google.com/p/mcollective-plugins/
+# https://github.com/puppetlabs/mcollective-plugins
 
 require 'getoptlong'
 

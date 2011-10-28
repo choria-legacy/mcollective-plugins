@@ -4,7 +4,7 @@ module MCollective
   module Agent
     # An agent that manipulates a chain called 'junkfilter' with iptables
     #
-    # See http://code.google.com/p/mcollective-plugins/wiki/AgentIptablesJunkfilter
+    # See http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/AgentIptablesJunkfilter
     #
     # Released under the terms of the GPL
     class Iptables<RPC::Agent

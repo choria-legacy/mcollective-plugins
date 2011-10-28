@@ -3,7 +3,7 @@ metadata    :name        => "SimpleRPC Service Agent",
             :author      => "R.I.Pienaar",
             :license     => "GPLv2",
             :version     => "1.2",
-            :url         => "http://mcollective-plugins.googlecode.com/",
+            :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 60
 
 action "status", :description => "Gets the status of a service" do

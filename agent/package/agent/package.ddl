@@ -3,7 +3,7 @@ metadata    :name        => "SimpleRPC Agent For Package Management",
             :author      => "R.I.Pienaar",
             :license     => "GPLv2",
             :version     => "1.3",
-            :url         => "http://mcollective-plugins.googlecode.com/",
+            :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
 ["install", "update", "uninstall", "purge"].each do |act|

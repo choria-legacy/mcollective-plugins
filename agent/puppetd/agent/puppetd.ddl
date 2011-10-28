@@ -3,7 +3,7 @@ metadata    :name        => "SimpleRPC Puppet Agent",
             :author      => "R.I.Pienaar",
             :license     => "Apache License 2.0",
             :version     => "1.4",
-            :url         => "http://mcollective-plugins.googlecode.com/",
+            :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 20
 
 action "last_run_summary", :description => "Retrieves the last Puppet Run summary" do

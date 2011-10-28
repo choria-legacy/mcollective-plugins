@@ -19,7 +19,7 @@ module MCollective
                   :author      => "R.I.Pienaar",
                   :license     => "Apache License 2.0",
                   :version     => "1.4",
-                  :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
+                  :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/AgentPuppetd",
                   :timeout     => 30
 
       def startup_hook

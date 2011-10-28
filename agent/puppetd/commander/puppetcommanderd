@@ -18,7 +18,7 @@
 #
 # This code is released under the Apache 2 licence.
 #
-# See http://mcollective-plugins.googlecode.com/ for more information.
+# See https://github.com/puppetlabs/mcollective-plugins for more information.
 
 
 require 'mcollective'

@@ -14,7 +14,7 @@
 #
 # Released under Apache Licence 2, R.I.Pienaar <rip@devco.net>
 #
-# http://mcollective-plugins.googlecode.com/
+# https://github.com/puppetlabs/mcollective-plugins
 
 require 'mcollective'
 require 'rdialog'

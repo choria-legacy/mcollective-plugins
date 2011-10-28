@@ -2,7 +2,7 @@ module MCollective
   module Agent
     # An agent that uses Reductive Labs puppet to manage services
     #
-    # See http://code.google.com/p/mcollective-plugins/
+    # See https://github.com/puppetlabs/mcollective-plugins
     #
     # Released under the terms of the GPL, same as Puppet
     #
@@ -13,7 +13,7 @@ module MCollective
                   :author      => "R.I.Pienaar",
                   :license     => "GPLv2",
                   :version     => "2.0",
-                  :url         => "http://mcollective-plugins.googlecode.com/",
+                  :url         => "https://github.com/puppetlabs/mcollective-plugins",
                   :timeout     => 60
 
       ["stop", "start", "restart", "status"].each do |act|
