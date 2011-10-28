@@ -38,13 +38,13 @@ module MCollective
 
         success = true
         if report && report.resource_statuses.first.last.failed
-          reply[:status] = report.resource_statuses.first.last.events.first.message
+          reply[:status] = report.resource_statuses.first.last.events.first.message || "Resource was not created for an unknown reason."
           success = false
         end
 
         if success
           reply[:status] = "Resource was created"
-          reply[:resource] = result.to_pson_data_hash
+          reply[:resource] = retain_params(result)
         end
       end
 
@@ -87,14 +87,6 @@ module MCollective
         if typeobj
           resource = Puppet::Resource.indirection.find([type, title].join('/'))
           retain_params(resource).each { |k,v| reply[k] = v }
-          result = resource.respond_to?(:prune_parameters) ?
-                   resource.prune_parameters.to_pson_data_hash : resource.to_pson_data_hash
-
-          result.each { |k,v| reply[k] = v }
-          result = resource.respond_to?(:prune_parameters) ?
-          resource.prune_parameters.to_pson_data_hash : resource.to_pson_data_hash
-
-          result.each { |k,v| reply[k] = v }
 
           begin
             managed_resources = File.readlines(Puppet[:resourcefile])
