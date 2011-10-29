@@ -1,6 +1,21 @@
 class MCollective::Application::Puppetd<MCollective::Application
   description "Remote Puppet daemon manager"
-  usage "Usage: mc [enable|disable|runonce|runall|status|summary|count] [concurrency]"
+    usage <<-END_OF_USAGE
+mco puppetd [OPTIONS] [FILTERS] <ACTION> [CONCURRENCY]
+
+The ACTION can be one of the following:
+
+    runall  - invoke a puppet run on matching nodes, making sure to only run
+              CONCURRENCY nodes at a time
+    runonce - invoke a puppet run on matching nodes, limiting load with
+              puppet agent's --splay option
+    disable - create a lockfile that prevents puppet agent from running
+    enable  - remove any lockfile preventing puppet agent from running
+    status  - report whether puppet agent is enabled, whether it is currently
+              running, and when the last run was
+    summary - return detailed resource and timing info from the last puppet run
+    count   - return a total count of running, enabled, and disabled nodes
+    END_OF_USAGE
 
   option :force,
   :description    => "Force the puppet run to happen immediately without splay",
@@ -13,10 +28,10 @@ class MCollective::Application::Puppetd<MCollective::Application
       configuration[:concurrency] = ARGV.shift.to_i or 0
 
       unless configuration[:command].match(/^(enable|disable|runonce|runall|status|summary|count)$/)
-        raise "Command has to be enable, disable, runonce, runonce, runall, status, summary or count"
+        raise "Action must be enable, disable, runonce, runonce, runall, status, summary, or count"
       end
     else
-      raise "Please specify a command"
+      raise "Please specify an action."
     end
   end
 
@@ -37,12 +52,12 @@ class MCollective::Application::Puppetd<MCollective::Application
         begin
           running += resp[:body][:data][:running].to_i
         rescue Exception => e
-          log("Failed to get node status: #{e}, continuing")
+          log("Failed to get node status for #{e}; continuing")
         end
       end
 
       return running if running < concurrency
-      log("Currently #{running} nodes running, waiting") unless logged
+      log("Currently #{running} nodes running; waiting") unless logged
       logged = true
       sleep 2
     end
@@ -74,13 +89,13 @@ class MCollective::Application::Puppetd<MCollective::Application
           begin
             log("#{host} schedule status: #{result[0][:statusmsg]}")
           rescue
-            log("#{host} unknown output: #{result.pretty_inspect}")
+            log("#{host} returned unknown output: #{result.pretty_inspect}")
           end
 
           sleep 1
         end
       else
-        puts("Concurrency is #{configuration[:concurrency]}, not running any nodes")
+        puts("Concurrency is #{configuration[:concurrency]}; not running any nodes")
         exit 1
       end
 
@@ -107,7 +122,7 @@ class MCollective::Application::Puppetd<MCollective::Application
           enabled += resp[:body][:data][:enabled].to_i
           total += 1
         rescue Exception => e
-          log("Failed to get node status: #{e}, continuing")
+          log("Failed to get node status for #{e}; continuing")
         end
       end
 

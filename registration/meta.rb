@@ -1,10 +1,11 @@
 module MCollective
   module Registration
-    # A registration plugin that sends in all the meta data we have for a node:
+    # A registration plugin that sends in all the metadata we have for a node,
+    # including:
     #
     # - all facts
     # - all agents
-    # - all classes if applicable
+    # - all classes (if applicable)
     #
     # will add cf classes soon
     #

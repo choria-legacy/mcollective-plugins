@@ -10,29 +10,29 @@ module MCollective
     # A security plugin for MCollective that uses ssh keys for message
     # signing and verification
     #
-    # For clients (things initiating RPC calls):
+    # For clients (things issuing RPC calls):
     # * Message signing will use your ssh-agent.
     # * Message verification is done using the public key of the host that
-    #   sent the message. This means you have to have the public key known
-    #   before you can verify a message. Generally, this is your
-    #   ~/.ssh/known_hosts file, but we invoke 'ssh-keygen -F <host>'
-    #   The 'host' comes from the SimpleRPC senderid (defaults to the
-    #   hostname)
+    #   sent the message. This means your system needs to be aware of the public
+    #   key before you can verify a message. Generally, this involves your
+    #   ~/.ssh/known_hosts file, but we invoke 'ssh-keygen -F <HOST>', where
+    #   HOST is read from from the SimpleRPC senderid (defaults to the
+    #   hostname).
     #
-    #   Clients identify themselves with the RPC 'callerid' as your current
-    #   user (via Etc::getlogin)
+    #   Clients identify themselves in their RPC 'callerid' as your current
+    #   user (via Etc::getlogin).
     #
     # For nodes/agents:
     # * Message signing uses the value of 'plugin.sshkey' in server.cfg.
-    #   I recommend you use the path of your host's ssh rsa key, for example:
-    #   /etc/ssh/ssh_host_rsa_key
-    # * Message verification uses your user's authorized_keys file. The 'user'
-    #   comes from the RPC 'callerid' field. This user must exist on your
-    #   node host
+    #   We recommend you use the path of your host's SSH RSA key. (For example:
+    #   '/etc/ssh/ssh_host_rsa_key'.)
+    # * Message verification uses your user's authorized_keys file. The
+    #   'user' comes from the RPC 'callerid' field. Said user must exist on
+    #   this node.
     #
     # In cases of configurable paths, like the location of your authorized_keys
     # file, the 'sshkeyauth' library will try to parse it from the
-    # sshd_config file (defaults to /etc/ssh/sshd_config)
+    # sshd_config file (defaults to '/etc/ssh/sshd_config').
     #
     # Since there is no challenge-reponse in MCollective RPC, we can't emulate
     # ssh's "try each key until one is accepted" method. Instead, we will
@@ -41,13 +41,13 @@ module MCollective
     #
     # Serialization uses Marshal.
     #
-    # NOTE: This plugin should be considered experimental at this point as it has
-    #       a few gotchas and drawbacks.
+    # NOTE: This plugin should be considered experimental at this point, as it
+    #       has a few gotchas and drawbacks.
     #
-    #       * Nodes cannot easily send messages now, this means registration is
-    #         not supported
+    #       * Nodes cannot easily send messages now; this means registration is
+    #         not supported.
     #       * Automated systems that wish to manage a collective with this plugin
-    #         will somehow need access to ssh agents, this can insecure and
+    #         will somehow need access to ssh agents; this can be insecure and
     #         problematic in general.
     #
     # We're including this plugin as an early preview of what is being worked on

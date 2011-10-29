@@ -1,12 +1,12 @@
 module MCollective
   module Agent
-    # An agent that uses Reductive Labs puppet to manage services
+    # An agent that uses Puppet to manage services
     #
     # See https://github.com/puppetlabs/mcollective-plugins
     #
-    # Released under the terms of the GPL, same as Puppet
+    # Released under the terms of the GPL v2.0.
     #
-    # Agent is based on Simple RPC so needs mcollective 0.4.7 or newer
+    # As this agent is based on Simple RPC, it requires mcollective 0.4.7 or newer.
     class Service<RPC::Agent
       metadata    :name        => "SimpleRPC Service Agent",
                   :description => "Agent to manage services",

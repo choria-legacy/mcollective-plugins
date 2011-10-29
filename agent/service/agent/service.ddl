@@ -1,5 +1,5 @@
 metadata    :name        => "SimpleRPC Service Agent",
-            :description => "Agent to manage services", 
+            :description => "Agent to manage services",
             :author      => "R.I.Pienaar",
             :license     => "GPLv2",
             :version     => "1.2",
@@ -9,7 +9,7 @@ metadata    :name        => "SimpleRPC Service Agent",
 action "status", :description => "Gets the status of a service" do
     display :always
 
-    input :service, 
+    input :service,
           :prompt      => "Service Name",
           :description => "The service to get the status for",
           :type        => :string,
@@ -18,24 +18,24 @@ action "status", :description => "Gets the status of a service" do
           :maxlength   => 90
 
     output "status",
-          :description => "The status of service",
+          :description => "The status of the service",
           :display_as  => "Service Status"
 end
 
 ["stop", "start", "restart"].each do |act|
     action act, :description => "#{act.capitalize} a service" do
         display :failed
-    
-        input :service, 
+
+        input :service,
               :prompt      => "Service Name",
               :description => "The service to #{act}",
               :type        => :string,
               :validation  => '^[a-zA-Z\.\-_\d]+$',
               :optional    => false,
               :maxlength   => 90
-    
+
         output "status",
-              :description => "The status of service after #{act}",
+              :description => "The status of the service after #{act.sub(/p$/, 'pp')}ing",
               :display_as  => "Service Status"
     end
 end

@@ -1,10 +1,12 @@
 module MCollective
   module Agent
-    # An agent that uses Reductive Labs Puppet to manage packages
+    # An agent that uses Puppet to manage packages
     #
     # See https://github.com/puppetlabs/mcollective-plugins
     #
-    # Released under the terms of the GPL, same as Puppet
+    # Released under the terms of the GPL v2.0.
+    #
+    # As this agent is based on Simple RPC, it requires mcollective 0.4.7 or newer.
     class Package<RPC::Agent
       metadata    :name        => "SimpleRPC Agent For Package Management",
                   :description => "Agent To Manage Packages",
