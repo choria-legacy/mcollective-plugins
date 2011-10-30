@@ -2,21 +2,20 @@ require 'puppet'
 
 module MCollective
   module Agent
-    # A SimpleRPC agent that uses the Puppet RAL to perform any action
-    # that Puppet supports.
+    # An agent that uses the Puppet resource abstraction layer (RAL) to perform
+    # any action that Puppet supports.
     #
     # To use this you can make requests like:
     #
-    #   mc-rpc puppetral create type=user name=foo comment="Foo User"
+    #   mco rpc puppetral create type=user name=foo comment="Example user"
     #
-    # This will add a user foo with the correct comment:
+    # ...which will add a user foo with a descriptive comment. To delete the
+    # user, run:
     #
-    #   mc-rpc puppetral create type=user name=foo comment="Foo User" ensure=absent
+    #   mco rpc puppetral create type=user name=foo comment="Foo User" ensure=absent
     #
-    # This will remove the user.
-    #
-    # You can call any Puppet type that makes sense, you need to supply all the
-    # needed properties that the type require etc.
+    # You can use puppetral to declare instances of any sensible Puppet type,
+    # as long as you supply all of the attributes that the type requires.
     class Puppetral<RPC::Agent
       metadata  :name        => "puppetral",
                 :description => "Agent to inspect and act on the RAL",

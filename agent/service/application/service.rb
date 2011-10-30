@@ -11,7 +11,7 @@ The ACTION can be one of the following:
     stop    - stop service
     restart - restart or reload service
     status  - determine current status of the remote service
-        END_OF_USAGE
+    END_OF_USAGE
 
     def print_statistics(statistics, status_counter)
       print "\n---- service summary ----\n"

@@ -1,16 +1,16 @@
 metadata    :name        => "SimpleRPC Agent For Package Management",
-            :description => "Agent To Manage Packages",
+            :description => "Agent to manage packages",
             :author      => "R.I.Pienaar",
-            :license     => "GPLv2",
+            :license     => "ASL2",
             :version     => "1.3",
-            :url         => "http://mcollective-plugins.googlecode.com/",
+            :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
 ["install", "update", "uninstall", "purge"].each do |act|
     action act, :description => "#{act.capitalize} a package" do
         input :package,
               :prompt      => "Package Name",
-              :description => "Package to #{act.capitalize}",
+              :description => "Package to #{act}",
               :type        => :string,
               :validation  => '.',
               :optional    => false,
@@ -21,7 +21,7 @@ metadata    :name        => "SimpleRPC Agent For Package Management",
                :display_as  => "Output"
 
         output :properties,
-               :description => "Properties about the package post #{act}",
+               :description => "Properties of the package after #{act.sub(/e$/, '')}ing",
                :display_as  => "Properties"
     end
 end
@@ -42,7 +42,7 @@ action "status", :description => "Get the status of a package" do
            :display_as  => "Output"
 
     output :properties,
-           :description => "Package Properties",
+           :description => "Package properties",
            :display_as  => "Properties"
 end
 
@@ -56,7 +56,7 @@ action "yum_clean", :description => "Clean the YUM cache" do
            :display_as => "Exit Code"
 end
 
-action "apt_update", :description => "Updated the apt cache" do
+action "apt_update", :description => "Update the apt cache" do
     output :output,
            :description => "Output from apt-get",
            :display_as  => "Output"
@@ -102,7 +102,7 @@ action "checkupdates", :description => "Check for updates" do
     display :always
 
     output :package_manager,
-           :description => "The detected Package Manager",
+           :description => "The detected package manager",
            :display_as  => "Package Manager"
 
     output :output,

@@ -32,7 +32,7 @@ module MCollective
       def initialize
         @meta = {:license => "Apache 2",
           :author => "R.I.Pienaar <rip@devco.net>",
-          :url => "http://code.google.com/p/mcollective-plugins/"}
+          :url => "https://github.com/puppetlabs/mcollective-plugins"}
 
         require 'mongo'
 

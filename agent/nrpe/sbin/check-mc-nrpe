@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Nagios check for the mcollective nrpe agent found at http://code.google.com/p/mcollective-plugins/
+# Nagios check for the mcollective nrpe agent found at https://github.com/puppetlabs/mcollective-plugins
 #
 # Returns std Nagios exit codes and performance data.  Lists of hosts in the given status is printed
 # on subsequent lines of output, Nagios 3 will read these and display them up to 4KB
