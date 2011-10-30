@@ -4,14 +4,14 @@ module MCollective
     #
     # See https://github.com/puppetlabs/mcollective-plugins
     #
-    # Released under the terms of the GPL v2.0.
+    # Released under the terms of the Apache Software License, v2.0.
     #
     # As this agent is based on Simple RPC, it requires mcollective 0.4.7 or newer.
     class Package<RPC::Agent
       metadata    :name        => "SimpleRPC Agent For Package Management",
                   :description => "Agent To Manage Packages",
                   :author      => "R.I.Pienaar",
-                  :license     => "Apache 2",
+                  :license     => "ASL2",
                   :version     => "2.0",
                   :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                   :timeout     => 180

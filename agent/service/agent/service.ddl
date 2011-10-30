@@ -1,7 +1,7 @@
 metadata    :name        => "SimpleRPC Service Agent",
             :description => "Agent to manage services",
             :author      => "R.I.Pienaar",
-            :license     => "GPLv2",
+            :license     => "ASL2",
             :version     => "1.2",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 60

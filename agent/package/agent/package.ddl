@@ -1,7 +1,7 @@
 metadata    :name        => "SimpleRPC Agent For Package Management",
             :description => "Agent to manage packages",
             :author      => "R.I.Pienaar",
-            :license     => "GPLv2",
+            :license     => "ASL2",
             :version     => "1.3",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180

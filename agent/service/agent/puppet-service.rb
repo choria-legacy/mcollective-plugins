@@ -4,14 +4,14 @@ module MCollective
     #
     # See https://github.com/puppetlabs/mcollective-plugins
     #
-    # Released under the terms of the GPL v2.0.
+    # Released under the terms of the Apache Software License, v2.0.
     #
     # As this agent is based on Simple RPC, it requires mcollective 0.4.7 or newer.
     class Service<RPC::Agent
       metadata    :name        => "SimpleRPC Service Agent",
                   :description => "Agent to manage services",
                   :author      => "R.I.Pienaar",
-                  :license     => "GPLv2",
+                  :license     => "ASL2",
                   :version     => "2.0",
                   :url         => "https://github.com/puppetlabs/mcollective-plugins",
                   :timeout     => 60
