@@ -6,7 +6,7 @@ module MCollective
                   :author      => "R.I.Pienaar",
                   :license     => "Apache 2.0",
                   :version     => "2.0",
-                  :url         => "http://mcollective-plugins.googlecode.com/",
+                  :url         => "https://github.com/puppetlabs/mcollective-plugins",
                   :timeout     => 20
 
       def startup_hook

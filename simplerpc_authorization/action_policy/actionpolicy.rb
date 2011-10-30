@@ -1,29 +1,31 @@
 module MCollective
   module Util
-    # A class to do Simple RPC authorization checks using a per agent
-    # policy file, policy files can allow or deny requests based on
+    # A class to do SimpleRPC authorization checks using a per-agent
+    # policy file. Policy files can allow or deny requests based on
     # facts and classes on the node and the unix user id of the caller.
     #
     # A policy file gets stored in /etc/mcollective/policies/<agent>.policy
     #
     # Sample:
+    #
+    # # /etc/mcollective/policies/service.policy
     # policy default deny
     # allow    uid=500 status enable disable   country=uk     apache
     # allow    uid=0   *                       *              *
     #
-    # This will deny all service agent requests except for requests for
-    # actions status, enable and disable on nodes with fact country=uk
-    # that also have the class apache from caller userid 500.
+    # This will deny almost all service agent requests, but allows caller
+    # userid 500 to invoke the 'status,' 'enable,' and 'disable' actions on
+    # nodes which have the 'country=uk' fact and the 'apache' class.
+    # Unix UID 0 will be able to do all actions regardless of facts and classes.
     #
-    # Unix UID 0 will be able to do all actions regardless of facts and classes
+    # Policy files can be commented with lines beginning with #, and blank lines
+    # are ignored. Fields in each policy line should be tab-separated.
+    # You can specify multiple facts, actions, and classes as space-separated
+    # lists.
     #
-    # Policy files can be commented with lines beginning with #, blank lines
-    # are ignored.  Between each major part of the policy line should be tabs
-    # you can specify multiple facts, actions and classes in space seperated lists
-    #
-    # If no policy for an agent is found this plugin will by default not allow
-    # the request.  You can set plugin.actionpolicy.allow_unconfigured = 1 to
-    # allow these requests.  Not recommended.
+    # If no policy for an agent is found, this plugin will disallow requests by
+    # default. You can set plugin.actionpolicy.allow_unconfigured = 1 to
+    # allow these requests, but this is not recommended.
     #
     # Released under the Apache v2 License - R.I.Pienaar <rip@devco.net>
     class ActionPolicy
@@ -59,7 +61,7 @@ module MCollective
                 defaultname = "default"
               end
               policyfile = "#{configdir}/policies/#{defaultname}.policy"
-              logger.debug("Initial lookup failed, looking for policy in #{policyfile}")
+              logger.debug("Initial lookup failed; looking for policy in #{policyfile}")
             end
           end
         end
@@ -80,7 +82,7 @@ module MCollective
                 if $1 == "allow"
                   return true
                 else
-                  deny("Denying based on deny policy line match")
+                  deny("Denying based on explicit 'deny' policy rule")
                 end
               end
             else
@@ -144,7 +146,7 @@ module MCollective
       def self.deny(logline)
         Log.instance.debug(logline)
 
-        raise RPCAborted, "You are not authorized to call this agent or action"
+        raise RPCAborted, "You are not authorized to call this agent or action."
       end
     end
   end

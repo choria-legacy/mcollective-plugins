@@ -3,10 +3,10 @@ metadata    :name        => "Agent for Puppet RAL interaction",
             :author      => "R.I.Pienaar, Max Martin",
             :license     => "ASL2",
             :version     => "0.2",
-            :url         => "http://mcollective-plugins.googlecode.com/",
+            :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
-action "create", :description => "Add a resource to the RAL" do
+action "create", :description => "Add a resource via the RAL" do
     display :always
 
     input :type,
@@ -43,7 +43,7 @@ action "create", :description => "Add a resource to the RAL" do
 
 end
 
-action "find", :description => "Get the value of a resource" do
+action "find", :description => "Get the attributes and status of a resource" do
     display :always
 
     input :type,
@@ -83,7 +83,7 @@ action "find", :description => "Get the value of a resource" do
           :display_as  => "Parameters"
 end
 
-action "search", :description => "Get the value of all resources of a certain type" do
+action "search", :description => "Get detailed info for all resources of a given type" do
     display :always
 
     input :type,
@@ -95,6 +95,6 @@ action "search", :description => "Get the value of all resources of a certain ty
           :maxlength   => 90
 
     output :result,
-           :description => "Value of the inspected resources",
+           :description => "The values of the inspected resources",
            :display_as  => "Result"
 end

@@ -3,7 +3,7 @@ metadata    :name        => "SimpleRPC Service Agent",
             :author      => "R.I.Pienaar",
             :license     => "Apache 2.0",
             :version     => "1.2",
-            :url         => "http://mcollective-plugins.googlecode.com/",
+            :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 20
 
 action "clean", :description => "Performs a puppetca --clean on a certficate" do

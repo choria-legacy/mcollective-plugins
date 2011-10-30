@@ -3,23 +3,26 @@ module MCollective
     # An agent to manage the Puppet Daemon
     #
     # Configuration Options:
-    #    puppetd.splaytime - How long to splay for, no splay by default
-    #    puppetd.statefile - Where to find the state.yaml file defaults to
+    #    puppetd.splaytime - Number of seconds within which to splay; no splay
+    #                        by default
+    #    puppetd.statefile - Where to find the state.yaml file; defaults to
     #                        /var/lib/puppet/state/state.yaml
-    #    puppetd.lockfile  - Where to find the lock file defaults to
+    #    puppetd.lockfile  - Where to find the lock file; defaults to
     #                        /var/lib/puppet/state/puppetdlock
-    #    puppetd.puppetd   - Where to find the puppetd, defaults to
+    #    puppetd.puppetd   - Where to find the puppet agent binary; defaults to
     #                        /usr/sbin/puppetd
     #    puppetd.summary   - Where to find the summary file written by Puppet
-    #                        2.6.8 and newer
-    #    puppetd.pidfile   - Where to find the Puppet pid file
+    #                        2.6.8 and newer; defaults to
+    #                        /var/lib/puppet/state/last_run_summary.yaml
+    #    puppetd.pidfile   - Where to find puppet agent's pid file; defaults to
+    #                        /var/run/puppet/agent.pid
     class Puppetd<RPC::Agent
       metadata    :name        => "SimpleRPC Puppet Agent",
-                  :description => "Agent to manage the puppet daemon",
+                  :description => "Agent to manage the puppet agent daemon",
                   :author      => "R.I.Pienaar",
                   :license     => "Apache License 2.0",
                   :version     => "1.4",
-                  :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
+                  :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/AgentPuppetd",
                   :timeout     => 30
 
       def startup_hook
@@ -101,7 +104,7 @@ module MCollective
           reply.fail "Lock file exists, but no PID file; puppet agent looks disabled."
 
         when :running then      # can't run two simultaniously
-          reply.fail "Lock file and PID file exists; puppet agent looks running."
+          reply.fail "Lock file and PID file exist; puppet agent appears to be running."
 
         when :idling then       # signal daemon
           pid = File.read(@pidfile)
@@ -116,9 +119,9 @@ module MCollective
               # theoretically signal arbitrary processes with this...
               begin
                 ::Process.kill("USR1", Integer(pid))
-                reply[:output] = "Sent SIGUSR1 to the Puppet daemon at #{Integer(pid)}"
+                reply[:output] = "Sent SIGUSR1 to the puppet agent daemon (process #{Integer(pid)})"
               rescue Exception => e
-                reply.fail "Failed to signal the Puppet daemon at #{pid}: #{e}"
+                reply.fail "Failed to signal the puppet agent daemon (process #{pid}): #{e}"
               end
             rescue Errno::ESRCH => e
               # PID is invalid, run puppet onetime as usual
@@ -130,7 +133,7 @@ module MCollective
           runonce_background
 
         else
-          reply.fail "Unknown puppet daemon state #{state}"
+          reply.fail "Unknown puppet agent state: #{state}"
         end
       end
 
@@ -156,7 +159,7 @@ module MCollective
             File.unlink(@lockfile)
             reply[:output] = "Lock removed"
           else
-            reply[:output] = "Currently runing"
+            reply[:output] = "Currently running; can't remove lock"
           end
         else
           reply.fail "Already unlocked"
@@ -167,7 +170,7 @@ module MCollective
         if File.exists?(@lockfile)
           stat = File::Stat.new(@lockfile)
 
-          stat.zero? ? reply.fail("Already disabled") : reply.fail("Currently running")
+          stat.zero? ? reply.fail("Already disabled") : reply.fail("Currently running; can't remove lock")
         else
           begin
             File.open(@lockfile, "w") do |file|

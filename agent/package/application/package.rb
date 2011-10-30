@@ -1,6 +1,16 @@
 class MCollective::Application::Package<MCollective::Application
   description "Generic Package Manager"
-  usage "Usage: mc package [options] action package"
+    usage <<-END_OF_USAGE
+mco package [OPTIONS] <ACTION> <PACKAGE>"
+
+The ACTION can be one of the following:
+
+    install   - install PACKAGE
+    update    - update PACKAGE
+    uninstall - uninstall PACKAGE
+    purge     - uninstall PACKAGE and purge related config files
+    status    - determine whether PACKAGE is installed, and report its version
+    END_OF_USAGE
 
   def post_option_parser(configuration)
     if ARGV.length == 2
@@ -8,11 +18,11 @@ class MCollective::Application::Package<MCollective::Application
       configuration[:package] = ARGV.shift
 
       unless configuration[:action] =~ /^(install|update|uninstall|purge|status)$/
-        puts("Action has to be install, update, uninstall, purge or status")
+        puts("Action must be install, update, uninstall, purge, or status.")
         exit 1
       end
     else
-      puts("Please specify a package and action")
+      puts("Please specify an action and a package.")
       exit 1
     end
   end
