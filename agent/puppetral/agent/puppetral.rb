@@ -43,7 +43,7 @@ module MCollective
 
         if success
           reply[:status] = "Resource was created"
-          reply[:resource] = retain_params(result)
+          reply[:resource] = retain_params(Puppet::Resource.indirection.find([type, title].join('/')))
         end
       end
 
