@@ -1,6 +1,5 @@
-#! /usr/bin/env ruby
-
-require File.join([File.dirname(__FILE__), '/../../../spec/spec_helper'])
+#!/usr/bin/env rspec
+require 'spec_helper'
 
 module MCollective
   describe "package application" do
@@ -18,7 +17,7 @@ module MCollective
 
     describe "#post_option_parser" do
       it "should raise an exception if package and actions are not specified" do
-        @app.expects(:puts).with("Please specify a package and action")
+        @app.expects(:puts).with("Please specify an action and a package.")
 
         expect{
           @app.post_option_parser({})
@@ -29,7 +28,7 @@ module MCollective
         ARGV << "action"
         ARGV << "package"
 
-        @app.expects(:puts).with("Action has to be install, update, uninstall, purge or status")
+        @app.expects(:puts).with("Action must be install, update, uninstall, purge, or status.")
 
         expect{
           @app.post_option_parser({})
