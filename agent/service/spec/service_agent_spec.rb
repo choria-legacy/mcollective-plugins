@@ -1,11 +1,6 @@
 #!/usr/bin/env rspec
 require 'spec_helper'
 
-module Puppet
-  class Type
-  end
-end
-
 describe "service agent" do
   before do
     agent_file = File.join([File.dirname(__FILE__), "../agent/puppet-service.rb"])
