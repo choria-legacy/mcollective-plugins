@@ -6,6 +6,10 @@ describe "package agent" do
     agent_file = File.join([File.dirname(__FILE__), "../agent/puppet-package.rb"])
     @agent = MCollective::Test::LocalAgentTest.new("package", :agent_file => agent_file).plugin
   end
+  after :all do
+    MCollective::PluginManager.clear
+  end
+
   describe "#yum_clean" do
     it "should fail if /usr/bin/yum doesn't exist" do
       File.expects(:exist?).with("/usr/bin/yum").returns(false)
@@ -146,13 +150,6 @@ describe "package agent" do
   end
 
   describe "#do_pkg_action" do
-    before(:all) do
-      module Puppet
-        class Type
-        end
-      end
-    end
-
     before(:each) do
       @puppet_type = mock
       @puppet_type.stubs(:clear)
@@ -161,8 +158,6 @@ describe "package agent" do
 
     describe "#puppet provider" do
       it "should use the correct provider for version 0.24" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("0.24")
         Puppet::Type.expects(:type).with(:package).twice.returns(@puppet_type)
 
@@ -180,8 +175,6 @@ describe "package agent" do
       end
 
       it "should use the correct provider for a version that is not 0.24" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("something else")
         Puppet::Type.expects(:type).with(:package).returns(@puppet_type)
 
@@ -200,8 +193,6 @@ describe "package agent" do
 
     describe "#install" do
       it "should install if ensure is set to absent" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("0.24")
         Puppet::Type.expects(:type).with(:package).twice.returns(@puppet_type)
 
@@ -218,8 +209,6 @@ describe "package agent" do
       end
 
       it "should not install if ensure is not set to absent" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("0.24")
         Puppet::Type.expects(:type).with(:package).twice.returns(@puppet_type)
 
@@ -237,8 +226,6 @@ describe "package agent" do
 
     describe "#update" do
       it "should update unless ensure is set to absent" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("0.24")
         Puppet::Type.expects(:type).with(:package).twice.returns(@puppet_type)
 
@@ -255,8 +242,6 @@ describe "package agent" do
       end
 
       it "should not update if ensure is set to absent" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("0.24")
         Puppet::Type.expects(:type).with(:package).twice.returns(@puppet_type)
 
@@ -274,8 +259,6 @@ describe "package agent" do
 
     describe "#uninstall" do
       it "should uninstall unless ensure is set to absent" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("0.24")
         Puppet::Type.expects(:type).with(:package).twice.returns(@puppet_type)
 
@@ -292,8 +275,6 @@ describe "package agent" do
       end
 
       it "should not uninstall if ensure is set to absent" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("0.24")
         Puppet::Type.expects(:type).with(:package).twice.returns(@puppet_type)
 
@@ -311,8 +292,6 @@ describe "package agent" do
 
     describe "#status" do
       it "should return the status of the package" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("0.24")
         Puppet::Type.expects(:type).with(:package).twice.returns(@puppet_type)
 
@@ -329,8 +308,6 @@ describe "package agent" do
     end
     describe "#purge" do
       it "should run purge on the package object" do
-        @agent.expects(:require).with('puppet')
-
         Puppet.expects(:version).returns("0.24")
         Puppet::Type.expects(:type).with(:package).twice.returns(@puppet_type)
 
@@ -348,7 +325,7 @@ describe "package agent" do
     end
     describe "#Exceptions" do
       it "should fail if exception is raised" do
-        @agent.expects(:require).raises("Exception")
+        Puppet.expects(:version).raises("Exception")
         result = @agent.call(:install, :package => "package")
         result.should be_aborted_error
         result[:statusmsg].should == "Exception"

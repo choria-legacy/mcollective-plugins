@@ -1,3 +1,5 @@
+require 'puppet'
+
 module MCollective
   module Agent
     # An agent that uses Puppet to manage packages
@@ -87,8 +89,6 @@ module MCollective
       private
       def do_pkg_action(package, action)
         begin
-          require 'puppet'
-
           if ::Puppet.version =~ /0.24/
             ::Puppet::Type.type(:package).clear
             pkg = ::Puppet::Type.type(:package).create(:name => package).provider
