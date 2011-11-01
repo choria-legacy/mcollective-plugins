@@ -1,6 +1,5 @@
-#! /usr/bin/env ruby
-
-require File.join([File.dirname(__FILE__), '/../../../spec/spec_helper'])
+#!/usr/bin/env rspec
+require 'spec_helper'
 
 describe "puppetral agent" do
   before :all do
