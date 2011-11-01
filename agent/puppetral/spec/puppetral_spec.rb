@@ -3,10 +3,8 @@ require 'spec_helper'
 
 describe "puppetral agent" do
   before :all do
-    @agent = MCollective::Test::LocalAgentTest.new(
-                                                   "puppetral",
-                                                   :agent_file => File.join([File.dirname(__FILE__), "../agent/puppetral.rb"])
-                                                   ).plugin
+    agent_file = File.join([File.dirname(__FILE__), "../agent/puppetral.rb"])
+    @agent = MCollective::Test::LocalAgentTest.new("puppetral", :agent_file => agent_file).plugin
   end
 
   describe "#find" do
@@ -63,16 +61,32 @@ describe "puppetral agent" do
       File.delete(@tmpfile) if File.exist?(@tmpfile)
     end
 
+    def group_with_gid(gid)
+      [
+        stub({
+          :to_pson_data_hash => {
+            "exported"   => false,
+            "title"      => "wheel",
+            "tags"       => ["group", "wheel"],
+            "type"       => "Group",
+            "parameters" => {
+              :provider             => :directoryservice,
+              :attribute_membership => :minimum,
+              :auth_membership      => true,
+              :loglevel             => :notice,
+              :ensure               => :present,
+              :members              => ["root"],
+              :gid                  => gid
+            }
+          }
+        })
+      ]
+    end
     describe "when avoiding conflicts" do
       it "should remove the passed parameter if there is a conflict with it" do
         Puppet::Resource.expects(:new).with('group', 'testgroup', :parameters => {:ensure=>'present'})
         Puppet::Resource.indirection.expects(:save).returns({:ensure=>:present})
-        Puppet::Resource.indirection.expects(:search).with('group', {}).returns(
-                                                                                [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
-                                                                                          "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
-                                                                                            :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
-                                                                                            :gid=>0}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
-                                                                                )
+        Puppet::Resource.indirection.expects(:search).with('group', {}).returns(group_with_gid(0))
         result = @agent.call(:create, :type => 'group', :title => 'testgroup',
                              :parameters => {:ensure => 'present', :gid => "0"}, :avoid_conflict => :gid)
       end
@@ -80,12 +94,7 @@ describe "puppetral agent" do
       it "should remove the passed parameter if there is a resource with a conflicting title" do
         Puppet::Resource.expects(:new).with('group', 'wheel', :parameters => {:ensure=>'present'})
         Puppet::Resource.indirection.expects(:save).returns({:ensure=>:present})
-        Puppet::Resource.indirection.expects(:search).with('group', {}).returns(
-                                                                                [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
-                                                                                          "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
-                                                                                            :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
-                                                                                            :gid=>2}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
-                                                                                )
+        Puppet::Resource.indirection.expects(:search).with('group', {}).returns(group_with_gid(2))
         result = @agent.call(:create, :type => 'group', :title => 'wheel',
                              :parameters => {:ensure => 'present', :gid => "0"}, :avoid_conflict => :gid)
       end
@@ -93,12 +102,7 @@ describe "puppetral agent" do
       it "should do nothing if there is no conflict" do
         Puppet::Resource.expects(:new).with('group', 'testgroup', :parameters => {:ensure=>'present', :gid => '555'})
         Puppet::Resource.indirection.expects(:save).returns({:ensure=>:present})
-        Puppet::Resource.indirection.expects(:search).with('group', {}).returns(
-                                                                                [stub({:to_pson_data_hash => {"exported"=>false, "title"=>"wheel",
-                                                                                          "parameters"=>{:provider=>:directoryservice, :attribute_membership=>:minimum,
-                                                                                            :auth_membership=>true, :loglevel=>:notice, :ensure=>:present, :members=>["root"],
-                                                                                            :gid=>0}, "tags"=>["group", "wheel"], "type"=>"Group"}})]
-                                                                                )
+        Puppet::Resource.indirection.expects(:search).with('group', {}).returns(group_with_gid(0))
         result = @agent.call(:create, :type => 'group', :title => 'testgroup',
                              :parameters => {:ensure => 'present', :gid => "555"}, :avoid_conflict => :gid)
       end

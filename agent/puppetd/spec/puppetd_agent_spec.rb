@@ -62,7 +62,7 @@ describe "puppetd agent" do
       File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
 
       result = @agent.call(:enable)
-      result.should have_data_items(:output=>"Currently runing")
+      result.should have_data_items(:output=>"Currently running; can't remove lock")
     end
   end
 
@@ -88,7 +88,7 @@ describe "puppetd agent" do
 
       result = @agent.call(:disable)
       result.should be_aborted_error
-      result[:statusmsg].should == "Currently running"
+      result[:statusmsg].should == "Currently running; can't remove lock"
     end
 
     it "should create the lock if the lockfile doesn't exist" do
@@ -124,7 +124,7 @@ describe "puppetd agent" do
       File.expects(:exists?).with("spec_test_lock_file").returns(true)
       File.expects(:exists?).with("spec_test_pid_file").returns(true)
       result = @agent.call(:runonce)
-      result[:statusmsg].should == "Lock file and PID file exists; puppet agent looks running."
+      result[:statusmsg].should == "Lock file and PID file exist; puppet agent appears to be running."
       result.should be_aborted_error
     end
 
@@ -146,7 +146,7 @@ describe "puppetd agent" do
       ::Process.expects(:kill).with("USR1", 99999999).once
       result = @agent.call(:runonce)
       result[:statusmsg].should == "OK"
-      result[:data][:output].should == "Sent SIGUSR1 to the Puppet daemon at 99999999"
+      result[:data][:output].should == "Sent SIGUSR1 to the puppet agent daemon (process 99999999)"
       result.should be_successful
     end
 

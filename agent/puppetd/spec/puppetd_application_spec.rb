@@ -19,14 +19,14 @@ module Mcollective
       it "should raise an exception if no command has been specified" do
         expect{
           @app.post_option_parser({})
-        }.to raise_error("Please specify a command")
+        }.to raise_error("Please specify an action.")
       end
 
       it "should raise an exception if the given command doesn't match the list of puppetd commands" do
         ARGV << "invalid"
         expect{
           @app.post_option_parser(:command => "")
-        }.to raise_error("Command has to be enable, disable, runonce, runonce, runall, status, summary or count")
+        }.to raise_error("Action must be enable, disable, runonce, runonce, runall, status, summary, or count")
       end
 
       it "should set command and concurrency" do
@@ -58,7 +58,7 @@ module Mcollective
         rpcclient_mock = mock
 
         rpcclient_mock.expects(:status).yields(nil)
-        @app.expects(:log).with("Failed to get node status: undefined method `[]' for nil:NilClass, continuing")
+        @app.expects(:log).with("Failed to get node status for undefined method `[]' for nil:NilClass; continuing")
         @app.waitfor(1, rpcclient_mock)
       end
 
@@ -67,7 +67,7 @@ module Mcollective
         rpcclient_mock.expects(:status).yields({:body => {:data => {:running => 0}}})
         rpcclient_mock.expects(:status).yields({:body => {:data => {:running => 1}}})
 
-        @app.expects(:log).with("Currently 1 nodes running, waiting")
+        @app.expects(:log).with("Currently 1 nodes running; waiting")
         @app.expects(:sleep).with(2)
 
         @app.waitfor(1, rpcclient_mock)
@@ -77,7 +77,7 @@ module Mcollective
     describe "#main" do
       it "should exit with message if command is runall and concurrency is 0" do
         @app.stubs(:configuration).returns({:command => "runall", :concurrency => 0})
-        @app.expects(:puts).with("Concurrency is 0, not running any nodes")
+        @app.expects(:puts).with("Concurrency is 0; not running any nodes")
         @app.expects(:rpcclient).with("puppetd", :options => nil)
         expect{
           @app.main
@@ -96,7 +96,7 @@ module Mcollective
         rpcclient_mock.expects(:custom_request).with("runonce", {:forcerun => true}, "node1", {"identity" => "node1"}).returns([:statusmsg => "success"])
         rpcclient_mock.expects(:custom_request).with("runonce", {:forcerun => true}, "node2", {"identity" => "node2"}).returns(false)
         @app.expects(:log).with("node1 schedule status: success")
-        @app.expects(:log).with("node2 unknown output: false\n")
+        @app.expects(:log).with("node2 returned unknown output: false\n")
         @app.stubs(:sleep).with(1)
         rpcclient_mock.expects(:disconnect)
 
@@ -149,7 +149,7 @@ module Mcollective
         rpcclient_mock.expects(:progress=).with(false)
         rpcclient_mock.expects(:status).yields(nil)
         rpcclient_mock.expects(:disconnect)
-        @app.expects(:log).with("Failed to get node status: undefined method `[]' for nil:NilClass, continuing")
+        @app.expects(:log).with("Failed to get node status for undefined method `[]' for nil:NilClass; continuing")
 
         @app.main
       end
