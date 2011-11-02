@@ -1,3 +1,5 @@
+require 'puppet'
+
 module MCollective
   module Agent
     # An agent that uses Puppet to manage services
@@ -38,8 +40,6 @@ module MCollective
         if @config.pluginconf.include?("service.hasstatus")
           hasstatus = true if @config.pluginconf["service.hasstatus"] =~ /^1|y|t/
         end
-
-        require 'puppet'
 
         if ::Puppet.version =~ /0.24/
           ::Puppet::Type.type(:service).clear
