@@ -30,7 +30,7 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
       raise "Action has to be uptodate"
     end
 
-    configuration["packages"] = ARGV.map do |elem|
+    configuration[:packages] = ARGV.map do |elem|
       items = elem.split("/")
       raise "Package must be given as <name>/[<version>[/<release>]]" unless (1..3) === items.length
       Hash[["name", "version", "release"].zip(items)]
@@ -47,10 +47,10 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
   end
 
   def valid_resp_data?(data)
-    unless data.is_a? Hash and data.include?("packages") and data["packages"].is_a? Array
+    unless data.is_a? Hash and data.include?(:packages) and data[:packages].is_a? Array
       return false
     end
-    data["packages"].each do |p|
+    data[:packages].each do |p|
       return false unless p.keys.sort == ["name", "version", "release", "status", "tries"].sort
     end
     return true
@@ -60,7 +60,7 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
     pkg = rpcclient("packages", :options => options)
     rc = 0
 
-    resps = pkg.send(configuration[:action], {"packages" => configuration["packages"]})
+    resps = pkg.send(configuration[:action], {:packages => configuration[:packages]})
     resps.each do |resp|
       if resp[:statuscode] != 0
         printf("%-40s = STATUSCODE %s\n", resp[:sender], resp[:statuscode])
@@ -71,10 +71,10 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
           rc = 2
         else
           if resp[:data]["status"] != 0
-            printf("%-40s = ERR %s ::: %s :::\n", resp[:sender], resp[:data]["status"], resp[:data]["packages"].sort.inspect)
+            printf("%-40s = ERR %s ::: %s :::\n", resp[:sender], resp[:data]["status"], resp[:data][:packages].inspect)
             rc = 1
           else
-            printf("%-40s = OK ::: %s :::\n", resp[:sender], resp[:data]["packages"].sort.inspect)
+            printf("%-40s = OK ::: %s :::\n", resp[:sender], resp[:data][:packages].inspect)
           end
         end
       end

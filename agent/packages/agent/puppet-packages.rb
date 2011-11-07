@@ -18,7 +18,7 @@ module MCollective
       # request = {
       #   data = {
       #     :action => "uptodate"
-      #     "packages" => {
+      #     :packages => {
       #        "foo" => { "version" => "1.0", "release" => "1.el6" },
       #        "bar" => { "version" => nil,   "release" => nil     },
       #        "fox" => { "version" => "1.0", "release" => "1.el6" }
@@ -29,7 +29,7 @@ module MCollective
       # reply = {
       #   data = {
       #     "status" => 1
-      #     "packages" => {
+      #     :packages => {
       #        "foo" => { "version" => "1.1", "release" => "1.el6", "status" => 1, "tries" => 3 },
       #        "bar" => { "version" => "2.0", "release" => "4001",  "status" => 0, "tries" => 1 },
       #        "fox" => { "version" => nil,   "release" => nil,     "status" => 1, "tries" => 3 },
@@ -41,8 +41,8 @@ module MCollective
       ["uptodate"].each do |act|
         action act do
           begin
-            do_pkg_validate(request["packages"])
-            do_pkg_action(act.to_sym, request["packages"])
+            do_pkg_validate(request[:packages])
+            do_pkg_action(act.to_sym, request[:packages])
           rescue => e
             puts e
             raise
@@ -72,16 +72,16 @@ module MCollective
 
       def initialize_reply
         reply["status"] = 0
-        reply["packages"] = []
+        reply[:packages] = []
       end
 
       def update_reply(package)
-        reply["packages"] << package
+        reply[:packages] << package
       end
 
       def calculate_status
-        unless reply["packages"].empty?
-          reply["status"] = reply["packages"].map { |item| item["status"] }.max
+        unless reply[:packages].empty?
+          reply["status"] = reply[:packages].map { |item| item["status"] }.max
         end
       end
 
@@ -175,9 +175,9 @@ module MCollective
             end
           end
 
-          reply["packages"] = packages_is
+          reply[:packages] = packages_is
           log "#{reply.inspect}"
-          log "#{reply["packages"].inspect}"
+          log "#{reply[:packages].inspect}"
 
           calculate_status
         rescue Exception => e
