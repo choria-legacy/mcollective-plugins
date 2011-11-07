@@ -28,11 +28,11 @@ module MCollective
       #
       # reply = {
       #   data = {
-      #     :status => 0..1 - 0=ok, 1=error
+      #     :status => 1
       #     :packages => {
-      #        "foo" => { :version => "1.1", :release => "1.el6", :status => 1 },
-      #        "bar" => { :version => "2.0", :release => "4001",  :status => 0 },
-      #        "fox" => { :version => nil,   :release => nil,     :status => 1 },
+      #        "foo" => { :version => "1.1", :release => "1.el6", :status => 1, :tries => 3 },
+      #        "bar" => { :version => "2.0", :release => "4001",  :status => 0, :tries => 1 },
+      #        "fox" => { :version => nil,   :release => nil,     :status => 1, :tries => 3 },
       #     }
       #   }
       # }
