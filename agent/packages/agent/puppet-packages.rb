@@ -122,24 +122,27 @@ module MCollective
         return res
       end
 
-      def initialize_pkg_reply(package)
-        pkg_reply = {
-          "name" => package["name"],
-          "status" => 1
+      def initialize_is(should)
+        is = {
+          "name" => should["name"],
+          "status" => 1,
+          "tries" => 0,
         }
-        return pkg_reply
+        return is
       end
 
-      def update_pkg_reply(pkg_reply, pkg, should)
+      def update_is(is, pkg, should)
         pkg.flush
-        pkg_reply["version"] = pkg.properties[:version]
-        pkg_reply["release"] = pkg.properties[:release]
-        pkg_reply["status"] = as_requested(pkg_reply, should) ? 0 : 1
-        log "pkg_reply is: #{pkg_reply.inspect}"
+
+        is["version"] = pkg.properties[:version]
+        is["release"] = pkg.properties[:release]
+        is["status"] = as_requested(is, should) ? 0 : 1
+        is["tries"] += 1
+
+        log "is is: #{is.inspect}"
       end
 
-      def uptodate_package(should)
-        pkg_reply = initialize_pkg_reply(should)
+      def uptodate_package(is, should)
         pkg_version = [ should["version"], should["release"] ].reject { |i| i.nil? }.join("-")
         pkg_ensure = should["version"].nil? ? :latest : pkg_version
         pkg_name = should["name"]
@@ -151,17 +154,27 @@ module MCollective
         rescue Puppet::ExecutionFailure => e
           logger.warn "Install failed: #{e_str(e)}"
         end
-        update_pkg_reply(pkg_reply, pkg, should)
-        return pkg_reply
+        update_is(is, pkg, should)
+        return is
       end
 
       def do_pkg_action(action, packages_should)
         begin
           require 'puppet'
-          fresh_package_list
-          initialize_reply
 
-          packages_is = packages_should.map { |p| uptodate_package p }
+          initialize_reply
+          fresh_package_list
+          packages_is = packages_should.map { |p| uptodate_package initialize_is(p), p }
+
+          2.times do |_|
+            not_ok = packages_is.zip(packages_should).select {|is,_| is["status"] != 0 }
+            log "Not ok: #{not_ok.inspect}"
+            unless not_ok.empty?
+              fresh_package_list
+              not_ok.each { |is, should| uptodate_package(is, should) }
+            end
+          end
+
           reply["packages"] = packages_is
           log "#{reply.inspect}"
           log "#{reply["packages"].inspect}"
