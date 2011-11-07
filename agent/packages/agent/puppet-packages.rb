@@ -41,6 +41,7 @@ module MCollective
       ["uptodate"].each do |act|
         action act do
           begin
+            log "Received request: #{request.inspect}"
             do_pkg_validate(request[:packages])
             do_pkg_action(act.to_sym, request[:packages])
           rescue => e
