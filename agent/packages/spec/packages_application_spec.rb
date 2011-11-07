@@ -2,6 +2,7 @@
 # -*- coding: undecided -*-
 
 require File.join([File.dirname(__FILE__), '/../../../spec/spec_helper'])
+require 'json'
 
 module MCollective
   describe "packages application" do
@@ -104,7 +105,7 @@ module MCollective
 
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp])
 
-        @app.expects(:printf).with("%-40s = OK ::: %s :::\n", "node1", resp_data[:packages].inspect)
+        @app.expects(:printf).with("%-40s = OK ::: %s :::\n", "node1", resp_data[:packages].to_json)
         @app.main.should == 0
       end
 
@@ -119,7 +120,7 @@ module MCollective
 
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp])
 
-        @app.expects(:printf).with("%-40s = ERR %s ::: %s :::\n", "node1", resp_data["status"], resp_data[:packages].sort.inspect)
+        @app.expects(:printf).with("%-40s = ERR %s ::: %s :::\n", "node1", resp_data["status"], resp_data[:packages].to_json)
         @app.main.should == 1
       end
 
@@ -137,8 +138,8 @@ module MCollective
 
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp1, resp2])
 
-        @app.expects(:printf).with("%-40s = OK ::: %s :::\n",     "node1", resp1_data[:packages].inspect)
-        @app.expects(:printf).with("%-40s = ERR %s ::: %s :::\n", "node2", resp2_data["status"], resp2_data[:packages].sort.inspect)
+        @app.expects(:printf).with("%-40s = OK ::: %s :::\n",     "node1", resp1_data[:packages].to_json)
+        @app.expects(:printf).with("%-40s = ERR %s ::: %s :::\n", "node2", resp2_data["status"], resp2_data[:packages].to_json)
         @app.main.should == 1
       end
 
@@ -170,7 +171,7 @@ module MCollective
 
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp])
 
-        @app.expects(:printf).with("%-40s = INVALID %s\n", "node1", resp_data.inspect)
+        @app.expects(:printf).with("%-40s = INVALID %s\n", "node1", resp_data.to_json)
         @app.main.should == 2
       end
 
@@ -185,7 +186,7 @@ module MCollective
 
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp])
 
-        @app.expects(:printf).with("%-40s = INVALID %s\n", "node1", nil.inspect)
+        @app.expects(:printf).with("%-40s = INVALID %s\n", "node1", nil.to_json)
         @app.main.should == 2
       end
     end

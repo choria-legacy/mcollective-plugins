@@ -57,6 +57,8 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
   end
 
   def main
+    require 'json'
+
     pkg = rpcclient("packages", :options => options)
     rc = 0
 
@@ -67,14 +69,14 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
         rc = 2
       else
         unless valid_resp_data? resp[:data]
-          printf("%-40s = INVALID %s\n", resp[:sender], resp[:data].inspect)
+          printf("%-40s = INVALID %s\n", resp[:sender], resp[:data].to_json)
           rc = 2
         else
           if resp[:data]["status"] != 0
-            printf("%-40s = ERR %s ::: %s :::\n", resp[:sender], resp[:data]["status"], resp[:data][:packages].inspect)
+            printf("%-40s = ERR %s ::: %s :::\n", resp[:sender], resp[:data]["status"], resp[:data][:packages].to_json)
             rc = 1
           else
-            printf("%-40s = OK ::: %s :::\n", resp[:sender], resp[:data][:packages].inspect)
+            printf("%-40s = OK ::: %s :::\n", resp[:sender], resp[:data][:packages].to_json)
           end
         end
       end
