@@ -146,7 +146,7 @@ describe "puppetd agent" do
       ::Process.expects(:kill).with("USR1", 99999999).once
       result = @agent.call(:runonce)
       result[:statusmsg].should == "OK"
-      result[:data][:output].should == "Sent SIGUSR1 to the puppet agent daemon (process 99999999)"
+      result[:data][:output].should == "Signalled daemonized puppet agent to run (process 99999999)"
       result.should be_successful
     end
 
