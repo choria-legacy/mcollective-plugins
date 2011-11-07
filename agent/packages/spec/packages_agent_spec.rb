@@ -167,5 +167,30 @@ describe "packages agent" do
       result.should be_successful
       result.should have_data_items({"status" => 0, "packages" => packages_reply})
     end
+
+    it "should report failure when action is uptodate and the package is not available in the requested version - package not installed" do
+      system "yum", "erase",   "-y", "testtool"
+
+      @agent.config.expects(:pluginconf).times(3).returns(@plugin)
+      packages_request = [{ "name" => "testtool", "version" => "1.4.0", "release" => "23.el6" }]
+      packages_reply   = [{ "name" => "testtool", "version" => nil,     "release" => nil,        "status" => 1, "tries" => 3 }]
+
+      result = @agent.call("uptodate", "packages" => packages_request)
+      result.should be_successful
+      result.should have_data_items({"status" => 1, "packages" => packages_reply})
+    end
+
+    it "should report failure when action is uptodate and the package is not available in the requested version - package is installed" do
+      system "yum", "erase",   "-y", "test-ws-1.0"
+      system "yum", "install", "-y", "test-ws-1.0-0.1.0SNAPSHOT-2222.el6"
+
+      @agent.config.expects(:pluginconf).times(3).returns(@plugin)
+      packages_request = [{ "name" => "test-ws-1.0", "version" => "0.1.0SNAPSHOT", "release" => "4444.el6" }]
+      packages_reply   = [{ "name" => "test-ws-1.0", "version" => "0.1.0SNAPSHOT", "release" => "2222.el6", "status" => 1, "tries" => 3 }]
+
+      result = @agent.call("uptodate", "packages" => packages_request)
+      result.should be_successful
+      result.should have_data_items({"status" => 1, "packages" => packages_reply})
+    end
   end
 end
