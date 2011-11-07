@@ -23,6 +23,10 @@ These were my requirements, which are now the features of the packages agent
 I run CentOS 5 and Scientific Linux 6.1, so thats what it is tested
 with. I include ~20 rspec tests for both agent and application.
 
+# Example usage
+
+TODO: Add command line here.
+
 # Test environmment
 
 The tests currently use yum directly, so they will only work on RedHat bases distros.
@@ -32,6 +36,11 @@ Also, a number of packages must be available in specific versions. I
 created "dummy" or "fake" rpms and setup a test yum repository.
 
 TODO: Include rpm-generation scripts
+
+# Known issues
+
+Due to the way the puppet package provider works, both version and
+revision have to be given. Version only is not supported.
 
 # Copyright
 
