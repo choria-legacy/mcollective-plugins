@@ -18,21 +18,21 @@ module MCollective
       # request = {
       #   data = {
       #     :action => "uptodate"
-      #     :packages => {
-      #        "foo" => { :version => "1.0", :release => "1.el6" },
-      #        "bar" => { :version => nil,   :release => nil     },
-      #        "fox" => { :version => "1.0", :release => "1.el6" }
+      #     "packages" => {
+      #        "foo" => { "version" => "1.0", "release" => "1.el6" },
+      #        "bar" => { "version" => nil,   "release" => nil     },
+      #        "fox" => { "version" => "1.0", "release" => "1.el6" }
       #     }
       #   }
       # }
       #
       # reply = {
       #   data = {
-      #     :status => 1
-      #     :packages => {
-      #        "foo" => { :version => "1.1", :release => "1.el6", :status => 1, :tries => 3 },
-      #        "bar" => { :version => "2.0", :release => "4001",  :status => 0, :tries => 1 },
-      #        "fox" => { :version => nil,   :release => nil,     :status => 1, :tries => 3 },
+      #     "status" => 1
+      #     "packages" => {
+      #        "foo" => { "version" => "1.1", "release" => "1.el6", "status" => 1, "tries" => 3 },
+      #        "bar" => { "version" => "2.0", "release" => "4001",  "status" => 0, "tries" => 1 },
+      #        "fox" => { "version" => nil,   "release" => nil,     "status" => 1, "tries" => 3 },
       #     }
       #   }
       # }
