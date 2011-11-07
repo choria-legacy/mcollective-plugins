@@ -11,7 +11,6 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
 
     examples would be:
         - "yum"
-        - "yum/3.2.29"
         - "yum/3.2.29/1.el6"
 
     END_OF_USAGE
@@ -31,10 +30,10 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
       raise "Action has to be uptodate"
     end
 
-    configuration[:packages] = ARGV.map do |elem|
+    configuration["packages"] = ARGV.map do |elem|
       items = elem.split("/")
       raise "Package must be given as <name>/[<version>[/<release>]]" unless (1..3) === items.length
-      Hash[[:name, :version, :release].zip(items)]
+      Hash[["name", "version", "release"].zip(items)]
     end
   end
 
@@ -47,44 +46,40 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
     end
   end
 
-  def summarize(stats, versions)
-    puts("\n---- package agent summary ----")
-    puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
-    print("        Versions: ")
-
-    puts versions.keys.sort.map {|s| "#{versions[s]} * #{s}" }.join(", ")
-
-    printf("    Elapsed Time: %.2f s\n\n", stats[:blocktime])
+  def valid_resp_data?(data)
+    unless data.is_a? Hash and data.include?("packages") and data["packages"].is_a? Array
+      return false
+    end
+    data["packages"].each do |p|
+      return false unless p.keys.sort == ["name", "version", "release", "status", "tries"].sort
+    end
+    return true
   end
 
   def main
-    pkg = rpcclient("package", :options => options)
+    pkg = rpcclient("packages", :options => options)
+    rc = 0
 
-    versions = {}
-
-    pkg.send(configuration[:action], {:package => configuration[:package]}).each do |resp|
-      status = resp[:data][:properties]
-
-      if resp[:statuscode] == 0
-        if status.include?(:version)
-          version = "#{status[:version]}-#{status[:release]}"
-        elsif status.include?(:ensure)
-          version = status[:ensure].to_s
-        end
-
-        versions.include?(version) ? versions[version] += 1 : versions[version] = 1
-
-        if status[:name]
-          printf("%-40s version = %s-%s\n", resp[:sender], status[:name], version)
-        else
-          printf("%-40s version = %s\n", resp[:sender], version)
-        end
+    resps = pkg.send(configuration[:action], {"packages" => configuration["packages"]})
+    resps.each do |resp|
+      if resp[:statuscode] != 0
+        printf("%-40s = STATUSCODE %s\n", resp[:sender], resp[:statuscode])
+        rc = 2
       else
-        printf("%-40s error = %s\n", resp[:sender], resp[:statusmsg])
+        unless valid_resp_data? resp[:data]
+          printf("%-40s = INVALID %s\n", resp[:sender], resp[:data].inspect)
+          rc = 2
+        else
+          if resp[:data]["status"] != 0
+            printf("%-40s = ERR %s ::: %s :::\n", resp[:sender], resp[:data]["status"], resp[:data]["packages"].sort.inspect)
+            rc = 1
+          else
+            printf("%-40s = OK ::: %s :::\n", resp[:sender], resp[:data]["packages"].sort.inspect)
+          end
+        end
       end
     end
-
-    summarize(pkg.stats, versions)
+    return rc
   end
 end
 # vi:tabstop=2:expandtab:ai
