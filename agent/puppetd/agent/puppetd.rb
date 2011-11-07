@@ -119,7 +119,7 @@ module MCollective
               # theoretically signal arbitrary processes with this...
               begin
                 ::Process.kill("USR1", Integer(pid))
-                reply[:output] = "Sent SIGUSR1 to the puppet agent daemon (process #{Integer(pid)})"
+                reply[:output] = "Signalled daemonized puppet agent to run (process #{Integer(pid)})"
               rescue Exception => e
                 reply.fail "Failed to signal the puppet agent daemon (process #{pid}): #{e}"
               end
