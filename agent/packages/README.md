@@ -1,3 +1,5 @@
+# Introduction
+
 Packages agent for MCollective - a agent to install/upgrade/downgrade
 multiple packages at a time.
 
@@ -20,3 +22,17 @@ These were my requirements, which are now the features of the packages agent
 
 I run CentOS 5 and Scientific Linux 6.1, so thats what it is tested
 with. I include ~20 rspec tests for both agent and application.
+
+# Test environmment
+
+The tests currently use yum directly, so they will only work on RedHat bases distros.
+It is also assumed, that the test run as root.
+
+Also, a number of packages must be available in specific versions. I
+created "dummy" or "fake" rpms and setup a test yum repository.
+
+TODO: Include rpm-generation scripts
+
+# Copyright
+
+Licensed under BSD License. <jens@numberfour.eu>
