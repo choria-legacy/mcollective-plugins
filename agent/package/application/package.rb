@@ -1,5 +1,5 @@
 class MCollective::Application::Package<MCollective::Application
-  description "Generic Package Manager"
+  description "Install and uninstall software packages"
     usage <<-END_OF_USAGE
 mco package [OPTIONS] <ACTION> <PACKAGE>"
 

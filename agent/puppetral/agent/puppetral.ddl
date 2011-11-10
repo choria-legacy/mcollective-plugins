@@ -1,5 +1,5 @@
-metadata    :name        => "Agent for Puppet RAL interaction",
-            :description => "Agent to inspect and act on the RAL",
+metadata    :name        => "puppetral",
+            :description => "View and edit resources with Puppet's resource abstraction layer",
             :author      => "R.I.Pienaar, Max Martin",
             :license     => "ASL2",
             :version     => "0.2",

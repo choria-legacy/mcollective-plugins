@@ -10,8 +10,8 @@ module MCollective
     #
     # As this agent is based on Simple RPC, it requires mcollective 0.4.7 or newer.
     class Package<RPC::Agent
-      metadata    :name        => "SimpleRPC Agent For Package Management",
-                  :description => "Agent To Manage Packages",
+      metadata    :name        => "package",
+                  :description => "Install and uninstall software packages",
                   :author      => "R.I.Pienaar",
                   :license     => "ASL2",
                   :version     => "2.0",

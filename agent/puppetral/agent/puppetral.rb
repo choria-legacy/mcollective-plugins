@@ -18,7 +18,7 @@ module MCollective
     # as long as you supply all of the attributes that the type requires.
     class Puppetral<RPC::Agent
       metadata  :name        => "puppetral",
-                :description => "Agent to inspect and act on the RAL",
+                :description => "View and edit resources with Puppet's resource abstraction layer",
                 :author      => "R.I.Pienaar <rip@devco.net>, Max Martin <max@puppetlabs.com>",
                 :license     => "ASL2",
                 :version     => "0.2",
