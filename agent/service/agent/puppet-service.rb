@@ -10,7 +10,7 @@ module MCollective
     #
     # As this agent is based on Simple RPC, it requires mcollective 0.4.7 or newer.
     class Service<RPC::Agent
-      metadata    :name        => "service",
+      metadata    :name        => "Service Agent",
                   :description => "Start and stop system services",
                   :author      => "R.I.Pienaar",
                   :license     => "ASL2",

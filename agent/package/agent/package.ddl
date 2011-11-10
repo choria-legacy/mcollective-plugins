@@ -1,4 +1,4 @@
-metadata    :name        => "package",
+metadata    :name        => "Package Agent",
             :description => "Install and uninstall software packages",
             :author      => "R.I.Pienaar",
             :license     => "ASL2",
