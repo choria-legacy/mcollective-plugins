@@ -1,5 +1,5 @@
 class MCollective::Application::Puppetd<MCollective::Application
-  description "Remote Puppet daemon manager"
+  description "Run puppet agent, get its status, and enable/disable it"
     usage <<-END_OF_USAGE
 mco puppetd [OPTIONS] [FILTERS] <ACTION> [CONCURRENCY]
 

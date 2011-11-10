@@ -17,8 +17,8 @@ module MCollective
     #    puppetd.pidfile   - Where to find puppet agent's pid file; defaults to
     #                        /var/run/puppet/agent.pid
     class Puppetd<RPC::Agent
-      metadata    :name        => "SimpleRPC Puppet Agent",
-                  :description => "Agent to manage the puppet agent daemon",
+      metadata    :name        => "puppetd",
+                  :description => "Run puppet agent, get its status, and enable/disable it",
                   :author      => "R.I.Pienaar",
                   :license     => "Apache License 2.0",
                   :version     => "1.4",
