@@ -1,5 +1,5 @@
-metadata    :name        => "SimpleRPC Service Agent",
-            :description => "Agent to manage services",
+metadata    :name        => "service",
+            :description => "Start and stop system services",
             :author      => "R.I.Pienaar",
             :license     => "ASL2",
             :version     => "1.2",

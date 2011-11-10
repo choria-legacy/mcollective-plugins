@@ -1,6 +1,6 @@
 module MCollective
   class Application::Service < Application
-    description "Manage remote services"
+    description "Start and stop system services"
 
     usage <<-END_OF_USAGE
 mco service [OPTIONS] [FILTERS] <SERVICE> <ACTION>
