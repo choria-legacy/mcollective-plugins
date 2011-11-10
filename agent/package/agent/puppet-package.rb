@@ -10,7 +10,7 @@ module MCollective
     #
     # As this agent is based on Simple RPC, it requires mcollective 0.4.7 or newer.
     class Package<RPC::Agent
-      metadata    :name        => "package",
+      metadata    :name        => "Package Agent",
                   :description => "Install and uninstall software packages",
                   :author      => "R.I.Pienaar",
                   :license     => "ASL2",

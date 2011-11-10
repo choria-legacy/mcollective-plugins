@@ -1,4 +1,4 @@
-metadata    :name        => "service",
+metadata    :name        => "Service Agent",
             :description => "Start and stop system services",
             :author      => "R.I.Pienaar",
             :license     => "ASL2",

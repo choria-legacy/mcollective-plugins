@@ -1,4 +1,4 @@
-metadata    :name        => "puppetral",
+metadata    :name        => "Resource Abstraction Layer Agent",
             :description => "View and edit resources with Puppet's resource abstraction layer",
             :author      => "R.I.Pienaar, Max Martin",
             :license     => "ASL2",
