@@ -1,4 +1,4 @@
-metadata    :name        => "puppetd",
+metadata    :name        => "Puppet Controller Agent",
             :description => "Run puppet agent, get its status, and enable/disable it",
             :author      => "R.I.Pienaar",
             :license     => "Apache License 2.0",
