@@ -59,7 +59,7 @@ action "find", :description => "Get the attributes and status of a resource" do
           :description => "Name of resource to check",
           :type        => :string,
           :validation  => '.',
-          :optional    => true,
+          :optional    => false,
           :maxlength   => 90
 
     output :type,
