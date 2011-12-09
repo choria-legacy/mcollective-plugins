@@ -25,7 +25,8 @@ with. I include ~20 rspec tests for both agent and application.
 
 # Example usage
 
-TODO: Add command line here.
+Invokation is: mco packages uptodate <pkg-name>[/<pkg-version>[/<pkg-release>]]
+Examples:      mco packages -F roles=/webservice/ uptodate inbox-service/0.12.0/1 queue-processor/0.5.0/1
 
 # Test environmment
 
@@ -35,7 +36,18 @@ It is also assumed, that the test run as root.
 Also, a number of packages must be available in specific versions. I
 created "dummy" or "fake" rpms and setup a test yum repository.
 
-TODO: Include rpm-generation scripts
+Find a little script to generate dummy rpm packages in the util/ directory.
+
+These packages are expected by the tests. Create them with the
+rpm-generator script and make them available to yum (eg. put them on a
+private yum repo)
+
+    test-ws-1.0-0.1.0SNAPSHOT-1111.el6.x86_64.rpm
+    test-ws-1.0-0.1.0SNAPSHOT-2222.el6.x86_64.rpm
+    test-ws-1.0-0.1.0SNAPSHOT-3333.el6.x86_64.rpm
+    testtool-1.3.0-23.el6.x86_64.rpm
+    testupdate-2.0-1.el6.x86_64.rpm
+    testupdate-2.1-1.el6.x86_64.rpm
 
 # Known issues
 
