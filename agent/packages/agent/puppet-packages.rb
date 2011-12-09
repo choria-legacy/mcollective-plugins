@@ -41,6 +41,7 @@ module MCollective
       ["uptodate"].each do |act|
         action act do
           begin
+            log "Received request: #{request.inspect}"
             do_pkg_validate(request[:packages])
             do_pkg_action(act.to_sym, request[:packages])
           rescue => e
@@ -52,8 +53,13 @@ module MCollective
 
       private
       def log(msg)
-        open("/tmp/log", 'a') { |fd| fd.write ">> #{Time.now} - #{msg}\n" }
+        unless ENV['PACKAGES_AGENT_DEBUG'].nil?
+          # TODO: ease development by not mocking logger.
+          open("/tmp/log", 'a') { |fd| fd.write ">> #{Time.now} - #{msg}\n" }
+        end
+        logger.info(msg)
       end
+
       def e_str(e)
         "#{e.message} // #{e.class} \n\t#{e.backtrace.join("\n\t")}"
       end

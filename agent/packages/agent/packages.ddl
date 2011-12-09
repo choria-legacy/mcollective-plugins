@@ -4,7 +4,7 @@ metadata    :name        => "SimpleRPC Agent For Multi-Package Management",
             :license     => "ASL2",
             :version     => "1.3",
             :url         => "https://github.com/numberfour/mcollective-plugins",
-            :timeout     => 600
+            :timeout     => 660
 
 ["uptodate"].each do |act|
     action act, :description => "#{act.capitalize} a package" do
