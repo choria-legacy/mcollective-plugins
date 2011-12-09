@@ -28,6 +28,10 @@ with. I include ~20 rspec tests for both agent and application.
 Invokation is: mco packages uptodate <pkg-name>[/<pkg-version>[/<pkg-release>]]
 Examples:      mco packages -F roles=/webservice/ uptodate inbox-service/0.12.0/1 queue-processor/0.5.0/1
 
+# Data model
+
+Have a look at agent/puppet-packages.rb.
+
 # Test environmment
 
 The tests currently use yum directly, so they will only work on RedHat bases distros.
