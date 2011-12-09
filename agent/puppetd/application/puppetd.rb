@@ -1,5 +1,5 @@
 class MCollective::Application::Puppetd<MCollective::Application
-  description "Remote Puppet daemon manager"
+  description "Run puppet agent, get its status, and enable/disable it"
     usage <<-END_OF_USAGE
 mco puppetd [OPTIONS] [FILTERS] <ACTION> [CONCURRENCY]
 
@@ -104,7 +104,11 @@ The ACTION can be one of the following:
 
     when "status"
       mc.send(configuration[:command]).each do |node|
-        node[:statuscode] == 0 ? msg = node[:data][:output] : msg = node[:statusmsg]
+        if node[:statuscode] == 0
+          msg = node[:data][:status].to_s + ": " + node[:data][:output]
+        else
+          msg = node[:statusmsg]
+        end
 
         puts "%-40s %s" % [ node[:sender], msg ]
       end

@@ -54,6 +54,10 @@ end
 action "status", :description => "Returns puppet agent's status" do
     display :always
 
+    output :status,
+           :description => "The status of the puppet agent: disabled, running, idling or stopped",
+           :display_as => "Status"
+
     output :enabled,
            :description => "Whether puppet agent is enabled",
            :display_as => "Enabled"

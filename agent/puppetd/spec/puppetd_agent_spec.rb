@@ -38,7 +38,7 @@ describe "puppetd agent" do
       File.expects(:exists?).returns(false)
       result = @agent.call(:enable)
       result.should be_aborted_error
-      result[:statusmsg].should == "Already unlocked"
+      result[:statusmsg].should == "Already enabled"
     end
 
     it "should attempt to remove zero byte lockfiles" do
@@ -112,25 +112,26 @@ describe "puppetd agent" do
   end
 
   describe "#runonce" do
+    before do
+      @agent.instance_variable_set("@statefile", "spec_test_state_file")
+    end
+
     it "with puppet agent disabled" do
-      File.expects(:exists?).with("spec_test_lock_file").returns(true)
-      File.expects(:exists?).with("spec_test_pid_file").returns(false)
+      @agent.expects(:puppet_daemon_status).returns(:disabled)
       result = @agent.call(:runonce)
       result.should be_aborted_error
-      result[:statusmsg].should == "Lock file exists, but no PID file; puppet agent looks disabled."
+      result[:statusmsg].should == "Empty Lock file exists; puppet agent is disabled."
     end
 
     it "with puppet agent actively running" do
-      File.expects(:exists?).with("spec_test_lock_file").returns(true)
-      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+      @agent.expects(:puppet_daemon_status).returns(:running)
       result = @agent.call(:runonce)
-      result[:statusmsg].should == "Lock file and PID file exist; puppet agent appears to be running."
+      result[:statusmsg].should == "Lock file and PID file exist; puppet agent is running."
       result.should be_aborted_error
     end
 
     it "with puppet agent stopped" do
-      File.expects(:exists?).with("spec_test_lock_file").returns(false)
-      File.expects(:exists?).with("spec_test_pid_file").returns(false)
+      @agent.expects(:puppet_daemon_status).returns(:stopped)
       @agent.instance_variable_set("@puppetd", "spec_test_puppetd")
       @agent.expects(:run).with("spec_test_puppetd --onetime", :stdout => :output, :chomp => true)
       result = @agent.call(:runonce)
@@ -139,20 +140,18 @@ describe "puppetd agent" do
     end
 
     it "with puppet agent idling as a daemon" do
-      File.expects(:exists?).with("spec_test_lock_file").returns(false)
-      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+      @agent.expects(:puppet_daemon_status).returns(:idling)
       File.expects(:read).with("spec_test_pid_file").returns("99999999\n")
       ::Process.expects(:kill).with(0, 99999999).returns(1)
       ::Process.expects(:kill).with("USR1", 99999999).once
       result = @agent.call(:runonce)
       result[:statusmsg].should == "OK"
-      result[:data][:output].should == "Sent SIGUSR1 to the puppet agent daemon (process 99999999)"
+      result[:data][:output].should =~ /Signalled daemonized puppet agent to run \(process 99999999\), last completed run/
       result.should be_successful
     end
 
-    it "with puppet agent stopped but PID file present" do
-      File.expects(:exists?).with("spec_test_lock_file").returns(false)
-      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+    it "with puppet agent stale pid file" do
+      @agent.expects(:puppet_daemon_status).returns(:idling)
       File.expects(:read).with("spec_test_pid_file").returns("99999999\n")
       ::Process.expects(:kill).with(0, 99999999).raises(Errno::ESRCH)
       ::Process.expects(:kill).with("USR1", 99999999).never
@@ -164,8 +163,7 @@ describe "puppetd agent" do
     end
 
     it "with PID file containing rubbish" do
-      File.expects(:exists?).with("spec_test_lock_file").returns(false)
-      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+      @agent.expects(:puppet_daemon_status).returns(:idling)
       File.expects(:read).with("spec_test_pid_file").returns("fred\nwilma\nbarney\n")
       result = @agent.call(:runonce)
       result[:statusmsg].should == "PID file does not contain a PID; got \"fred\\nwilma\\nbarney\\n\""
@@ -199,48 +197,80 @@ describe "puppetd agent" do
       stat = mock
       stat.stubs(:zero?).returns(true)
       @agent.instance_variable_set("@statefile", "spec_test_state_file")
+      @agent.instance_variable_set("@pidfile", "spec_test_pid_file")
 
       File.expects(:exists?).with("spec_test_lock_file").returns(true)
       File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
       File.expects(:exists?).with("spec_test_state_file").returns(false)
+      File.expects(:exists?).with("spec_test_pid_file").returns(false)
 
       result = @agent.call(:status)
       result.should be_successful
-      result.should have_data_items({:running => 0,
-                                      :enabled => 0,
-                                      :lastrun => 0,
-                                      :output => /Disabled, not running, last run/})
-
+      result.should have_data_items({
+        :status  => :disabled,
+        :running => 0,
+        :enabled => 0,
+        :lastrun => 0,
+        :output  => /last completed run \d+ seconds ago/
+      })
     end
 
-    it "is enabled and running when the lockfile exists and its size is not 0" do
+    it "is enabled and running when the pidfile exists and the lockfile exists and its size is not 0" do
       stat = mock
       stat.stubs(:zero?).returns(false)
       @agent.instance_variable_set("@statefile", "spec_test_state_file")
+      @agent.instance_variable_set("@pidfile", "spec_test_pid_file")
 
       File.expects(:exists?).with("spec_test_lock_file").returns(true)
       File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
       File.expects(:exists?).with("spec_test_state_file").returns(false)
+      File.expects(:exists?).with("spec_test_pid_file").returns(true)
 
       result = @agent.call(:status)
       result.should be_successful
-      result.should have_data_items({:running => 1,
-                                      :enabled => 1,
-                                      :lastrun => 0,
-                                      :output => /Enabled, running, last run/})
+      result.should have_data_items({
+        :status  => :running,
+        :running => 1,
+        :enabled => 1,
+        :lastrun => 0,
+        :output  => /last completed run \d+ seconds ago/
+      })
     end
 
-    it "is enabled and not running if the lockfile does not exist" do
+    it "is enabled and idling if the pidfile exists but the lockfile does not exist" do
       File.expects(:exists?).with("spec_test_lock_file").returns(false)
       File.expects(:exists?).with("spec_test_state_file").returns(false)
+      File.expects(:exists?).with("spec_test_pid_file").returns(true)
+
       @agent.instance_variable_set("@statefile", "spec_test_state_file")
 
       result = @agent.call(:status)
       result.should be_successful
-      result.should have_data_items({:running => 0,
-                                      :enabled => 1,
-                                      :lastrun => 0,
-                                      :output => /Enabled, not running, last run/})
+      result.should have_data_items({
+        :status  => :idling,
+        :running => 0,
+        :enabled => 1,
+        :lastrun => 0,
+        :output  => /last completed run \d+ seconds ago/
+      })
+    end
+
+    it "is enabled and stopped if the pidfile does not exist and the lockfile does not exist" do
+      File.expects(:exists?).with("spec_test_lock_file").returns(false)
+      File.expects(:exists?).with("spec_test_state_file").returns(false)
+      File.expects(:exists?).with("spec_test_pid_file").returns(false)
+
+      @agent.instance_variable_set("@statefile", "spec_test_state_file")
+
+      result = @agent.call(:status)
+      result.should be_successful
+      result.should have_data_items({
+        :status  => :stopped,
+        :running => 0,
+        :enabled => 1,
+        :lastrun => 0,
+        :output  => /last completed run \d+ seconds ago/
+      })
     end
   end
 end

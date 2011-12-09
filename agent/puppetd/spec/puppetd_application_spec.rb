@@ -120,8 +120,19 @@ module Mcollective
 
         @app.stubs(:configuration).returns({:command => "status"})
         @app.expects(:rpcclient).with("puppetd", :options => nil).returns(rpcclient_mock)
-        rpcclient_mock.expects(:send).returns([{:sender => "node1", :statuscode => 0, :data => {:output => "success"}},{:sender => "node2", :statuscode => 1, :statusmsg => "failure"}])
-        @app.expects(:puts).with("node1                                    success")
+        rpcclient_mock.expects(:send).returns([
+          {
+            :sender     => "node1",
+            :statuscode => 0,
+            :data       => {:output => "success", :status => :idling}
+          },
+          {
+            :sender     => "node2",
+            :statuscode => 1,
+            :statusmsg  => "failure"
+          }
+        ])
+        @app.expects(:puts).with("node1                                    idling: success")
         @app.expects(:puts).with("node2                                    failure")
         @util.config.stubs(:color)
         rpcclient_mock.expects(:disconnect)
