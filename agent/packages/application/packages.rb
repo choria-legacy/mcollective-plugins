@@ -60,28 +60,28 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
     require 'json'
 
     pkg = rpcclient("packages", :options => options)
-    rc = 0
+    rc = [ 0 ]
 
     resps = pkg.send(configuration[:action], {:packages => configuration[:packages]})
     resps.each do |resp|
       if resp[:statuscode] != 0
         printf("%-40s = STATUSCODE %s\n", resp[:sender], resp[:statuscode])
-        rc = 2
+        rc << 2
       else
         unless valid_resp_data? resp[:data]
           printf("%-40s = INVALID %s\n", resp[:sender], resp[:data].to_json)
-          rc = 2
+          rc << 2
         else
           if resp[:data]["status"] != 0
             printf("%-40s = ERR %s ::: %s :::\n", resp[:sender], resp[:data]["status"], resp[:data][:packages].to_json)
-            rc = 1
+            rc << 1
           else
             printf("%-40s = OK ::: %s :::\n", resp[:sender], resp[:data][:packages].to_json)
           end
         end
       end
     end
-    return rc
+    return rc.max
   end
 end
 # vi:tabstop=2:expandtab:ai
