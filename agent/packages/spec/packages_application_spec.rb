@@ -89,7 +89,7 @@ module MCollective
       end
     end
 
-    describe "#main" do
+    describe "#_main" do
       before do
         @rpcclient_mock = mock
       end
@@ -106,7 +106,7 @@ module MCollective
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp])
 
         @app.expects(:printf).with("%-40s = OK ::: %s :::\n", "node1", resp_data[:packages].to_json)
-        @app.main.should == 0
+        @app._main.should == 0
       end
 
       it "should have exitcode 1 and print ERR, when all response(s) are fail" do
@@ -121,7 +121,7 @@ module MCollective
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp])
 
         @app.expects(:printf).with("%-40s = ERR %s ::: %s :::\n", "node1", resp_data["status"], resp_data[:packages].to_json)
-        @app.main.should == 1
+        @app._main.should == 1
       end
 
       it "should have exitcode 1 and print ERR, when one response is fail" do
@@ -140,7 +140,7 @@ module MCollective
 
         @app.expects(:printf).with("%-40s = OK ::: %s :::\n",     "node1", resp1_data[:packages].to_json)
         @app.expects(:printf).with("%-40s = ERR %s ::: %s :::\n", "node2", resp2_data["status"], resp2_data[:packages].to_json)
-        @app.main.should == 1
+        @app._main.should == 1
       end
 
       it "should work have exitcode 2 and print STATUSCODE, when one statuscode is not ok" do
@@ -156,7 +156,7 @@ module MCollective
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp])
 
         @app.expects(:printf).with("%-40s = STATUSCODE %s\n",     "node1", resp[:statuscode])
-        @app.main.should == 2
+        @app._main.should == 2
       end
 
       it "should work have exitcode 2 and print INVALID, when one response is invalid (missing key)" do
@@ -172,7 +172,7 @@ module MCollective
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp])
 
         @app.expects(:printf).with("%-40s = INVALID %s\n", "node1", resp_data.to_json)
-        @app.main.should == 2
+        @app._main.should == 2
       end
 
       it "should work have exitcode 2 and print INVALID, when one response is invalid (packages missing)" do
@@ -187,7 +187,7 @@ module MCollective
         @rpcclient_mock.expects(:send).with("uptodate", send_args).returns([resp])
 
         @app.expects(:printf).with("%-40s = INVALID %s\n", "node1", nil.to_json)
-        @app.main.should == 2
+        @app._main.should == 2
       end
     end
   end
