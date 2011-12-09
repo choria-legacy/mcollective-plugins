@@ -87,7 +87,7 @@ PACKAGES can be in the form NAME[/VERSION[/REVISION]]
   def main
     rc = _main
 
-    # As of MCollective 1.2 setting the overall exit-code is not possible for a agent. So be brutal...
+    # As of MCollective 1.2.x setting the overall exit-code is not possible for a agent. So be brutal...
     if rc != 0
       MCollective::PluginManager["connector_plugin"].disconnect rescue true
       Kernel.exit! rc
