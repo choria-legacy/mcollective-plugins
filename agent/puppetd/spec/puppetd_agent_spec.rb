@@ -210,6 +210,8 @@ describe "puppetd agent" do
         :status  => :disabled,
         :running => 0,
         :enabled => 0,
+        :idling  => 0,
+        :stopped => 0,
         :lastrun => 0,
         :output  => /last completed run \d+ seconds ago/
       })
@@ -232,6 +234,8 @@ describe "puppetd agent" do
         :status  => :running,
         :running => 1,
         :enabled => 1,
+        :idling  => 0,
+        :stopped => 0,
         :lastrun => 0,
         :output  => /last completed run \d+ seconds ago/
       })
@@ -250,6 +254,8 @@ describe "puppetd agent" do
         :status  => :idling,
         :running => 0,
         :enabled => 1,
+        :idling  => 1,
+        :stopped => 0,
         :lastrun => 0,
         :output  => /last completed run \d+ seconds ago/
       })
@@ -268,6 +274,8 @@ describe "puppetd agent" do
         :status  => :stopped,
         :running => 0,
         :enabled => 1,
+        :idling  => 0,
+        :stopped => 1,
         :lastrun => 0,
         :output  => /last completed run \d+ seconds ago/
       })

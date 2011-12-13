@@ -171,10 +171,17 @@ module Mcollective
         @app.stubs(:configuration).returns({:command => "count"})
         @app.expects(:rpcclient).with("puppetd", :options => nil).returns(rpcclient_mock)
         rpcclient_mock.expects(:progress=).with(false)
-        rpcclient_mock.expects(:status).yields(:body => {:data => {:running => "1", :enabled => "1"}})
-        @app.expects(:puts).with("Nodes currently doing puppet runs: 1")
+        rpcclient_mock.expects(:status).yields(:body => {:data => {
+          :running => "1",
+          :enabled => "1",
+          :stopped => "0",
+          :idling  => "0"
+        }})
         @app.expects(:puts).with("          Nodes currently enabled: 1")
         @app.expects(:puts).with("         Nodes currently disabled: 0")
+        @app.expects(:puts).with("Nodes currently doing puppet runs: 1")
+        @app.expects(:puts).with("          Nodes currently stopped: 0")
+        @app.expects(:puts).with("           Nodes currently idling: 0")
         rpcclient_mock.expects(:disconnect)
 
         @app.main

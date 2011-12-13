@@ -67,8 +67,10 @@ module MCollective
 
       def set_status
         reply[:status]  = puppet_daemon_status
-        reply[:running] = reply[:status] == :running ? 1 : 0
+        reply[:running] = reply[:status] == :running  ? 1 : 0
         reply[:enabled] = reply[:status] == :disabled ? 0 : 1
+        reply[:idling]  = reply[:status] == :idling   ? 1 : 0
+        reply[:stopped] = reply[:status] == :stopped  ? 1 : 0
         reply[:lastrun] = 0
         reply[:lastrun] = File.stat(@statefile).mtime.to_i if File.exists?(@statefile)
         reply[:output]  = "last completed run #{Time.now.to_i - reply[:lastrun]} seconds ago"
