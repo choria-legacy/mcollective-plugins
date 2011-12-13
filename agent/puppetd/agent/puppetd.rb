@@ -73,7 +73,7 @@ module MCollective
         reply[:stopped] = reply[:status] == :stopped  ? 1 : 0
         reply[:lastrun] = 0
         reply[:lastrun] = File.stat(@statefile).mtime.to_i if File.exists?(@statefile)
-        reply[:output]  = "last completed run #{Time.now.to_i - reply[:lastrun]} seconds ago"
+        reply[:output]  = "Currently #{reply[:status]}; last completed run #{Time.now.to_i - reply[:lastrun]} seconds ago"
       end
 
       def puppet_daemon_status
@@ -109,7 +109,7 @@ module MCollective
               # theoretically signal arbitrary processes with this...
               begin
                 ::Process.kill("USR1", Integer(pid))
-                reply[:output] = "Signalled daemonized puppet agent to run (process #{Integer(pid)}), " + (reply[:output] || '')
+                reply[:output] = "Signalled daemonized puppet agent to run (process #{Integer(pid)}); " + (reply[:output] || '')
               rescue Exception => e
                 reply.fail "Failed to signal the puppet agent daemon (process #{pid}): #{e}"
               end

@@ -124,7 +124,7 @@ module Mcollective
           {
             :sender     => "node1",
             :statuscode => 0,
-            :data       => {:output => "success", :status => :idling}
+            :data       => {:output => "Currently idling; success"}
           },
           {
             :sender     => "node2",
@@ -132,7 +132,7 @@ module Mcollective
             :statusmsg  => "failure"
           }
         ])
-        @app.expects(:puts).with("node1                                    idling: success")
+        @app.expects(:puts).with("node1                                    Currently idling; success")
         @app.expects(:puts).with("node2                                    failure")
         @util.config.stubs(:color)
         rpcclient_mock.expects(:disconnect)

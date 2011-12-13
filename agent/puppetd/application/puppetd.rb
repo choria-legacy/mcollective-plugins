@@ -105,7 +105,7 @@ The ACTION can be one of the following:
     when "status"
       mc.send(configuration[:command]).each do |node|
         if node[:statuscode] == 0
-          msg = node[:data][:status].to_s + ": " + node[:data][:output]
+          msg = node[:data][:output]
         else
           msg = node[:statusmsg]
         end

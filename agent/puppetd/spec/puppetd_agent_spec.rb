@@ -146,7 +146,7 @@ describe "puppetd agent" do
       ::Process.expects(:kill).with("USR1", 99999999).once
       result = @agent.call(:runonce)
       result[:statusmsg].should == "OK"
-      result[:data][:output].should =~ /Signalled daemonized puppet agent to run \(process 99999999\), last completed run/
+      result[:data][:output].should =~ /Signalled daemonized puppet agent to run \(process 99999999\); Currently idling; last completed run/
       result.should be_successful
     end
 
@@ -213,7 +213,7 @@ describe "puppetd agent" do
         :idling  => 0,
         :stopped => 0,
         :lastrun => 0,
-        :output  => /last completed run \d+ seconds ago/
+        :output  => /Currently disabled; last completed run \d+ seconds ago/
       })
     end
 
@@ -237,7 +237,7 @@ describe "puppetd agent" do
         :idling  => 0,
         :stopped => 0,
         :lastrun => 0,
-        :output  => /last completed run \d+ seconds ago/
+        :output  => /Currently running; last completed run \d+ seconds ago/
       })
     end
 
@@ -257,7 +257,7 @@ describe "puppetd agent" do
         :idling  => 1,
         :stopped => 0,
         :lastrun => 0,
-        :output  => /last completed run \d+ seconds ago/
+        :output  => /Currently idling; last completed run \d+ seconds ago/
       })
     end
 
@@ -277,7 +277,7 @@ describe "puppetd agent" do
         :idling  => 0,
         :stopped => 1,
         :lastrun => 0,
-        :output  => /last completed run \d+ seconds ago/
+        :output  => /Currently stopped; last completed run \d+ seconds ago/
       })
     end
   end
