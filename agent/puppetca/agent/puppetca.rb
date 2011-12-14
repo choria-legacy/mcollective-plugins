@@ -74,6 +74,21 @@ module MCollective
         reply[:signed] = signed.map{|r| File.basename(r, ".pem")}.sort
       end
 
+      # display status of a cert
+      action "status" do
+        validate :certname, :shellsafe
+
+        certname = request[:certname]
+
+        if has_cert?(certname)
+          reply[:msg] = "signed"
+        elsif cert_waiting?(certname)
+          reply[:msg] = "awaiting signature"
+        else
+          reply[:msg] = "not found"
+        end
+      end
+
       private
       # checks if we have a signed cert matching certname
       def has_cert?(certname)

@@ -103,6 +103,34 @@ describe "puppetca agent" do
     end
   end
 
+  describe "status" do
+    it "should say so if the cert is signed" do
+      @agent.expects(:has_cert?).with("certname").returns(true)
+
+      result = @agent.call(:status, :certname => "certname")
+      result.should be_successful
+      result.should have_data_items(:msg=>"signed")
+    end
+
+    it "should say so if the cert is awaiting signature" do
+      @agent.expects(:has_cert?).with("certname").returns(false)
+      @agent.expects(:cert_waiting?).with("certname").returns(true)
+
+      result = @agent.call(:status, :certname => "certname")
+      result.should be_successful
+      result.should have_data_items(:msg=>"awaiting signature")
+    end
+
+    it "should say so if the cert is not found" do
+      @agent.expects(:has_cert?).with("certname").returns(false)
+      @agent.expects(:cert_waiting?).with("certname").returns(false)
+
+      result = @agent.call(:status, :certname => "certname")
+      result.should be_successful
+      result.should have_data_items(:msg=>"not found")
+    end
+  end
+
   describe "has_cert" do
     it "should return true if we have a signed cert matching certname" do
       @agent.stubs(:paths_for_cert).with("certname").returns({:signed => "signed", :request => "request"})
