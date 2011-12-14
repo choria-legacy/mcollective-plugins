@@ -59,3 +59,19 @@ action "list", :description => "Lists all requested and signed certificates" do
            :description => "Signed Certificates",
            :display_as  => "Signed"
 end
+
+action "status", :description => "Find a certificate's status" do
+    display :always
+
+    input :certname,
+          :prompt      => "Certificate Name",
+          :description => "Certificate Name to lookup",
+          :type        => :string,
+          :validation  => '^[a-zA-Z\-_\d\.]+$',
+          :optional    => false,
+          :maxlength   => 100
+
+    output :msg,
+           :description => "Human readable status message",
+           :display_as  => "Result"
+end
