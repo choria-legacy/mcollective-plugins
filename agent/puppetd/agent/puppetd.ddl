@@ -66,6 +66,14 @@ action "status", :description => "Returns puppet agent's status" do
            :description => "Whether puppet agent is running",
            :display_as => "Running"
 
+    output :idling,
+           :description => "Whether puppet agent is idling",
+           :display_as => "Idling"
+
+    output :stopped,
+           :description => "Whether puppet agent is stopped",
+           :display_as => "Stopped"
+
     output :lastrun,
            :description => "When puppet agent last ran",
            :display_as => "Last Run"
