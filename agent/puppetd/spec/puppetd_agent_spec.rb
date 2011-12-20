@@ -117,21 +117,21 @@ describe "puppetd agent" do
     end
 
     it "with puppet agent disabled" do
-      @agent.expects(:puppet_daemon_status).returns(:disabled)
+      @agent.expects(:puppet_daemon_status).returns('disabled')
       result = @agent.call(:runonce)
       result.should be_aborted_error
       result[:statusmsg].should == "Empty Lock file exists; puppet agent is disabled."
     end
 
     it "with puppet agent actively running" do
-      @agent.expects(:puppet_daemon_status).returns(:running)
+      @agent.expects(:puppet_daemon_status).returns('running')
       result = @agent.call(:runonce)
       result[:statusmsg].should == "Lock file and PID file exist; puppet agent is running."
       result.should be_aborted_error
     end
 
     it "with puppet agent stopped" do
-      @agent.expects(:puppet_daemon_status).returns(:stopped)
+      @agent.expects(:puppet_daemon_status).returns('stopped')
       @agent.instance_variable_set("@puppetd", "spec_test_puppetd")
       @agent.expects(:run).with("spec_test_puppetd --onetime", :stdout => :output, :chomp => true)
       result = @agent.call(:runonce)
@@ -140,7 +140,7 @@ describe "puppetd agent" do
     end
 
     it "with puppet agent idling as a daemon" do
-      @agent.expects(:puppet_daemon_status).returns(:idling)
+      @agent.expects(:puppet_daemon_status).returns('idling')
       File.expects(:read).with("spec_test_pid_file").returns("99999999\n")
       ::Process.expects(:kill).with(0, 99999999).returns(1)
       ::Process.expects(:kill).with("USR1", 99999999).once
@@ -151,7 +151,7 @@ describe "puppetd agent" do
     end
 
     it "with puppet agent stale pid file" do
-      @agent.expects(:puppet_daemon_status).returns(:idling)
+      @agent.expects(:puppet_daemon_status).returns('idling')
       File.expects(:read).with("spec_test_pid_file").returns("99999999\n")
       ::Process.expects(:kill).with(0, 99999999).raises(Errno::ESRCH)
       ::Process.expects(:kill).with("USR1", 99999999).never
@@ -163,7 +163,7 @@ describe "puppetd agent" do
     end
 
     it "with PID file containing rubbish" do
-      @agent.expects(:puppet_daemon_status).returns(:idling)
+      @agent.expects(:puppet_daemon_status).returns('idling')
       File.expects(:read).with("spec_test_pid_file").returns("fred\nwilma\nbarney\n")
       result = @agent.call(:runonce)
       result[:statusmsg].should == "PID file does not contain a PID; got \"fred\\nwilma\\nbarney\\n\""
@@ -207,7 +207,7 @@ describe "puppetd agent" do
       result = @agent.call(:status)
       result.should be_successful
       result.should have_data_items({
-        :status  => :disabled,
+        :status  => 'disabled',
         :running => 0,
         :enabled => 0,
         :idling  => 0,
@@ -231,7 +231,7 @@ describe "puppetd agent" do
       result = @agent.call(:status)
       result.should be_successful
       result.should have_data_items({
-        :status  => :running,
+        :status  => 'running',
         :running => 1,
         :enabled => 1,
         :idling  => 0,
@@ -251,7 +251,7 @@ describe "puppetd agent" do
       result = @agent.call(:status)
       result.should be_successful
       result.should have_data_items({
-        :status  => :idling,
+        :status  => 'idling',
         :running => 0,
         :enabled => 1,
         :idling  => 1,
@@ -271,7 +271,7 @@ describe "puppetd agent" do
       result = @agent.call(:status)
       result.should be_successful
       result.should have_data_items({
-        :status  => :stopped,
+        :status  => 'stopped',
         :running => 0,
         :enabled => 1,
         :idling  => 0,

@@ -67,10 +67,10 @@ module MCollective
 
       def set_status
         reply[:status]  = puppet_daemon_status
-        reply[:running] = reply[:status] == :running  ? 1 : 0
-        reply[:enabled] = reply[:status] == :disabled ? 0 : 1
-        reply[:idling]  = reply[:status] == :idling   ? 1 : 0
-        reply[:stopped] = reply[:status] == :stopped  ? 1 : 0
+        reply[:running] = reply[:status] == 'running'  ? 1 : 0
+        reply[:enabled] = reply[:status] == 'disabled' ? 0 : 1
+        reply[:idling]  = reply[:status] == 'idling'   ? 1 : 0
+        reply[:stopped] = reply[:status] == 'stopped'  ? 1 : 0
         reply[:lastrun] = 0
         reply[:lastrun] = File.stat(@statefile).mtime.to_i if File.exists?(@statefile)
         reply[:output]  = "Currently #{reply[:status]}; last completed run #{Time.now.to_i - reply[:lastrun]} seconds ago"
@@ -81,22 +81,22 @@ module MCollective
         disabled = locked && File::Stat.new(@lockfile).zero?
         has_pid = File.exists?(@pidfile)
 
-        return :disabled       if disabled
-        return :running        if   locked && has_pid
-        return :idling         if ! locked && has_pid
-        return :stopped        if ! has_pid
+        return 'disabled' if disabled
+        return 'running'  if   locked && has_pid
+        return 'idling'   if ! locked && has_pid
+        return 'stopped'  if ! has_pid
       end
 
       def runonce
         set_status
         case (reply[:status])
-        when :disabled then     # can't run
+        when 'disabled' then     # can't run
           reply.fail "Empty Lock file exists; puppet agent is disabled."
 
-        when :running then      # can't run two simultaniously
+        when 'running' then      # can't run two simultaniously
           reply.fail "Lock file and PID file exist; puppet agent is running."
 
-        when :idling then       # signal daemon
+        when 'idling' then       # signal daemon
           pid = File.read(@pidfile)
           if pid !~ /^\d+$/
             reply.fail "PID file does not contain a PID; got #{pid.inspect}"
@@ -119,7 +119,7 @@ module MCollective
             end
           end
 
-        when :stopped then      # just run
+        when 'stopped' then      # just run
           runonce_background
 
         else
