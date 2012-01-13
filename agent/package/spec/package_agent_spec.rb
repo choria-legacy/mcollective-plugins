@@ -18,20 +18,55 @@ describe "package agent" do
       result[:statusmsg].should == "Cannot find yum at /usr/bin/yum"
     end
 
-    it "should succeed if the agent responds to 'run' and the run method returns 0" do
+    it "should succeed if run method returns 0" do
       File.expects(:exist?).with("/usr/bin/yum").returns(true)
+      @agent.config.expects(:pluginconf).returns({"package.yum_clean_mode" => "all"})
       @agent.expects(:run).with("/usr/bin/yum clean all", :stdout => :output, :chomp => true).returns(0)
+
       result = @agent.call(:yum_clean)
-      result.should have_data_items(:exitcode => 0)
       result.should be_successful
+      result.should have_data_items(:exitcode => 0)
     end
 
-    it "should fail if the agent responds to 'run' and the run method doesn't return 0" do
+    it "should fail if the run method doesn't return 0" do
       File.expects(:exist?).with("/usr/bin/yum").returns(true)
       @agent.expects(:run).with("/usr/bin/yum clean all", :stdout => :output, :chomp => true).returns(1)
+      @agent.config.expects(:pluginconf).returns({"package.yum_clean_mode" => "all"})
       result = @agent.call(:yum_clean)
-      result.should have_data_items(:exitcode => 1)
       result.should be_aborted_error
+      result.should have_data_items(:exitcode => 1)
+    end
+
+    it "should default to 'all' mode" do
+      File.expects(:exist?).with("/usr/bin/yum").returns(true)
+      @agent.config.expects(:pluginconf).returns({})
+      @agent.expects(:run).with("/usr/bin/yum clean all", :stdout => :output, :chomp => true).returns(0)
+
+      result = @agent.call(:yum_clean)
+      result.should be_successful
+      result.should have_data_items(:exitcode => 0)
+    end
+
+    it "should support a configured mode" do
+      File.expects(:exist?).with("/usr/bin/yum").returns(true)
+      @agent.config.expects(:pluginconf).returns({"package.yum_clean_mode" => "headers"})
+      @agent.expects(:run).with("/usr/bin/yum clean headers", :stdout => :output, :chomp => true).returns(0)
+
+      result = @agent.call(:yum_clean)
+      result.should be_successful
+      result.should have_data_items(:exitcode => 0)
+    end
+
+    it "should support configured modes" do
+      ["all", "headers", "packages", "metadata", "dbcache", "plugins", "expire-cache"].each do |mode|
+        File.expects(:exist?).with("/usr/bin/yum").returns(true)
+        @agent.config.expects(:pluginconf).returns({"package.yum_clean_mode" => "all"})
+        @agent.expects(:run).with("/usr/bin/yum clean #{mode}", :stdout => :output, :chomp => true).returns(0)
+
+        result = @agent.call(:yum_clean, :mode => mode)
+        result.should be_successful
+        result.should have_data_items(:exitcode => 0)
+      end
     end
   end
 

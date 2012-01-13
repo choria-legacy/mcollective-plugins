@@ -2,7 +2,7 @@ metadata    :name        => "Package Agent",
             :description => "Install and uninstall software packages",
             :author      => "R.I.Pienaar",
             :license     => "ASL2",
-            :version     => "1.3",
+            :version     => "2.1",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
@@ -47,6 +47,13 @@ action "status", :description => "Get the status of a package" do
 end
 
 action "yum_clean", :description => "Clean the YUM cache" do
+    input :mode,
+          :prompt      => "Yum clean mode",
+          :description => "One of the various supported clean modes",
+          :type        => :list,
+          :optional    => true,
+          :list        => ["all", "headers", "packages", "metadata", "dbcache", "plugins", "expire-cache"]
+
     output :output,
            :description => "Output from YUM",
            :display_as  => "Output"

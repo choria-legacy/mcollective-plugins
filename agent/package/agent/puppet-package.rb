@@ -14,7 +14,7 @@ module MCollective
                   :description => "Install and uninstall software packages",
                   :author      => "R.I.Pienaar",
                   :license     => "ASL2",
-                  :version     => "2.0",
+                  :version     => "2.1",
                   :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                   :timeout     => 180
 
@@ -27,7 +27,18 @@ module MCollective
 
       action "yum_clean" do
         reply.fail! "Cannot find yum at /usr/bin/yum" unless File.exist?("/usr/bin/yum")
-        reply[:exitcode] = run("/usr/bin/yum clean all", :stdout => :output, :chomp => true)
+
+        if request[:mode]
+          clean_mode = request[:mode]
+        else
+          clean_mode = @config.pluginconf["package.yum_clean_mode"] || "all"
+        end
+
+        if ["all", "headers", "packages", "metadata", "dbcache", "plugins", "expire-cache"].include?(clean_mode)
+            reply[:exitcode] = run("/usr/bin/yum clean #{clean_mode}", :stdout => :output, :chomp => true)
+        else
+          reply.fail! "Unsupported yum clean mode: #{clean_mode}"
+        end
 
         reply.fail! "Yum clean failed, exit code was #{reply[:exitcode]}" unless reply[:exitcode] == 0
       end
