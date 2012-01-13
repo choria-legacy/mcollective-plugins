@@ -29,7 +29,14 @@ module MCollective
         reply.fail! "Cannot find yum at /usr/bin/yum" unless File.exist?("/usr/bin/yum")
         reply[:exitcode] = run("/usr/bin/yum clean all", :stdout => :output, :chomp => true)
 
-        reply.fail! "Yum clean failed, exit code was #{reply[:exitcode]}" unless reply[:exitcode] == 0
+        reply.fail! "Yum clean all failed, exit code was #{reply[:exitcode]}" unless reply[:exitcode] == 0
+      end
+
+      action "yum_clean_expirecache" do
+        reply.fail! "Cannot find yum at /usr/bin/yum" unless File.exist?("/usr/bin/yum")
+        reply[:exitcode] = run("/usr/bin/yum clean expire-cache", :stdout => :output, :chomp => true)
+
+        reply.fail! "Yum clean expire-cache failed, exit code was #{reply[:exitcode]}" unless reply[:exitcode] == 0
       end
 
       action "apt_update" do

@@ -46,14 +46,16 @@ action "status", :description => "Get the status of a package" do
            :display_as  => "Properties"
 end
 
-action "yum_clean", :description => "Clean the YUM cache" do
-    output :output,
-           :description => "Output from YUM",
-           :display_as  => "Output"
+["yum_clean", "yum_clean_expirecache"].each do |act|
+    action act, :description => "Clean the YUM cache (#{act[4..-1].sub('_', ' ')})" do
+        output :output,
+               :description => "Output from YUM",
+               :display_as  => "Output"
 
-    output :exitcode,
-           :description => "The exitcode from the yum command",
-           :display_as => "Exit Code"
+        output :exitcode,
+               :description => "The exitcode from the yum command",
+               :display_as => "Exit Code"
+    end
 end
 
 action "apt_update", :description => "Update the apt cache" do
