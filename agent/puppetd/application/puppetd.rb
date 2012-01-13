@@ -104,7 +104,11 @@ The ACTION can be one of the following:
 
     when "status"
       mc.send(configuration[:command]).each do |node|
-        node[:statuscode] == 0 ? msg = node[:data][:output] : msg = node[:statusmsg]
+        if node[:statuscode] == 0
+          msg = node[:data][:output]
+        else
+          msg = node[:statusmsg]
+        end
 
         puts "%-40s %s" % [ node[:sender], msg ]
       end
@@ -113,13 +117,15 @@ The ACTION can be one of the following:
       printrpc mc.last_run_summary
 
     when "count"
-      running = enabled = total = 0
+      running = enabled = total = stopped = idling = 0
 
       mc.progress = false
       mc.status do |resp|
         begin
           running += resp[:body][:data][:running].to_i
           enabled += resp[:body][:data][:enabled].to_i
+          idling  += resp[:body][:data][:idling].to_i
+          stopped += resp[:body][:data][:stopped].to_i
           total += 1
         rescue Exception => e
           log("Failed to get node status for #{e}; continuing")
@@ -129,9 +135,11 @@ The ACTION can be one of the following:
       disabled = total - enabled
 
       puts
-      puts "Nodes currently doing puppet runs: #{running}"
       puts "          Nodes currently enabled: #{enabled}"
       puts "         Nodes currently disabled: #{disabled}"
+      puts "Nodes currently doing puppet runs: #{running}"
+      puts "          Nodes currently stopped: #{stopped}"
+      puts "           Nodes currently idling: #{idling}"
       puts
 
     else

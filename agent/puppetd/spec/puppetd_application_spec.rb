@@ -120,8 +120,19 @@ module Mcollective
 
         @app.stubs(:configuration).returns({:command => "status"})
         @app.expects(:rpcclient).with("puppetd", :options => nil).returns(rpcclient_mock)
-        rpcclient_mock.expects(:send).returns([{:sender => "node1", :statuscode => 0, :data => {:output => "success"}},{:sender => "node2", :statuscode => 1, :statusmsg => "failure"}])
-        @app.expects(:puts).with("node1                                    success")
+        rpcclient_mock.expects(:send).returns([
+          {
+            :sender     => "node1",
+            :statuscode => 0,
+            :data       => {:output => "Currently idling; success"}
+          },
+          {
+            :sender     => "node2",
+            :statuscode => 1,
+            :statusmsg  => "failure"
+          }
+        ])
+        @app.expects(:puts).with("node1                                    Currently idling; success")
         @app.expects(:puts).with("node2                                    failure")
         @util.config.stubs(:color)
         rpcclient_mock.expects(:disconnect)
@@ -160,10 +171,17 @@ module Mcollective
         @app.stubs(:configuration).returns({:command => "count"})
         @app.expects(:rpcclient).with("puppetd", :options => nil).returns(rpcclient_mock)
         rpcclient_mock.expects(:progress=).with(false)
-        rpcclient_mock.expects(:status).yields(:body => {:data => {:running => "1", :enabled => "1"}})
-        @app.expects(:puts).with("Nodes currently doing puppet runs: 1")
+        rpcclient_mock.expects(:status).yields(:body => {:data => {
+          :running => "1",
+          :enabled => "1",
+          :stopped => "0",
+          :idling  => "0"
+        }})
         @app.expects(:puts).with("          Nodes currently enabled: 1")
         @app.expects(:puts).with("         Nodes currently disabled: 0")
+        @app.expects(:puts).with("Nodes currently doing puppet runs: 1")
+        @app.expects(:puts).with("          Nodes currently stopped: 0")
+        @app.expects(:puts).with("           Nodes currently idling: 0")
         rpcclient_mock.expects(:disconnect)
 
         @app.main
