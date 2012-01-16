@@ -22,7 +22,7 @@ module MCollective
         icmp = Net::Ping::ICMP.new(fqdn)
 
         if icmp.ping? then
-          reply[:rtt] = (icmp.duration*1000).to_s
+          reply[:rtt] = (icmp.duration * 1000).to_s
         else
           reply[:rtt] = "Host did not respond"
         end
@@ -40,11 +40,10 @@ module MCollective
 
             begin
               t = TCPSocket.new(fqdn, port)
+              t.close
+              reply[:connect] = "Connected"
             rescue
               reply[:connect] = "Connection Refused"
-            else
-              reply[:connect] = "Connected"
-              t.close
             end
           end
         rescue Timeout::Error
