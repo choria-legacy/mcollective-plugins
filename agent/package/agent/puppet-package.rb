@@ -14,7 +14,7 @@ module MCollective
                   :description => "Install and uninstall software packages",
                   :author      => "R.I.Pienaar",
                   :license     => "ASL2",
-                  :version     => "2.1",
+                  :version     => "2.2",
                   :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                   :timeout     => 180
 
@@ -112,13 +112,13 @@ module MCollective
 
           case action
           when :install
-            reply[:output] = pkg.install if pkg.properties[:ensure] == :absent
+            reply[:output] = pkg.install if [:absent, :purged].include?(pkg.properties[:ensure])
 
           when :update
-            reply[:output] = pkg.update unless pkg.properties[:ensure] == :absent
+            reply[:output] = pkg.update unless [:absent, :purged].include?(pkg.properties[:ensure])
 
           when :uninstall
-            reply[:output] = pkg.uninstall unless pkg.properties[:ensure] == :absent
+            reply[:output] = pkg.uninstall unless [:absent, :purged].include?(pkg.properties[:ensure])
 
           when :status
             pkg.flush
