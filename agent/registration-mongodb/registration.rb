@@ -13,7 +13,10 @@ module MCollective
     #  - plugin.registration.mongohost where the mongodb is default: localhost
     #  - plugin.registration.mongodb the db name default: puppet
     #  - plugin.registration.collection the collection name default: nodes
-    #
+    #  - plugin.registration.extra_yaml_dir the presense of this key indicates a directory
+    #    containing additional yaml files to push into an 'extra' key in the registration data. All files
+    #    in the directory are pushed into a hash with keys being the file name (with the
+    #    path and .yml extension stripped) and the value being the contents. default: false
     # Each document will have the following data:
     #  - fqdn - the fqdn of the sender
     #  - lastseen - last time we got data from it
@@ -43,6 +46,7 @@ module MCollective
         @mongohost = @config.pluginconf["registration.mongohost"] || "localhost"
         @mongodb = @config.pluginconf["registration.mongodb"] || "puppet"
         @collection = @config.pluginconf["registration.collection"] || "nodes"
+        @yaml_dir = @config.pluginconf["registration.extra_yaml_dir"] || false
 
         Log.instance.debug("Connecting to mongodb @ #{@mongohost} db #{@mongodb} collection #{@collection}")
 
@@ -55,8 +59,21 @@ module MCollective
       def handlemsg(msg, connection)
         req = msg[:body]
 
+        if (req.kind_of?(Array))
+          Log.instance.warn("Got no facts - did you forget to add 'registration = Meta' to your server.cfg?");
+          return nill
+        end
+
         req[:fqdn] = req[:facts]["fqdn"]
         req[:lastseen] = Time.now.to_i
+
+        # Optionally send a list of extra yaml files
+        if (@yaml_dir != false)
+          req[:extra] = {}
+          Dir[@yaml_dir + "/*.yaml"].each do | f |
+            req[:extra][File.basename(f).split('.')[0]] = YAML.load_file(f)
+          end
+        end
 
         # Sometimes facter doesnt send a fqdn?!
         if req[:fqdn].nil?
