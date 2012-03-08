@@ -3,14 +3,14 @@ class MCollective::Application::Filemgr<MCollective::Application
   usage "Usage: mc-filemgr [--file FILE] [touch|remove|status]"
 
   option :file,
-  :description    => "File to manage",
-  :arguments      => ["--file FILE", "-f FILE"],
-  :required       => true
+         :description    => "File to manage",
+         :arguments      => ["--file FILE", "-f FILE"],
+         :required       => true
 
   option :details,
-  :description    => "Show full file details",
-  :arguments      => ["--details", "-d"],
-  :type           => :bool
+         :description    => "Show full file details",
+         :arguments      => ["--details", "-d"],
+         :type           => :bool
 
   def post_option_parser(configuration)
     configuration[:command] = ARGV.shift if ARGV.size > 0
