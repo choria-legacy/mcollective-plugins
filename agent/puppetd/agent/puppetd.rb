@@ -151,7 +151,16 @@ module MCollective
             File.unlink(@lockfile)
             reply[:output] = "Lock removed"
           else
-            reply[:output] = "Currently running; can't remove lock"
+            #check that pid in lockfile is valid
+            pid = File.read(@lockfile)
+            begin
+              ::Process.kill(0, Integer(pid)) # check that pid is alive
+              reply.fail "Currently running; can't remove lock"
+            rescue Errno::ESRCH => e
+              # PID is invalid, remove lock file
+              File.unlink(@lockfile)
+              reply[:output] = "Lock removed"
+            end
           end
         else
           reply.fail "Already enabled"
@@ -162,7 +171,19 @@ module MCollective
         if File.exists?(@lockfile)
           stat = File::Stat.new(@lockfile)
 
-          stat.zero? ? reply.fail("Already disabled") : reply.fail("Currently running; can't remove lock")
+          if stat.zero?
+            reply.fail("Already disabled")
+          else
+            #check if puppetdlock contains running pid
+            pid = File.read(@lockfile)
+            begin
+              ::Process.kill(0, Integer(pid)) # check that pid is alive
+              reply.fail("Cannot disable Puppet while puppet is running.")
+            rescue Errno::ESRCH => e
+              # PID is invalid, lock file is stale
+              reply.fail("Puppet already disabled by state lock file")
+            end
+          end
         else
           begin
             File.open(@lockfile, "w") { |file| }
