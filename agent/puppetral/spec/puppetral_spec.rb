@@ -1,10 +1,28 @@
 #!/usr/bin/env rspec
 require 'spec_helper'
+require 'tmpdir'
 
 describe "puppetral agent" do
   before :all do
     agent_file = File.join([File.dirname(__FILE__), "../agent/puppetral.rb"])
     @agent = MCollective::Test::LocalAgentTest.new("puppetral", :agent_file => agent_file).plugin
+  end
+
+  # Not entirely thrilled with this; these tests end up causing puppet to actually
+  #  write some files in vardir, so we need to make sure that vardir is a real
+  #  directory that we can write to.  In an ideal world, I'd prefer that external
+  #  tools need not be quite so familiar with puppet's internal state and settings
+  #  implementations in order to run tests.  However, the current behavior of
+  #  puppet in "test" mode is to use "/dev/null" for all of the state / config
+  #  directories so that we will detect tests that attempt to write to them and
+  #  fail, since most spec tests should not be doing so.  --cprice 2012-04-24
+  before :each do
+    @vardir = Dir.mktmpdir
+    Puppet[:vardir] = @vardir
+  end
+
+  after :each do
+    FileUtils.rm_rf(@vardir) if File.directory?(@vardir)
   end
 
   describe "#find" do

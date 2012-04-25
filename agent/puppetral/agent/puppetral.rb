@@ -1,4 +1,5 @@
 require 'puppet'
+require 'puppet/face/resource'
 
 module MCollective
   module Agent
@@ -17,6 +18,11 @@ module MCollective
     # You can use puppetral to declare instances of any sensible Puppet type,
     # as long as you supply all of the attributes that the type requires.
     class Puppetral<RPC::Agent
+      def initialize
+        super
+        Puppet.initialize_settings
+      end
+
       metadata  :name        => "Resource Abstraction Layer Agent",
                 :description => "View and edit resources with Puppet's resource abstraction layer",
                 :author      => "R.I.Pienaar <rip@devco.net>, Max Martin <max@puppetlabs.com>",
