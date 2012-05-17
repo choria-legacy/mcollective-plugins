@@ -18,17 +18,18 @@ describe "puppetd agent" do
   describe "#last_run_summary" do
     it "should return the last run summary" do
       @agent.instance_variable_set("@last_summary", "spec_test_last_summary")
-      YAML.expects(:load_file).with("spec_test_last_summary").returns({"time" => nil, "events" => nil, "changes" => nil, "resources" => {"failed" => 0,"changed" => 0, "total" => 0, "restarted" => 0, "out_of_sync" => 0}})
+      YAML.expects(:load_file).with("spec_test_last_summary").returns({"time" => nil, "events" => nil, "changes" => nil, "resources" => {"failed" => 0,"changed" => 0, "total" => 0, "restarted" => 0, "out_of_sync" => 0}, "version" => {"puppet" => "2.7.14", "config" => "1337207610"}})
 
       result = @agent.call(:last_run_summary)
       result.should be_successful
       result.should have_data_items({:changes => nil,
                                       :events => nil,
-                                      :resources => {"failed"=>0,
-                                        "changed"=>0,
-                                        "total"=>0,
-                                        "restarted"=>0,
-                                        "out_of_sync"=>0},
+                                      :resources => {"failed" => 0,
+                                                     "changed" => 0,
+                                                     "total" => 0,
+                                                     "restarted" => 0,
+                                                     "out_of_sync" => 0},
+                                      :version => {"puppet" => "2.7.14", "config" => "1337207610"},
                                       :time => nil})
     end
   end

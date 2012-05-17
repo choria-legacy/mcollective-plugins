@@ -2,7 +2,7 @@ metadata    :name        => "Puppet Controller Agent",
             :description => "Run puppet agent, get its status, and enable/disable it",
             :author      => "R.I.Pienaar",
             :license     => "Apache License 2.0",
-            :version     => "1.5",
+            :version     => "1.6",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 20
 
@@ -23,6 +23,10 @@ action "last_run_summary", :description => "Get a summary of the last puppet run
     output :events,
            :description => "Number of events",
            :display_as => "Events"
+
+    output :version,
+           :description => "Puppet and Catalog versions",
+           :display_as => "Versions"
 end
 
 action "enable", :description => "Enable puppet agent" do
