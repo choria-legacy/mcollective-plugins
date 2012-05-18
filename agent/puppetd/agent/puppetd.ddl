@@ -2,7 +2,7 @@ metadata    :name        => "Puppet Controller Agent",
             :description => "Run puppet agent, get its status, and enable/disable it",
             :author      => "R.I.Pienaar",
             :license     => "Apache License 2.0",
-            :version     => "1.6",
+            :version     => "1.7",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 20
 

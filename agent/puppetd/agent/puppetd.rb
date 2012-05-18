@@ -10,7 +10,7 @@ module MCollective
     #    puppetd.lockfile  - Where to find the lock file; defaults to
     #                        /var/lib/puppet/state/puppetdlock
     #    puppetd.puppetd   - Where to find the puppet agent binary; defaults to
-    #                        /usr/sbin/puppetd
+    #                        /usr/bin/puppet agent
     #    puppetd.summary   - Where to find the summary file written by Puppet
     #                        2.6.8 and newer; defaults to
     #                        /var/lib/puppet/state/last_run_summary.yaml
@@ -21,7 +21,7 @@ module MCollective
                   :description => "Run puppet agent, get its status, and enable/disable it",
                   :author      => "R.I.Pienaar",
                   :license     => "Apache License 2.0",
-                  :version     => "1.6",
+                  :version     => "1.7",
                   :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/AgentPuppetd",
                   :timeout     => 30
 
@@ -30,7 +30,7 @@ module MCollective
         @lockfile = @config.pluginconf["puppetd.lockfile"] || "/var/lib/puppet/state/puppetdlock"
         @statefile = @config.pluginconf["puppetd.statefile"] || "/var/lib/puppet/state/state.yaml"
         @pidfile = @config.pluginconf["puppet.pidfile"] || "/var/run/puppet/agent.pid"
-        @puppetd = @config.pluginconf["puppetd.puppetd"] || "/usr/sbin/puppetd"
+        @puppetd = @config.pluginconf["puppetd.puppetd"] || "/usr/bin/puppet agent"
         @last_summary = @config.pluginconf["puppet.summary"] || "/var/lib/puppet/state/last_run_summary.yaml"
       end
 
