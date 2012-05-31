@@ -6,8 +6,7 @@ module MCollective
     # - all facts
     # - all agents
     # - all classes (if applicable)
-    #
-    # will add cf classes soon
+    # - the configured identity
     #
     # http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/RegistrationMetaData
     # Author: R.I.Pienaar <rip@devco.net>
@@ -15,8 +14,8 @@ module MCollective
     class Meta<Base
       def body
         result = {:agentlist => [],
-          :facts => {},
-          :classes => []}
+                  :facts => {},
+                  :classes => []}
 
         cfile = Config.instance.classesfile
 
@@ -24,6 +23,7 @@ module MCollective
           result[:classes] = File.readlines(cfile).map {|i| i.chomp}
         end
 
+        result[:identity] = Config.instance.identity
         result[:agentlist] = Agents.agentlist
         result[:facts] = PluginManager["facts_plugin"].get_facts
 
