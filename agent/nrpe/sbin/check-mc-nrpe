@@ -62,7 +62,7 @@ puts("#{command}: OK: %d WARNING: %d CRITICAL: %d UNKNOWN: %d|total=%d ok=%d war
   end
 end
 
-nrpe.disconnet
+nrpe.disconnect
 
 # if there's any critical checks, exit critical
 # else just take the highest.  UNKNOWN is 3 while
