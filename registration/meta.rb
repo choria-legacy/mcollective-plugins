@@ -7,6 +7,7 @@ module MCollective
     # - all agents
     # - all classes (if applicable)
     # - the configured identity
+    # - the list of collectives the nodes belong to
     #
     # http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/RegistrationMetaData
     # Author: R.I.Pienaar <rip@devco.net>
@@ -15,7 +16,8 @@ module MCollective
       def body
         result = {:agentlist => [],
                   :facts => {},
-                  :classes => []}
+                  :classes => [],
+                  :collectives => []}
 
         cfile = Config.instance.classesfile
 
@@ -26,6 +28,7 @@ module MCollective
         result[:identity] = Config.instance.identity
         result[:agentlist] = Agents.agentlist
         result[:facts] = PluginManager["facts_plugin"].get_facts
+        result[:collectives] = Config.instance.collectives.sort
 
         result
       end
