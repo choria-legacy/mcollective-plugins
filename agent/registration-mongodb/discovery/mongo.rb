@@ -19,16 +19,16 @@ module MCollective
           filter.keys.each do |key|
             case key
               when "fact"
-                fact_search(filter["fact"], coll, found)
+                fact_search(filter["fact"], coll, found, client.options[:collective])
 
               when "cf_class"
-                class_search(filter["cf_class"], coll, found)
+                class_search(filter["cf_class"], coll, found, client.options[:collective])
 
               when "agent"
-                agent_search(filter["agent"], coll, found)
+                agent_search(filter["agent"], coll, found, client.options[:collective])
 
               when "identity"
-                identity_search(filter["identity"], coll, found)
+                identity_search(filter["identity"], coll, found, client.options[:collective])
             end
           end
 
@@ -37,7 +37,7 @@ module MCollective
           found.inject(found[0]){|x, y| x & y}
         end
 
-        def fact_search(filter, collection, found)
+        def fact_search(filter, collection, found, collective)
           filter.each do |f|
             fact = f[:fact]
             value = f[:value]
@@ -45,17 +45,17 @@ module MCollective
 
             case f[:operator]
               when "==", "=~"
-                query = {"facts.#{fact}" => regexy_string(value)}
+                query = {"facts.#{fact}" => regexy_string(value), 'collectives' => collective}
               when "<="
-                query = {"facts.#{fact}" => {"$lte" => regexy_string(value)}}
+                query = {"facts.#{fact}" => {"$lte" => regexy_string(value)}, 'collectives' => collective}
               when ">="
-                query = {"facts.#{fact}" => {"$gte" => regexy_string(value)}}
+                query = {"facts.#{fact}" => {"$gte" => regexy_string(value)}, 'collectives' => collective}
               when "<"
-                query = {"facts.#{fact}" => {"$lt" => regexy_string(value)}}
+                query = {"facts.#{fact}" => {"$lt" => regexy_string(value)}, 'collectives' => collective}
               when ">"
-                query = {"facts.#{fact}" => {"$gt" => regexy_string(value)}}
+                query = {"facts.#{fact}" => {"$gt" => regexy_string(value)}, 'collectives' => collective}
               when "!="
-                query = {"facts.#{fact}" => {"$ne" => regexy_string(value)}}
+                query = {"facts.#{fact}" => {"$ne" => regexy_string(value)}, 'collectives' => collective}
               else
                 raise "Cannot perform %s matches for facts using the mongo discovery method" % f[:operator]
             end
@@ -66,25 +66,25 @@ module MCollective
           end
         end
 
-        def class_search(filter, collection, found)
+        def class_search(filter, collection, found, collective)
           return if filter.empty?
 
           matcher = filter.map {|klass| regexy_string(klass)}.uniq
-          found << collection.find({'classes' => {"$all" => matcher}}, :fields => ["identity"]).map{|n| n["identity"]}
+          found << collection.find({'classes' => {"$all" => matcher}, 'collectives' => collective}, :fields => ["identity"]).map{|n| n["identity"]}
         end
 
-        def agent_search(filter, collection, found)
+        def agent_search(filter, collection, found, collective)
           return if filter.empty?
 
           matcher = filter.map {|agent| regexy_string(agent)}.uniq
-          found << collection.find({'agentlist' => {"$all" => matcher}}, :fields => ["identity"]).map{|n| n["identity"]}
+          found << collection.find({'agentlist' => {"$all" => matcher}, 'collectives' => collective}, :fields => ["identity"]).map{|n| n["identity"]}
         end
 
-        def identity_search(filter, collection, found)
+        def identity_search(filter, collection, found, collective)
           return if filter.empty?
 
           matcher = filter.map {|identity| regexy_string(identity)}
-          found << collection.find({'identity' => {"$in" => matcher}}, :fields => ["identity"]).map{|n| n["identity"]}
+          found << collection.find({'identity' => {"$in" => matcher}, 'collectives' => collective}, :fields => ["identity"]).map{|n| n["identity"]}
         end
 
         def regexy_string(string)
