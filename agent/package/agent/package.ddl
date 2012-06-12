@@ -2,7 +2,7 @@ metadata    :name        => "Package Agent",
             :description => "Install and uninstall software packages",
             :author      => "R.I.Pienaar",
             :license     => "ASL2",
-            :version     => "2.2",
+            :version     => "3.0",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
@@ -20,9 +20,33 @@ metadata    :name        => "Package Agent",
                :description => "Output from the package manager",
                :display_as  => "Output"
 
-        output :properties,
-               :description => "Properties of the package after #{act.sub(/e$/, '')}ing",
-               :display_as  => "Properties"
+        output :epoch,
+               :description => "Package epoch number",
+               :display_as  => "Epoch"
+
+        output :arch,
+               :description => "Package architecture",
+               :display_as  => "Arch"
+
+        output :ensure,
+               :description => "Full package version",
+               :display_as  => "Ensure"
+
+        output :version,
+               :description => "Version number",
+               :display_as  => "Version"
+
+        output :provider,
+               :description => "Provider used to retrieve information",
+               :display_as => "Provider"
+
+        output :name,
+               :description => "Package name",
+               :display_as => "Name"
+
+        output :release,
+               :description => "Package release number",
+               :display_as => "Release"
     end
 end
 
@@ -41,9 +65,33 @@ action "status", :description => "Get the status of a package" do
            :description => "Output from the package manager",
            :display_as  => "Output"
 
-    output :properties,
-           :description => "Package properties",
-           :display_as  => "Properties"
+    output :epoch,
+           :description => "Package epoch number",
+           :display_as  => "Epoch"
+
+    output :arch,
+           :description => "Package architecture",
+           :display_as  => "Arch"
+
+    output :ensure,
+           :description => "Full package version",
+           :display_as  => "Ensure"
+
+    output :version,
+           :description => "Version number",
+           :display_as  => "Version"
+
+    output :provider,
+           :description => "Provider used to retrieve information",
+           :display_as => "Provider"
+
+    output :name,
+           :description => "Package name",
+           :display_as => "Name"
+
+    output :release,
+           :description => "Package release number",
+           :display_as => "Release"
 end
 
 action "yum_clean", :description => "Clean the YUM cache" do

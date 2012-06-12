@@ -109,7 +109,7 @@ module MCollective
       it "should set version and release if statuscode is 0 and the response includes a version number" do
         @app.stubs(:configuration).returns({:action => "install", :package => "package"})
         @app.expects(:rpcclient).with("package", :options => nil).returns(@rpcclient_mock)
-        @rpcclient_mock.expects(:send).with("install", :package => "package").returns([{:data => {:properties => {:version => "1", :release => "2", :name => "package"}}, :statuscode => 0, :sender => "node1", :statusmsg => "failure"}])
+        @rpcclient_mock.expects(:send).with("install", :package => "package").returns([{:data => {:version => "1", :release => "2", :name => "package"}, :statuscode => 0, :sender => "node1", :statusmsg => "failure"}])
         @app.expects(:printf).with("%-40s version = %s-%s\n", "node1", "package", "1-2")
         @rpcclient_mock.expects(:stats)
         @app.expects(:summarize)
@@ -120,7 +120,7 @@ module MCollective
       it "should set ensure status as version if version is not defined" do
         @app.stubs(:configuration).returns({:action => "install", :package => "package"})
         @app.expects(:rpcclient).with("package", :options => nil).returns(@rpcclient_mock)
-        @rpcclient_mock.expects(:send).with("install", :package => "package").returns([{:data => {:properties => {:ensure => "latest"}}, :statuscode => 0, :sender => "node1", :statusmsg => "failure"}])
+        @rpcclient_mock.expects(:send).with("install", :package => "package").returns([{:data => {:ensure => "latest"}, :statuscode => 0, :sender => "node1", :statusmsg => "failure"}])
         @app.expects(:printf).with("%-40s version = %s\n", "node1", "latest")
         @rpcclient_mock.expects(:stats)
         @app.expects(:summarize)

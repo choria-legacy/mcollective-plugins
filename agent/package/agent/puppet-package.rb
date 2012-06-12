@@ -2,26 +2,28 @@ require 'puppet'
 
 module MCollective
   module Agent
-    # An agent that uses Puppet to manage packages
-    #
-    # See https://github.com/puppetlabs/mcollective-plugins
-    #
-    # Released under the terms of the Apache Software License, v2.0.
-    #
-    # As this agent is based on Simple RPC, it requires mcollective 0.4.7 or newer.
     class Package<RPC::Agent
-      metadata    :name        => "Package Agent",
-                  :description => "Install and uninstall software packages",
-                  :author      => "R.I.Pienaar",
-                  :license     => "ASL2",
-                  :version     => "2.2",
-                  :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
-                  :timeout     => 180
+      metadata :name        => "Package Agent",
+               :description => "Install and uninstall software packages",
+               :author      => "R.I.Pienaar",
+               :license     => "ASL2",
+               :version     => "3.0",
+               :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
+               :timeout     => 180
 
       ["install", "update", "uninstall", "purge", "status"].each do |act|
         action act do
           validate :package, :shellsafe
-          do_pkg_action(request[:package], act.to_sym)
+
+          properties, output = do_pkg_action(request[:package], act.to_sym)
+
+          reply[:output] = output
+
+          if properties.is_a?(Hash)
+            properties.keys.each do |key|
+              reply[key] = properties[key].to_s
+            end
+          end
         end
       end
 
@@ -100,41 +102,35 @@ module MCollective
       private
       def do_pkg_action(package, action)
         begin
-          if ::Puppet.version =~ /0.24/
-            ::Puppet::Type.type(:package).clear
-            pkg = ::Puppet::Type.type(:package).create(:name => package).provider
-          else
-            pkg = ::Puppet::Type.type(:package).new(:name => package).provider
-          end
+          pkg = ::Puppet::Type.type(:package).new(:name => package).provider
 
-          reply[:output] = ""
-          reply[:properties] = "unknown"
+          output = ""
+          properties = ""
 
           case action
-          when :install
-            reply[:output] = pkg.install if [:absent, :purged].include?(pkg.properties[:ensure])
+            when :install
+              output = pkg.install if [:absent, :purged].include?(pkg.properties[:ensure])
 
-          when :update
-            reply[:output] = pkg.update unless [:absent, :purged].include?(pkg.properties[:ensure])
+            when :update
+              output = pkg.update unless [:absent, :purged].include?(pkg.properties[:ensure])
 
-          when :uninstall
-            reply[:output] = pkg.uninstall unless [:absent, :purged].include?(pkg.properties[:ensure])
+            when :uninstall
+              output = pkg.uninstall unless [:absent, :purged].include?(pkg.properties[:ensure])
 
-          when :status
-            pkg.flush
-            reply[:output] = pkg.properties
+            when :status
+              # noop
 
-          when :purge
-            reply[:output] = pkg.purge
+            when :purge
+              output = pkg.purge
 
-          else
-            reply.fail "Unknown action #{action}"
+            else
+              reply.fail "Unknown action #{action}"
           end
 
           pkg.flush
-          reply[:properties] = pkg.properties
+          [pkg.properties, output]
         rescue Exception => e
-          reply.fail e.to_s
+          reply.fail! e.to_s
         end
       end
 

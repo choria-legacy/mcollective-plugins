@@ -55,16 +55,16 @@ The ACTION can be one of the following:
       status = resp[:data][:properties]
 
       if resp[:statuscode] == 0
-        if status.include?(:version)
-          version = "#{status[:version]}-#{status[:release]}"
-        elsif status.include?(:ensure)
-          version = status[:ensure].to_s
+        if resp[:data][:version]
+          version = "%s-%s" % [ resp[:data][:version], resp[:data][:release] ]
+        elsif resp[:data][:ensure]
+          version = resp[:data][:ensure]
         end
 
         versions.include?(version) ? versions[version] += 1 : versions[version] = 1
 
-        if status[:name]
-          printf("%-40s version = %s-%s\n", resp[:sender], status[:name], version)
+        if resp[:data][:name]
+          printf("%-40s version = %s-%s\n", resp[:sender], resp[:data][:name], version)
         else
           printf("%-40s version = %s\n", resp[:sender], version)
         end
