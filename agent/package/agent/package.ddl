@@ -2,7 +2,7 @@ metadata    :name        => "Package Agent",
             :description => "Install and uninstall software packages",
             :author      => "R.I.Pienaar",
             :license     => "ASL2",
-            :version     => "3.0",
+            :version     => "3.1",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
@@ -128,7 +128,7 @@ action "yum_checkupdates", :description => "Check for YUM updates" do
            :description => "Output from YUM",
            :display_as  => "Output"
 
-    output :oudated_packages,
+    output :outdated_packages,
            :description => "Outdated packages",
            :display_as  => "Outdated Packages"
 
