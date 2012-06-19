@@ -48,10 +48,13 @@ describe "puppetca agent" do
     end
 
     it "should return the message if there are no certs but msg.size is not 0" do
+      @msg_array = []
+
       @agent.expects(:paths_for_cert).with("certname").twice.returns({:signed => "signed", :request => "request"})
       @agent.expects(:has_cert?).with("certname").returns(false)
       @agent.expects(:cert_waiting?).with("certname").returns(false)
-      Array.any_instance.expects(:size).returns(1)
+      @agent.expects(:new_msg_array).returns(@msg_array)
+      @msg_array.expects(:size).returns(1)
       result = @agent.call(:clean, :certname => "certname")
       result.should be_successful
       result.should have_data_items(:msg => "")

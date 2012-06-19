@@ -23,7 +23,7 @@ module MCollective
         signed = paths_for_cert(certname)[:signed]
         csr = paths_for_cert(certname)[:request]
 
-        msg = []
+        msg = new_msg_array
 
         if has_cert?(certname)
           File.unlink(signed)
@@ -105,6 +105,13 @@ module MCollective
         {:signed => "#{@cadir}/signed/#{certname}.pem",
           :request => "#{@cadir}/requests/#{certname}.pem"}
       end
+
+      # This is only here to simplify testing, so that we can simulate
+      #  various lengths of the msg queue
+      def new_msg_array()
+        []
+      end
+      private :new_msg_array
     end
   end
 end
