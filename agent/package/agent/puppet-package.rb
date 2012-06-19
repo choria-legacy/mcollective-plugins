@@ -7,7 +7,7 @@ module MCollective
                :description => "Install and uninstall software packages",
                :author      => "R.I.Pienaar",
                :license     => "ASL2",
-               :version     => "3.0",
+               :version     => "3.1",
                :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                :timeout     => 180
 
