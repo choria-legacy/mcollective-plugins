@@ -21,6 +21,16 @@ The ACTION can be one of the following:
   :description    => "Force the puppet run to happen immediately without splay",
   :arguments      => ["--force", "-f"],
   :type           => :bool
+  
+  option :noop,
+  :description    => "Run the puppet in noop mode",
+  :arguments      => ["--noop"],
+  :type           => :bool
+
+  option :nonoop,
+  :description    => "Run the puppet in no-noop mode",
+  :arguments      => ["--no-noop"],
+  :type           => :bool
 
   def post_option_parser(configuration)
     if ARGV.length >= 1
@@ -76,6 +86,16 @@ The ACTION can be one of the following:
         hosts = mc.discover.sort
         log("Found #{hosts.size} hosts")
 
+        if configuration[:noop]
+          parameters = { :forcerun => true, :noop => configuration[:noop] }
+        else
+          if configuration[:nonoop]
+            parameters = { :forcerun => true, :nonoop  => configuration[:nonoop] }
+          else
+            parameters = { :forcerun => true }
+          end
+        end
+
         # For all hosts:
         #  - check for concurrent runs, wait till its below threshold
         #  - do a run on the single host, regardless of if its already running
@@ -84,7 +104,7 @@ The ACTION can be one of the following:
         hosts.each do |host|
           running = waitfor(configuration[:concurrency], mc)
           log("Running #{host}, concurrency is #{running}")
-          result = mc.custom_request("runonce", {:forcerun => true}, host, {"identity" => host})
+          result = mc.custom_request("runonce", parameters, host, {"identity" => host})
 
           begin
             log("#{host} schedule status: #{result[0][:statusmsg]}")
@@ -100,7 +120,16 @@ The ACTION can be one of the following:
       end
 
     when "runonce"
-      printrpc mc.runonce(:forcerun => configuration[:force])
+      if configuration[:noop]
+        parameters = { :forcerun => configuration[:force],
+                       :noop     => configuration[:noop] }
+      else
+        if configuration[:nonoop]
+          parameters = { :forcerun => configuration[:force],
+                         :nonoop  => configuration[:nonoop] }
+        end
+      end
+      printrpc mc.runonce(parameters)
 
     when "status"
       mc.send(configuration[:command]).each do |node|
