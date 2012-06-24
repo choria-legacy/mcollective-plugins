@@ -135,6 +135,14 @@ module MCollective
             cmd << "--splaylimit" << @splaytime << "--splay"
           end
         end
+        
+        if request[:noop]
+          cmd << "--noop"
+        end
+        
+        if request[:nonoop]
+          cmd << "--no-noop"
+        end
 
         cmd = cmd.join(" ")
 
