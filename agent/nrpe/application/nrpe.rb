@@ -21,8 +21,14 @@ class MCollective::Application::Nrpe<MCollective::Application
     puts
 
     nrpe_results.each do |result|
-      exitcode = result[:data][:exitcode].to_i
-      statuscodes << exitcode
+      if result[:statuscode] == 0
+        exitcode = result[:data][:exitcode].to_i
+        statuscodes << exitcode
+      else
+        exitcode = 1
+        statuscodes << 1
+      end
+
       if exitcode >=0 and exitcode < 4
         stats[exitcode] += 1
       end

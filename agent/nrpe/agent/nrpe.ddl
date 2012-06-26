@@ -2,7 +2,7 @@ metadata    :name        => "SimpleRPC Agent For NRPE Commands",
             :description => "Agent to query NRPE commands via MCollective",
             :author      => "R.I.Pienaar",
             :license     => "Apache 2",
-            :version     => "1.3",
+            :version     => "2.1",
             :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
             :timeout     => 5
 
