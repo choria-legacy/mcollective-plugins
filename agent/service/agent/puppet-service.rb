@@ -10,11 +10,11 @@ module MCollective
     #
     # As this agent is based on Simple RPC, it requires mcollective 0.4.7 or newer.
     class Service<RPC::Agent
-      metadata    :name        => "Service Agent",
+      metadata    :name        => "service",
                   :description => "Start and stop system services",
                   :author      => "R.I.Pienaar",
                   :license     => "ASL2",
-                  :version     => "2.0",
+                  :version     => "2.1",
                   :url         => "https://github.com/puppetlabs/mcollective-plugins",
                   :timeout     => 60
 

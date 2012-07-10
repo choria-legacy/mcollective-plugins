@@ -1,8 +1,8 @@
-metadata    :name        => "STOMP Connector Utility Agent",
+metadata    :name        => "stomputil",
             :description => "Various helpers and useful actions for the STOMP connector",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "Apache v 2.0",
-            :version     => "1.0",
+            :version     => "1.1",
             :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
             :timeout     => 12
 

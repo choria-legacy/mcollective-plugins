@@ -1,8 +1,8 @@
-metadata    :name        => "SimpleRPC IP Tables Agent",
+metadata    :name        => "iptables",
             :description => "An agent that manipulates a chain called 'junkfilter' with iptables",
             :author      => "R.I.Pienaar",
             :license     => "Apache 2",
-            :version     => "1.3",
+            :version     => "2.1",
             :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
             :timeout     => 2
 

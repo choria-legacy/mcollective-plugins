@@ -1,8 +1,8 @@
-metadata    :name        => "Service Agent",
+metadata    :name        => "service",
             :description => "Start and stop system services",
             :author      => "R.I.Pienaar",
             :license     => "ASL2",
-            :version     => "1.2",
+            :version     => "2.1",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 60
 
@@ -20,6 +20,12 @@ action "status", :description => "Gets the status of a service" do
     output "status",
           :description => "The status of the service",
           :display_as  => "Service Status"
+
+    if respond_to?(:summarize)
+        summarize do
+            aggregate summary("status")
+        end
+    end
 end
 
 ["stop", "start", "restart"].each do |act|
@@ -37,5 +43,11 @@ end
         output "status",
               :description => "The status of the service after #{act.sub(/p$/, 'pp')}ing",
               :display_as  => "Service Status"
+
+        if respond_to?(:summarize)
+            summarize do
+                aggregate summary("status")
+            end
+        end
     end
 end

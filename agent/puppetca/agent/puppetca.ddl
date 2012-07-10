@@ -1,8 +1,8 @@
-metadata    :name        => "SimpleRPC Service Agent",
-            :description => "Agent to manage services using the Puppet service provider",
+metadata    :name        => "puppetca",
+            :description => "Agent to manage Puppet certificates",
             :author      => "R.I.Pienaar",
             :license     => "Apache 2.0",
-            :version     => "1.2",
+            :version     => "2.1",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 20
 

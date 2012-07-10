@@ -1,8 +1,8 @@
-metadata    :name        => "Package Agent",
+metadata    :name        => "package",
             :description => "Install and uninstall software packages",
             :author      => "R.I.Pienaar",
             :license     => "ASL2",
-            :version     => "3.1",
+            :version     => "3.3",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
@@ -92,6 +92,13 @@ action "status", :description => "Get the status of a package" do
     output :release,
            :description => "Package release number",
            :display_as => "Release"
+
+    if respond_to?(:summarize)
+        summarize do
+            aggregate summary(:ensure)
+            aggregate summary(:arch)
+        end
+    end
 end
 
 action "yum_clean", :description => "Clean the YUM cache" do

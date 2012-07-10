@@ -6,11 +6,11 @@ require 'timeout'
 module MCollective
   module Agent
     class Nettest<RPC::Agent
-      metadata    :name        => "Ping",
+      metadata    :name        => "nettest",
                   :description => "Agent to do network tests from a mcollective host",
                   :author      => "Dean Smith",
                   :license     => "BSD",
-                  :version     => "2.1",
+                  :version     => "2.2",
                   :url         => "http://github.com/deasmi",
                   :timeout     => 60
 

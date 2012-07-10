@@ -1,8 +1,8 @@
-metadata    :name        => "Ping",
+metadata    :name        => "nettest",
             :description => "Agent to do network tests from a mcollective host",
             :author      => "Dean Smith <dean@zelotus.com>",
             :license     => "BSD",
-            :version     => "2.1",
+            :version     => "2.2",
             :url         => "http://github.com/deasmi",
             :timeout     => 60
 
