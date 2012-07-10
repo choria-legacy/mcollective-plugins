@@ -1,4 +1,4 @@
-metadata    :name        => "Sysctl values",
+metadata    :name        => "sysctl",
             :description => "Retrieve values for a given sysctl",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "ASL 2.0",

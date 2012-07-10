@@ -1,4 +1,4 @@
-metadata    :name        => "Puppet Managed Resources",
+metadata    :name        => "resource",
             :description => "Information about Puppet managed resources",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "ASL 2.0",
