@@ -1,6 +1,6 @@
-class MCollective::Application::Pgrep<MCollective::Application
+class MCollective::Application::Process<MCollective::Application
   description "Distributed Process Management"
-  usage "mco pgrep <pattern> [-z]"
+  usage "mco process <pattern> [-z]"
 
   option :just_zombies,
          :description => "Only list defunct processes",
