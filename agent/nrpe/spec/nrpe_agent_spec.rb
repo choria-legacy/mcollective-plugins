@@ -7,12 +7,6 @@ describe "nrpe agent" do
     @agent = MCollective::Test::LocalAgentTest.new("nrpe", :agent_file => agent_file).plugin
   end
 
-  describe "#metda" do
-    it "should have valid metadata" do
-      @agent.should have_valid_metadata
-    end
-  end
-
   describe "#runcommand" do
     it "should reply with statusmessage 'OK' of exitcode is 0" do
       @agent.expects(:plugin_for_command).with("foo").returns:cmd => ("foo")

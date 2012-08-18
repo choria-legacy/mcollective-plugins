@@ -2,7 +2,7 @@ metadata    :name        => "nrpe",
             :description => "Agent to query NRPE commands via MCollective",
             :author      => "R.I.Pienaar",
             :license     => "Apache 2",
-            :version     => "2.1",
+            :version     => "2.2",
             :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
             :timeout     => 5
 
@@ -29,6 +29,11 @@ action "runcommand", :description => "Run a NRPE command" do
     output :perfdata,
            :description  => "Performance Data from the Nagios plugin",
            :display_as   => "Performance Data",
+           :default      => ""
+
+    output :command,
+           :description  => "Command that was run",
+           :display_as   => "Command",
            :default      => ""
 
     if respond_to?(:summarize)

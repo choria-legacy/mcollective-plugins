@@ -5,7 +5,7 @@ module MCollective
                   :description => "Agent to query NRPE commands via MCollective",
                   :author      => "R.I.Pienaar",
                   :license     => "Apache 2",
-                  :version     => "2.1",
+                  :version     => "2.2",
                   :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                   :timeout     => 5
 
@@ -14,37 +14,35 @@ module MCollective
 
         command = plugin_for_command(request[:command])
 
+        reply[:command] = request[:command]
+
         if command == nil
           reply[:output] = "No such command: #{request[:command]}" if command == nil
           reply[:exitcode] = 3
 
-          reply.fail "UNKNOWN"
-
-          return
+          reply.fail! "UNKNOWN"
         end
 
         reply[:exitcode] = run(command[:cmd], :stdout => :output, :chomp => true)
 
         case reply[:exitcode]
-        when 0
-          reply.statusmsg = "OK"
+          when 0
+            reply.statusmsg = "OK"
 
-        when 1
-          reply.fail "WARNING"
+          when 1
+            reply.fail! "WARNING"
 
-        when 2
-          reply.fail "CRITICAL"
+          when 2
+            reply.fail! "CRITICAL"
 
-        else
-          reply.fail "UNKNOWN"
+          else
+            reply.fail! "UNKNOWN"
 
         end
 
         if reply[:output] =~ /^(.+)\|(.+)$/
           reply[:output] = $1
           reply[:perfdata] = $2
-        else
-          reply[:perfdata] = ""
         end
       end
 
