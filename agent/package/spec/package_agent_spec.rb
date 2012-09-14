@@ -130,14 +130,6 @@ describe "package agent" do
       result[:statusmsg].should == "Cannot find yum at /usr/bin/yum"
     end
 
-    it "should succeed if it responds to run and there are no packages to update" do
-      File.expects(:exist?).with("/usr/bin/yum").returns(true)
-      @agent.expects(:run).with("/usr/bin/yum -q check-update", :stdout => :output, :chomp => true).returns(0)
-      result = @agent.call(:yum_checkupdates)
-      result.should be_successful
-      result.should have_data_items(:exitcode=>0, :outdated_packages=>[])
-    end
-
     it "should succeed if it responds to run and there are packages to update" do
       File.expects(:exist?).with("/usr/bin/yum").returns(true)
       @agent.expects(:run).with("/usr/bin/yum -q check-update", :stdout => :output, :chomp => true).returns(100)
@@ -145,14 +137,6 @@ describe "package agent" do
       result = @agent.call(:yum_checkupdates)
       result.should be_successful
       result.should have_data_items(:outdated_packages=>nil, :exitcode=>100)
-    end
-
-    it "should fail if it responds to run but returns a different exit code than 0 or 100" do
-      File.expects(:exist?).with("/usr/bin/yum").returns(true)
-      @agent.expects(:run).with("/usr/bin/yum -q check-update", :stdout => :output, :chomp => true).returns(2)
-      result = @agent.call(:yum_checkupdates)
-      result.should be_aborted_error
-      result.should have_data_items(:exitcode=>2)
     end
   end
 

@@ -15,6 +15,8 @@ module MCollective
         command = plugin_for_command(request[:command])
 
         reply[:command] = request[:command]
+        reply[:output] = ""
+        reply[:perfdata] = ""
 
         if command == nil
           reply[:output] = "No such command: #{request[:command]}" if command == nil

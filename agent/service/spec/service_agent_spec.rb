@@ -8,12 +8,6 @@ describe "service agent" do
     @agent.stubs(:require).with('puppet').returns(true)
   end
 
-  describe "#meta" do
-    it "should have valid metadata" do
-      @agent.should have_valid_metadata
-    end
-  end
-
   describe "#do_service_action" do
     before do
       logger = mock

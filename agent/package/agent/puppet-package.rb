@@ -68,14 +68,7 @@ module MCollective
         reply.fail! "Cannot find yum at /usr/bin/yum" unless File.exist?("/usr/bin/yum")
         reply[:exitcode] = run("/usr/bin/yum -q check-update", :stdout => :output, :chomp => true)
 
-        if reply[:exitcode] == 0
-          reply[:outdated_packages] = []
-          # Exit code 100 means package updates available
-        elsif reply[:exitcode] == 100
-          reply[:outdated_packages] = do_yum_outdated_packages(reply[:output])
-        else
-          reply.fail! "Yum check-update failed, exit code was #{reply[:exitcode]}"
-        end
+        reply[:outdated_packages] = do_yum_outdated_packages(reply[:output])
       end
 
       action "apt_checkupdates" do
@@ -90,8 +83,8 @@ module MCollective
             # Inst emacs23 [23.1+1-4ubuntu7] (23.1+1-4ubuntu7.1 Ubuntu:10.04/lucid-updates) []
             if line =~ /Inst (.+?) \[.+?\] \((.+?)\s(.+?)\)/
               reply[:outdated_packages] << {:package => $1.strip,
-                :version => $2.strip,
-                :repo => $3.strip}
+                                            :version => $2.strip,
+                                            :repo => $3.strip}
             end
           end
         else

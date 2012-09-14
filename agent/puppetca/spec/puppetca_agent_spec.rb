@@ -7,12 +7,6 @@ describe "puppetca agent" do
     @agent = MCollective::Test::LocalAgentTest.new("puppetca", :agent_file => agent_file).plugin
   end
 
-  describe "#meta" do
-    it "should have valid metadata" do
-      @agent.should have_valid_metadata
-    end
-  end
-
   describe "#clean" do
     it "should remove signed certs if they exist" do
       @agent.expects(:paths_for_cert).with("certname").twice.returns({:signed => "signed", :request => "request"})

@@ -8,7 +8,7 @@ describe "nrpe agent" do
   end
 
   describe "#runcommand" do
-    it "should reply with statusmessage 'OK' of exitcode is 0" do
+    it "should reply with statusmessage 'OK' if exitcode is 0" do
       @agent.expects(:plugin_for_command).with("foo").returns:cmd => ("foo")
       @agent.expects(:run).with("foo", :stdout => :output, :chomp => true).returns(0)
       result = @agent.call(:runcommand, :command => "foo")
@@ -17,7 +17,7 @@ describe "nrpe agent" do
       result[:statusmsg].should == "OK"
     end
 
-    it "should reply with statusmessage 'WARNING' of exitcode is 1" do
+    it "should reply with statusmessage 'WARNING' if exitcode is 1" do
       @agent.expects(:plugin_for_command).with("foo").returns:cmd => ("foo")
       @agent.expects(:run).with("foo", :stdout => :output, :chomp => true).returns(1)
       result = @agent.call(:runcommand, :command => "foo")
@@ -26,7 +26,7 @@ describe "nrpe agent" do
       result[:statusmsg].should == "WARNING"
     end
 
-    it "should reply with statusmessage 'CRITICAL' of exitcode is 2" do
+    it "should reply with statusmessage 'CRITICAL' if exitcode is 2" do
       @agent.expects(:plugin_for_command).with("foo").returns:cmd => ("foo")
       @agent.expects(:run).with("foo", :stdout => :output, :chomp => true).returns(2)
       result = @agent.call(:runcommand, :command => "foo")
@@ -40,7 +40,7 @@ describe "nrpe agent" do
       @agent.expects(:run).with("foo", :stdout => :output, :chomp => true)
       result = @agent.call(:runcommand, :command => "foo")
       result.should be_aborted_error
-      result.should have_data_items(:exitcode=>nil, :perfdata=>"")
+      result.should have_data_items(:exitcode=>nil, :perfdata=>"", :command => "foo")
       result[:statusmsg].should == "UNKNOWN"
     end
 
@@ -73,7 +73,7 @@ describe "nrpe agent" do
       @agent.expects(:run).with("run", :stdout => :output, :chomp => true).returns(0)
       result = @agent.call(:runcommand, :command => "run")
       result.should be_successful
-      result.should have_data_items(:exitcode=>0, :perfdata=>"")
+      result.should have_data_items(:exitcode=>0, :perfdata=>"", :command => "command")
       result[:statusmsg].should == "OK"
     end
 

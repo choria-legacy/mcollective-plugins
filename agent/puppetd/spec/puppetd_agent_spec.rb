@@ -9,12 +9,6 @@ describe "puppetd agent" do
     @agent.instance_variable_set("@pidfile",  "spec_test_pid_file")
   end
 
-  describe "#meta" do
-    it "should have valid metadata" do
-      @agent.should have_valid_metadata
-    end
-  end
-
   describe "#last_run_summary" do
     it "should return the last run summary" do
       @agent.instance_variable_set("@last_summary", "spec_test_last_summary")

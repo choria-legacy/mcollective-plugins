@@ -9,21 +9,7 @@ describe "nettest agent" do
     @agent.instance_variable_set("@pidfile",  "spec_test_pid_file")
   end
 
-  describe "#meta" do
-    it "should have valid metadata" do
-      @agent.should have_valid_metadata
-    end
-  end
-
   describe "#ping" do
-    it "should fail for non string fqdns" do
-      result = @agent.call(:ping, :fqdn => nil)
-      result.should be_invalid_data_error
-
-      result = @agent.call(:ping)
-      result.should be_missing_data_error
-    end
-
     it "should set correct rtt if it can ping the host" do
       icmp = mock
       icmp.expects("ping?").returns(true)

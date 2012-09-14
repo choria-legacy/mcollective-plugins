@@ -2,7 +2,7 @@ metadata    :name        => "package",
             :description => "Install and uninstall software packages",
             :author      => "R.I.Pienaar",
             :license     => "ASL2",
-            :version     => "3.3",
+            :version     => "3.4",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
