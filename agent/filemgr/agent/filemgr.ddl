@@ -2,10 +2,9 @@ metadata    :name        => "filemgr",
             :description => "File Manager",
             :author      => "Mike Pountney <mike.pountney@gmail.com>",
             :license     => "Apache 2",
-            :version     => "0.3",
+            :version     => "1.1",
             :url         => "http://www.puppetlabs.com/mcollective",
             :timeout     => 5
-
 
 action "touch", :description => "Creates an empty file or touch it's timestamp" do
     input :file,
@@ -13,7 +12,7 @@ action "touch", :description => "Creates an empty file or touch it's timestamp" 
         :description => "File to touch",
         :type        => :string,
         :validation  => '^.+$',
-        :optional    => true,
+        :optional    => false,
         :maxlength    => 256
 end
 
@@ -23,7 +22,7 @@ action "remove", :description => "Removes a file" do
         :description => "File to remove",
         :type        => :string,
         :validation  => '^.+$',
-        :optional    => true,
+        :optional    => false,
         :maxlength    => 256
 end
 
@@ -35,7 +34,7 @@ action "status", :description => "Basic information about a file" do
         :description => "File to get information for",
         :type        => :string,
         :validation  => '^.+$',
-        :optional    => true,
+        :optional    => false,
         :maxlength    => 256
 
     output :name,
@@ -47,7 +46,7 @@ action "status", :description => "Basic information about a file" do
            :display_as => "Status"
 
     output :present,
-           :description => "Indicates if the file exist using 0 or 1",
+           :description => "Indicates if the file exists using 0 or 1",
            :display_as => "Present"
 
     output :size,
@@ -94,7 +93,30 @@ action "status", :description => "Basic information about a file" do
            :description => "File group",
            :display_as => "Group"
 
+    output :uid_name,
+           :description => "File owner user name",
+           :display_as => "Owner name"
+
+    output :gid_name,
+           :description => "File group name",
+           :display_as => "Group name"
+
     output :type,
            :description => "File type",
            :display_as => "Type"
 end
+
+action "list", :description => "Lists a directory's contents" do
+    input :dir,
+        :prompt      => "Directory",
+        :description => "Directory to list",
+        :type        => :string,
+        :validation  => '^.+$',
+        :optional    => false,
+        :maxlength    => 256
+
+    output :files,
+          :description => "Hash of files in the directory with file stats",
+          :display_as => "File details",
+          :default => {}
+end 
