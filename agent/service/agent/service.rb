@@ -1,3 +1,4 @@
+$puppet_application_name = :agent
 require 'puppet'
 
 module MCollective

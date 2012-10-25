@@ -2,7 +2,7 @@ metadata    :name        => "puppetral",
             :description => "View and edit resources with Puppet's resource abstraction layer",
             :author      => "R.I.Pienaar, Max Martin",
             :license     => "ASL2",
-            :version     => "0.3",
+            :version     => "0.4",
             :url         => "https://github.com/puppetlabs/mcollective-plugins",
             :timeout     => 180
 
