@@ -5,7 +5,7 @@ class MCollective::Application::Dsh<MCollective::Application
   usage "mco dsh [filters] -- (dsh commands)"
 
   def main
-    mc = rpcclient("discovery")
+    mc = rpcclient("rpcutil")
 
     raise "No hosts discovered" if mc.discover.empty?
 
