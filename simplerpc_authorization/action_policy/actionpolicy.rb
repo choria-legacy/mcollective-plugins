@@ -118,17 +118,11 @@ module MCollective
         # that we should skip checking this auth line.  Both support
         # a wildcard match
         unless facts == "*"
-          facts.split.each do |fact|
-            if fact =~ /(.+)=(.+)/
-              return false unless Util.get_fact($1) == $2
-            end
-          end
+          return false unless facts.split.detect{ |fact| fact =~ /(.+)=(.+)/ && Util.get_fact($1) == $2 }
         end
 
         unless classes == "*"
-          classes.split.each do |klass|
-            return false unless Util.has_cf_class?(klass)
-          end
+          return false unless classes.split.detect{ |klass| Util.has_cf_class?(klass) }
         end
 
         # If we get here all the facts, classes, caller and actions match
