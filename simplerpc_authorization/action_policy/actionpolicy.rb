@@ -122,7 +122,7 @@ module MCollective
         end
 
         unless classes == "*"
-          return false unless facts.split.detect{ |klass| Util.has_cf_class?(klass) }
+          return false unless classes.split.detect{ |klass| Util.has_cf_class?(klass) }
         end
 
         # If we get here all the facts, classes, caller and actions match
