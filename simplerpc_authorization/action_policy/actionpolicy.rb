@@ -18,6 +18,28 @@ module MCollective
     # nodes which have the 'country=uk' fact and the 'apache' class.
     # Unix UID 0 will be able to do all actions regardless of facts and classes.
     #
+    # Policy files can also use data plugins and the compound selection langage
+    # to express the class and fact matches:
+    #
+    # allow    uid=500 status enable disable   country=uk or country=de     apache or mysql
+    #
+    # Here we use OR logic between the fact and class matchers but still express
+    # the fact and classes conditionals in 2 statements, you can also combine these
+    # statements into one:
+    #
+    # allow    uid=500 status enable disable   (country=uk or country=de) and (apache or mysql)
+    #
+    # This is equivelant to the previous rule.
+    #
+    # You can also use data plugins, assume you wrote a plugin to detect if a
+    # machine is in a maintenance window and specifically want to only allow
+    # services to be restarted using mcollective when the machine is in maintenance
+    #
+    # allow    uid=500 restart   puppet().enabled=false and environment=production
+    #
+    # Here we allow the the restart action to be called only when the puppet() data
+    # plugin reports the puppet daemon as disabled and we're in production
+    #
     # Policy files can be commented with lines beginning with #, and blank lines
     # are ignored. Fields in each policy line should be tab-separated.
     # You can specify multiple facts, actions, and classes as space-separated
@@ -32,61 +54,49 @@ module MCollective
       def self.authorize(request)
         config = Config.instance
 
-        if config.pluginconf.include?("actionpolicy.allow_unconfigured")
-          if config.pluginconf["actionpolicy.allow_unconfigured"] =~ /^1|y/i
-            policy_allow = true
-          else
-            policy_allow = false
-          end
-        else
-          policy_allow = false
+        policy_allow = false
+
+        if config.pluginconf.fetch("actionpolicy.allow_unconfigured", "n") =~ /^1|y/i
+          policy_allow = true
         end
 
-        logger = Log.instance
         configdir = config.configdir
 
-        policyfile = "#{configdir}/policies/#{request.agent}.policy"
+        policyfile = File.join(configdir, "policies", "#{request.agent}.policy")
 
-        logger.debug("Looking for policy in #{policyfile}")
+        Log.debug("Looking for policy in #{policyfile}")
 
         # if a policy file with the same name doesn't exist, check if we've enabled
         # default policies.  if so change policyfile to default and check again after
         unless File.exist?(policyfile)
-          if config.pluginconf.include?("actionpolicy.enable_default")
-            if config.pluginconf["actionpolicy.enable_default"] =~ /^1|y/i
-              # did user set a custom default policyfile name?
-              if config.pluginconf.include?("actionpolicy.default_name")
-                defaultname = config.pluginconf["actionpolicy.default_name"]
-              else
-                defaultname = "default"
-              end
-              policyfile = "#{configdir}/policies/#{defaultname}.policy"
-              logger.debug("Initial lookup failed; looking for policy in #{policyfile}")
-            end
+          if config.pluginconf.fetch("actionpolicy.enable_default", "n") =~ /^1|y/i
+            # did user set a custom default policyfile name?
+            defaultname = config.pluginconf.fetch("actionpolicy.default_name", "default")
+
+            policyfile = File.join(configdir, "policies", "#{defaultname}.policy")
+
+            Log.debug("Initial lookup failed; looking for policy in #{policyfile}")
           end
         end
 
         if File.exist?(policyfile)
-          File.open(policyfile).each do |line|
+          File.open(policyfile).each_with_index do |line, i|
             next if line =~ /^#/
             next if line =~ /^$/
 
             if line =~ /^policy\sdefault\s(\w+)/
               $1 == "allow" ? policy_allow = true : policy_allow = false
-
-            elsif line =~ /^(allow|deny)\t+(.+?)\t+(.+?)\t+(.+?)\t+(.+?)$/
-              policyresult =  check_policy($1, $2, $3, $4, $5, request)
-
-              # deny or allow the rpc request based on the policy check
-              if policyresult == true
+            elsif line =~ /^(allow|deny)\t+(.+?)\t+(.+?)\t+(.+?)(\t+(.+?))*$/
+              if check_policy($1, $2, $3, $4, $6, request, policyfile, i+1)
                 if $1 == "allow"
+                  Log.debug("Allowing based on explicit 'allow' policy rule in policyfile %s#%d" % [File.basename(policyfile), i + 1])
                   return true
                 else
-                  deny("Denying based on explicit 'deny' policy rule")
+                  deny("Denying based on explicit 'deny' policy rule in policyfile %s#%d" % [File.basename(policyfile), i + 1])
                 end
               end
             else
-              logger.debug("Cannot parse policy line: #{line}")
+              Log.debug("Cannot parse policy line: %s" % line)
             end
           end
         end
@@ -96,12 +106,73 @@ module MCollective
         if policy_allow == true
           return true
         else
-          deny("Denying based on default policy")
+          deny("Denying based on default policy in %s" % File.basename(policyfile))
         end
       end
 
       private
-      def self.check_policy(auth, rpccaller, actions, facts, classes, request)
+      # Determines the truth value of a given statement
+      # in a compound statement. A list can be of type
+      # fact, class or all. Exceptions constrain the
+      # types of statements that can be given in a list.
+      # Fact lists are constrained to using facts, class lists
+      # to classes and compound lists can use either.
+      def self.eval_statement(statement, list_type)
+        token_type = statement.keys.first
+        token_value = statement.values.first
+
+        if token_type != 'statement' && token_type != 'fstatement'
+          return token_value
+        elsif token_type == 'statement'
+          if token_value =~ /(.+)=(.+)/
+            lvalue = $1
+            rvalue = $2
+            deny("%s - fact found in class list" % token_value) if list_type == 'class'
+            if rvalue =~ /^\/(.+)\/$/
+              Util.get_fact(lvalue) =~ Regexp.new($1)
+            else
+              return Util.get_fact(lvalue) == rvalue
+            end
+          else
+            deny("%s - class found in fact list" % token_value) if list_type == 'fact'
+            return Util.has_cf_class?(token_value)
+          end
+        elsif token_type == 'fstatement'
+          begin
+            Matcher.eval_compound_fstatement(token_value)
+          rescue
+            deny("Could not call Data function #{token_value[:name]} in policy")
+          end
+        end
+      end
+
+      # Returns true if a given list is a compound statement
+      def self.is_compound?(list)
+        tokens = list.split
+        tokens.each do |token|
+          if ["and", "or", "not", "!"].include?(token) || token =~ /\(.+\)/
+            return true
+          end
+        end
+
+        false
+      end
+
+      # Creates a Parser object that parses the list and evaluates
+      # each of the statements based on list type. Returns truth
+      # value of compound statement
+      def self.parse_compound(list, list_type)
+        stack = Matcher.create_compound_callstack(list)
+        cstack = []
+
+        stack.each do |i|
+          cstack << eval_statement(i, list_type)
+        end
+
+        eval(cstack.join(' '))
+      end
+
+      def self.check_policy(auth, rpccaller, actions, facts, classes, request, policyfile, line)
         # If we have a wildcard caller or the caller matches our policy line
         # then continue else skip this policy line
         if (rpccaller != "*") && (rpccaller != request.caller)
@@ -114,20 +185,36 @@ module MCollective
           return false
         end
 
-        # Facts and Classes that do not match what we have indicates
-        # that we should skip checking this auth line.  Both support
-        # a wildcard match
-        unless facts == "*"
-          facts.split.each do |fact|
-            if fact =~ /(.+)=(.+)/
-              return false unless Util.get_fact($1) == $2
+        # If the class list is empty we parse the facts field as a compound
+        # statement that can include both facts and classes
+        unless classes
+          return false unless parse_compound(facts, 'all')
+        else
+          # Facts and Classes that do not match what we have indicates
+          # that we should skip checking this auth line.  Both support
+          # a wildcard match
+          unless facts == "*"
+            if is_compound?(facts)
+              return false unless parse_compound(facts, 'fact')
+            else
+              facts.split.each do |fact|
+                if fact =~ /(.+)=(.+)/
+                  return false unless Util.get_fact($1) == $2
+                else
+                  deny("%s is not a valid fact" % fact)
+                end
+              end
             end
           end
-        end
 
-        unless classes == "*"
-          classes.split.each do |klass|
-            return false unless Util.has_cf_class?(klass)
+          unless classes == "*"
+            if is_compound?(classes)
+              return false unless parse_compound(classes, 'class')
+            else
+              classes.split.each do |klass|
+                return false unless Util.has_cf_class?(klass)
+              end
+            end
           end
         end
 
@@ -137,16 +224,16 @@ module MCollective
         if auth == "allow"
           return true
         else
-          deny("Denying based on policy") if auth == "deny"
+          deny("Denying based on policy in policyfile %s#%d" % [File.basename(policyfile), line]) if auth == "deny"
         end
       end
 
       # Logs why we are not authorizing a request then raise an appropriate
       # exception to block the action
       def self.deny(logline)
-        Log.instance.debug(logline)
+        Log.debug(logline)
 
-        raise RPCAborted, "You are not authorized to call this agent or action."
+        raise(RPCAborted, "You are not authorized to call this agent or action.")
       end
     end
   end
