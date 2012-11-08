@@ -9,25 +9,17 @@ module MCollective
         begin
           config = Config.instance
 
-          # First try the new sub collectives method of obtaining the required collective, if that fails
-          # because make_target doesnt take a collective fall back to old behavior
-          begin
-            log_collective = Config.instance.pluginconf["centralrpclog.collective"] || config.main_collective
-            target = Util.make_target("centralrpclog", :command, log_collective)
-          rescue
-            target = Util.make_target("centralrpclog", :command)
-          end
+          log_collective = config.pluginconf.fetch("centralrpclog.collective", config.main_collective)
 
-          reqid = Digest::MD5.hexdigest("#{config.identity}-#{Time.now.to_f.to_s}-#{target}")
-          filter = {"agent" => "centralrpclog"}
+          filter = Util.empty_filter
+          filter["agent"] << "centralrpclog"
 
-          req = PluginManager["security_plugin"].encoderequest(config.identity, target, request, reqid, filter)
+          req = Message.new(request, nil, {:agent => "centralrpclog", :type => :request, :collective => log_collective, :filter => filter})
+          req.encode!
 
-          if connection.respond_to?(:publish)
-            connection.publish(target, req)
-          else
-            connection.send(target, req)
-          end
+          Log.debug("Sending request #{req.requestid} to the #{req.agent} agent in collective #{req.collective}")
+
+          req.publish
         rescue Exception => e
           Log.instance.error("Failed to send audit request: #{e}")
         end
@@ -35,4 +27,3 @@ module MCollective
     end
   end
 end
-# vi:tabstop=2:expandtab:ai

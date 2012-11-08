@@ -17,9 +17,13 @@ module MCollective
 
         @config = Config.instance
 
-        @meta = {:license => "Apache 2",
-          :author => "R.I.Pienaar <rip@devco.net>",
-          :url => "https://github.com/puppetlabs/mcollective-plugins"}
+        @meta = {:license => "Apache License, Version 2",
+                 :author => "R.I.Pienaar <rip@devco.net>",
+                 :timeout => @timeout,
+                 :name => "Discovery Agent",
+                 :version => "0.0.1",
+                 :url => "http://www.marionette-collective.org",
+                 :description => "MCollective Discovery Agent"}
 
         require 'mongo'
 
@@ -35,7 +39,7 @@ module MCollective
 
       def handlemsg(msg, connection)
         request = msg[:body]
-        
+
         log = request.to_hash.merge({:senderid => msg[:senderid], :requestid => request.uniqid, :caller => "#{request.caller}@#{request.sender}", :time => Time.now.to_i})
 
         @coll.save(log)
@@ -43,13 +47,6 @@ module MCollective
         # never reply
         nil
       end
-
-      def help
-        <<-EOH
-                EOH
-      end
     end
   end
 end
-
-# vi:tabstop=2:expandtab:ai:filetype=ruby
