@@ -5,7 +5,7 @@ module MCollective
                   :description => "Agent to query NRPE commands via MCollective",
                   :author      => "R.I.Pienaar",
                   :license     => "Apache 2",
-                  :version     => "2.2",
+                  :version     => "2.3",
                   :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki",
                   :timeout     => 5
 
@@ -51,23 +51,25 @@ module MCollective
       private
       def plugin_for_command(req)
         ret = nil
-        fname = nil
+        fnames = []
 
         fdir  = config.pluginconf["nrpe.conf_dir"] || "/etc/nagios/nrpe.d"
 
         if config.pluginconf["nrpe.conf_file"]
-          fname = "#{fdir}/#{config.pluginconf['nrpe.conf_file']}"
+          fnames = ["#{fdir}/#{config.pluginconf['nrpe.conf_file']}"]
         else
-          fname = "#{fdir}/#{req}.cfg"
+          fnames = Dir["#{fdir}/*.cfg"]
         end
 
-        if File.exist?(fname)
-          t = File.readlines(fname)
-          t.each do |check|
-            check.chomp!
+        fnames.each do |fname|
+          if File.exist?(fname)
+            t = File.readlines(fname)
+            t.each do |check|
+              check.chomp!
 
-            if check =~ /command\[#{request[:command]}\]=(.+)$/
-              ret = {:cmd => $1}
+              if check =~ /command\[#{request[:command]}\]=(.+)$/
+                ret = {:cmd => $1}
+              end
             end
           end
         end
