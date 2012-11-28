@@ -20,7 +20,7 @@ The ACTION can be one of the following:
       configuration[:newval] = ARGV.shift
 
       unless configuration[:command].match(/^(environment|server)$/)
-        raise "Action must be environment, server"
+        raise "Action must be environment or server"
       end
     else
       raise "Please specify an action."
