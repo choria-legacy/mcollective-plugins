@@ -56,6 +56,7 @@ module MCollective
 
       private
       def last_run_summary
+        require 'yaml'
         summary = YAML.load_file(@last_summary)
 
         reply[:resources] = {"failed"=>0, "changed"=>0, "total"=>0, "restarted"=>0, "out_of_sync"=>0}.merge(summary["resources"])
