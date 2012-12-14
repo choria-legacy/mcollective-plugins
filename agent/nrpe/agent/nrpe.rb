@@ -61,19 +61,40 @@ module MCollective
           fname = "#{fdir}/#{req}.cfg"
         end
 
-        if File.exist?(fname)
+        ret = read_config(fname)
+        
+        ret
+      end
+      
+      private
+      def read_config(fname)
+        ret = nil
+        
+        if File.exists?(fname)
           t = File.readlines(fname)
           t.each do |check|
             check.chomp!
-
             if check =~ /command\[#{request[:command]}\]=(.+)$/
               ret = {:cmd => $1}
+              break unless ret == nil
+            elsif check =~ /include_dir=(.+)$/
+              dirname = $1
+              next unless File.directory?(dirname)
+              Dir.glob("#{dirname}/**/*.cfg").each do |f|
+                next if f == fname
+                ret = read_config(f)
+                break unless ret == nil
+              end
+              break unless ret == nil
+            elsif check =~ /include=(.+)$/ || check =~ /include_file=(.+)$/
+              ret = read_config($1)
+              break unless ret == nil
             end
           end
         end
-
+        
         ret
-      end
+      end       
     end
   end
 end
