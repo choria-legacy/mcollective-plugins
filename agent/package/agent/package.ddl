@@ -16,6 +16,22 @@ metadata    :name        => "package",
               :optional    => false,
               :maxlength   => 90
 
+        input :source,
+              :prompt      => "Package Source",
+              :description => "Package source to #{act}",
+              :type        => :string,
+              :validation  => '.',
+              :optional    => true,
+              :maxlength   => 90
+
+        input :install_options,
+              :prompt      => "Package Install Option",
+              :description => "Package Install Options",
+              :type        => :string,
+              :validation  => '.',
+              :optional    => true,
+              :maxlength   => 90
+
         output :output,
                :description => "Output from the package manager",
                :display_as  => "Output"
