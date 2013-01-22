@@ -16,7 +16,7 @@ module MCollective
         action act do
           validate :package, :shellsafe
 
-          properties, output = do_pkg_action(request[:package], act.to_sym)
+          properties, output = do_pkg_action(request, act.to_sym)
 
           reply[:output] = output
 
@@ -94,9 +94,19 @@ module MCollective
       end
 
       private
-      def do_pkg_action(package, action)
+      def do_pkg_action(request, action)
         begin
-          pkg = ::Puppet::Type.type(:package).new(:name => package).provider
+          if request.include?(:source)
+            if request.include?(:install_options)
+              pkg = ::Puppet::Type.type(:package).new(:name => request[:package],
+                                                      :source => request[:source],
+                                                      :install_options => eval(request[:install_options])).provider
+            else
+              pkg = ::Puppet::Type.type(:package).new(:name => request[:package], :source => request[:source]).provider
+            end
+          else
+            pkg = ::Puppet::Type.type(:package).new(:name => request[:package]).provider
+          end
 
           output = ""
           properties = ""
