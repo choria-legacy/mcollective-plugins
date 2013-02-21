@@ -1,0 +1,1 @@
+The plugin can now be found in it's own repository: [https://github.com/puppetlabs/mcollective-facter-facts](https://github.com/puppetlabs/mcollective-facter-facts) and is available as packages from apt.puppetlabs.com and yum.puppetlabs.com as mcollective-facter-facts
