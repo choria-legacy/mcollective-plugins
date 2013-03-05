@@ -1,1 +1,1 @@
-The plugin can now be found in it's own repository: [https://github.com/puppetlabs/mcollective-logstash-audit](https://github.com/puppetlabs/mcollective-logstash-audit)
+The plugin can now be found in it's own repository: [https://github.com/puppetlabs/mcollective-logstash-audit](https://github.com/puppetlabs/mcollective-logstash-audit) and is available as packages from apt.puppetlabs.com and yum.puppetlabs.com as mcollective-logstash-audit
