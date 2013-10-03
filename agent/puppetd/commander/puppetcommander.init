@@ -31,8 +31,16 @@ fi
 # pidfile
 pidfile="/var/run/puppetcommander.pid"
 
-# Source function library
-. /lib/lsb/init-functions
+# Source a function library
+if [ -e /lib/lsb/init-functions ]; then
+	. /lib/lsb/init-functions
+	lsb_init=true
+elif [ -e /etc/init.d/functions ]; then
+	. /etc/init.d/functions
+	lsb_init=false
+else
+	exit 5
+fi
 
 # Load options, set things like PSK's and SSL keys in here
 if [ -f /etc/sysconfig/puppetcommanderd ]; then
@@ -62,11 +70,22 @@ case "$1" in
 
 		${puppetcommanderd} -d
 		if [ $? = 0 ]; then
-			log_success_msg
+			if [ $lsb_init == true ]; then
+				log_success_msg
+			else
+				echo -n "	success"
+			echo ""
+			fi
 			touch $lock
 			exit 0
 		else
-			log_failure_msg
+			if [ $lsb_init ]; then
+				log_failure_msg
+			else
+				echo -n "	FAIL\n"
+			echo ""
+			fi
+
 			exit 1
 		fi
 	;;
@@ -79,7 +98,12 @@ case "$1" in
 		fi
 		rm -f ${pidfile}
 
-		log_success_msg
+		if [ $lsb_init == true ]; then
+			log_success_msg
+		else
+			echo -n "	success\n"
+			echo ""
+		fi
 
 		rm -f ${lock}
 	;;
