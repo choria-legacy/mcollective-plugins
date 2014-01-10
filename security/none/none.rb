@@ -16,13 +16,13 @@ module MCollective
       end
 
       # Encodes a reply
-      def encodereply(sender, target, msg, requestid, requestcallerid=nil)
-        YAML.dump(create_reply(requestid, sender, target, msg))
+      def encodereply(sender, msg, requestid, requestcallerid=nil)
+        YAML.dump(create_reply(requestid, sender, msg))
       end
 
       # Encodes a request msg
-      def encoderequest(sender, target, msg, requestid, filter, target_agent, target_collective)
-        request = create_request(requestid, target, filter, msg, @initiated_by, target_agent, target_collective)
+      def encoderequest(sender, msg, requestid, filter, target_agent, target_collective, ttl=60)
+        request = create_request(requestid, filter, msg, @initiated_by, target_agent, target_collective, ttl)
 
         YAML.dump(request)
       end
