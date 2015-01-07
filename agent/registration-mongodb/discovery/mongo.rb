@@ -8,11 +8,17 @@ module MCollective
           config = Config.instance
 
           mongohost = config.pluginconf["registration.mongohost"] || "localhost"
+          mongoport = config.pluginconf["registration.mongoport"] || "27017"
           mongodb = config.pluginconf["registration.mongodb"] || "puppet"
+          mongouser = config.pluginconf["registration.mongouser"]
+          mongopass = config.pluginconf["registration.mongopass"]
           collection = config.pluginconf["registration.collection"] || "nodes"
           newerthan = Time.now.to_i - Integer(config.pluginconf["registration.criticalage"] || 3600)
 
-          dbh = ::Mongo::Connection.new(mongohost).db(mongodb)
+          dbh = ::Mongo::Connection.new(mongohost,mongoport).db(mongodb)
+          unless mongouser.empty?
+            auth = dbh.authenticate(mongouser, mongopass)
+          end
           coll = dbh.collection(collection)
 
           found = []
