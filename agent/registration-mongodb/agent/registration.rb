@@ -92,7 +92,11 @@ module MCollective
         before = Time.now.to_f
         begin
           doc = @coll.find_and_modify(:query => by_fqdn, :update => {'$set' => req}, :new => true)
-          doc_id = doc['_id']
+          if doc
+            doc_id = doc['_id']
+          else
+            doc_id = @coll.insert(req, {:safe => true})
+          end
         rescue Mongo::OperationFailure
           doc_id = @coll.insert(req, {:safe => true})
         ensure
