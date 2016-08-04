@@ -1,0 +1,86 @@
+#!/usr/bin/env ruby
+# Client program for the mcollective fact agent
+# Copyright 2011 Canonical Ltd.
+# Released under Apache License
+
+require 'mcollective'
+
+include MCollective::RPC
+
+options = rpcoptions do |parser, options|
+    parser.define_head "Manage remote facts"
+    parser.banner = "Usage: mc-fact [-options] [add|del|read] [fact] {value}"
+
+    parser.separator ""
+    parser.separator "Run Options"
+end
+
+factrpc = rpcclient("fact", {:options => options})
+
+def log(msg)
+    puts("#{Time.now} - #{msg}")
+end
+
+def summarize(stats)
+    puts("\n---- fact agent summary ----")
+    puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
+    printf("    Elapsed Time: %.2f s\n\n", stats[:blocktime])
+end
+
+if ARGV.length == 3
+    action = ARGV.shift
+    fact = ARGV.shift
+    value = ARGV.shift
+
+    unless action =~ /^(add|write)$/
+        puts("Action has to be add")
+        exit 1
+    end
+
+    if action == "write"
+        action = "add"
+    end
+
+    factrpc.send(action, {:fact => fact, :value => value}).each do |node|
+        begin
+            printf("%-40s %s\n", node[:sender], node[:statusmsg])
+        rescue StandardError => e
+            log "The RPC agent #{node[:sender]} returned an error: #{e}"
+        end
+    end
+elsif  ARGV.length == 2
+    action = ARGV.shift
+    fact = ARGV.shift
+
+    unless action =~ /^(read|del)$/
+        puts("Action has to be read or del")
+        exit 1
+    end
+
+    if action == "del"
+        factrpc.send(action, {:fact => fact}).each do |node|
+            begin
+                printf("%-40s %s\n", node[:sender], node[:statusmsg])
+            rescue StandardError => e
+                log "The RPC agent #{node[:sender]} returned an error: #{e}"
+            end
+        end
+    end
+    if action == "read"
+        factrpc.send(action, {:fact => fact}).each do |node|
+            begin
+                printf("%-40s %s\n", node[:sender], node[:data][:output])
+            rescue StandardError => e
+                log "The RPC agent #{node[:sender]} returned an error: #{e}"
+            end
+        end
+    end
+else
+    puts("Usage: mc-fact [-options] [add|del|read] [fact] {value}")
+    exit 1
+end
+
+summarize(factrpc.stats)
+
+factrpc.disconnect
+# vi:tabstop=4:expandtab:ai

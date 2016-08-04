@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+# Client program for the mcollective uapt agent
+# Copyright 2011 Canonical Ltd.
+# Released under Apache License
+
+require 'mcollective'
+
+include MCollective::RPC
+
+options = rpcoptions do |parser, options|
+    parser.define_head "Manage apt on Ubuntu"
+    parser.banner = "Usage: mc-uapt [-options] [update|upgrade|dist-upgrade|install|forceinstall|remove|source|clean] {package}"
+
+    parser.separator ""
+    parser.separator "Run Options"
+end
+
+uaptrpc = rpcclient("uapt", {:options => options})
+
+def log(msg)
+    puts("#{Time.now} - #{msg}")
+end
+
+def summarize(stats)
+    puts("\n---- uapt agent summary ----")
+    puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
+    printf("    Elapsed Time: %.2f s\n\n", stats[:blocktime])
+end
+
+if  ARGV.length == 2
+    action = ARGV.shift
+    package = ARGV.shift
+
+    unless action =~ /^(install|remove|source)$/
+        puts("Action has to be install, remove or source")
+        exit 1
+    end
+    uaptrpc.send(action, {:package => package}).each do |node|
+        begin
+            printf("%-40s %s\n", node[:sender], node[:statusmsg])
+        rescue StandardError => e
+            log "The RPC agent #{node[:sender]} returned an error: #{e}"
+        end
+    end
+elsif  ARGV.length == 1
+    action = ARGV.shift
+
+    unless action =~ /^(update|upgrade|dist-upgrade|forceinstall|clean)$/
+        puts("Action has to be update, upgrade, dist-upgrade, forceinstall or clean")
+        exit 1
+    end
+    uaptrpc.send(action).each do |node|
+        begin
+            printf("%-40s %s\n", node[:sender], node[:statusmsg])
+        rescue StandardError => e
+            log "The RPC agent #{node[:sender]} returned an error: #{e}"
+        end
+    end
+else
+    puts("Usage: mc-uapt [-options] [update|upgrade|dist-upgrade|install|forceinstall|remove|source|clean] {package}")
+    exit 1
+end
+
+summarize(uaptrpc.stats)
+
+uaptrpc.disconnect
+# vi:tabstop=4:expandtab:ai
