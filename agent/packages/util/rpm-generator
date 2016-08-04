@@ -1,0 +1,115 @@
+#! /bin/bash
+
+clean () {
+    if [ -z "$NOCLEAN" ]; then
+	log "Clean up: $@"
+	rm -rf "$@"
+    else
+	log "SKIP clean up as requested: $@"
+    fi
+}
+
+log () {
+    echo "$@"
+}
+
+usage () {
+    log "${BASENAME} [-R <release>] [-V <version>] [-N <name>] -o <outputdir>"
+    log "- a script to generate a n4testpackage with a given name/version/release"
+}
+
+prepare_buildroot () {
+    readonly BUILDROOT=$(mktemp -d)
+    for i in RPMS SOURCES SPECS BUILD; do
+	mkdir -p "${BUILDROOT}/${i}"
+    done
+}
+
+clean_buildroot () {
+    clean "${BUILDROOT}"
+}
+
+render_spec () {
+    readonly SPECFILE="${BUILDROOT}/${PKGNAME}.spec"
+    cp "${BASEDIR}/rpm-generator.spec" "${SPECFILE}"
+    sed -i \
+	-e "s/@NAME@/$PKGNAME/g" \
+	-e "s/@VERSION@/$PKGVERSION/g" \
+	-e "s/@RELEASE@/$PKGRELEASE/g" \
+	"${SPECFILE}"
+}
+
+build_package () {
+    rpmbuild --verbose --define "_topdir ${BUILDROOT}" -bb "${SPECFILE}"
+}
+
+move_to_outdir () {
+    find "${BUILDROOT}" -type f -name "${PKGNAME}-${PKGVERSION}-${PKGRELEASE}*.rpm" -exec mv '{}' "${OUTDIR}" ';'
+    log "--------------------------------------------------------------------------------"
+    find "${OUTDIR}" -type f -name "${PKGNAME}-${PKGVERSION}-${PKGRELEASE}*.rpm"
+    log "--------------------------------------------------------------------------------"
+}
+
+if [ "${#}" -eq 0 ]; then
+    usage
+    exit 0
+fi
+
+while getopts hR:V:N:o: OPT; do
+    case "$OPT" in
+	h)
+            usage
+            exit 0
+            ;;
+	R)
+            readonly PKGRELEASE="$OPTARG"
+            ;;
+	V)
+            readonly PKGVERSION="$OPTARG"
+            ;;
+ 	N)
+            readonly PKGNAME="$OPTARG"
+            ;;
+	o)
+            readonly OUTDIR="$OPTARG"
+            ;;
+	*)
+	    echo "Unrecognized options:${OPTARG}"
+	    exit 1;
+	    ;;
+    esac
+done
+
+shift $(expr $OPTIND - 1)
+set -e
+
+if [ -z "${OUTDIR}" ]; then
+    log "Output dir missing."
+    exit 1
+fi
+
+if [ -z "${PKGNAME}" ]; then
+    readonly PKGNAME="testpackage"
+    log "Defaulting to package-name: ${PKGNAME}"
+fi
+
+if [ -z "${PKGVERSION}" ]; then
+    readonly PKGVERSION="1.0.0"
+    log "Defaulting to package-version: ${PKGVERSION}"
+fi
+
+if [ -z "${PKGRELEASE}" ]; then
+    readonly PKGRELEASE="1"
+    log "Defaulting to package-release: ${PKGRELEASE}"
+fi
+
+readonly FULLNAME=$(readlink -f "${0}")
+readonly BASENAME=$(basename "${FULLNAME}")
+readonly BASEDIR=$(dirname "${FULLNAME}")
+
+prepare_buildroot
+render_spec
+build_package
+move_to_outdir
+clean_buildroot
+
