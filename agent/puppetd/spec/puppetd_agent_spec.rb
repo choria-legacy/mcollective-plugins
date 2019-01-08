@@ -55,9 +55,27 @@ describe "puppetd agent" do
 
       File.expects(:exists?).with("spec_test_lock_file").returns(true)
       File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
+      File.expects(:read).with("spec_test_lock_file").returns("99999999")
+      ::Process.expects(:kill).with(0, 99999999).returns(1)
 
       result = @agent.call(:enable)
-      result.should have_data_items(:output=>"Currently running; can't remove lock")
+      result.should be_aborted_error
+      result[:statusmsg].should == "Currently running; can't remove lock"
+    end
+
+    it "should remove lock files for stale pid in lock file" do
+      stat = mock
+      stat.stubs(:zero?).returns(false)
+
+      File.expects(:exists?).with("spec_test_lock_file").returns(true)
+      File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
+      File.expects(:read).with("spec_test_lock_file").returns("99999999")
+      ::Process.expects(:kill).with(0, 99999999).raises(Errno::ESRCH)
+      File.expects(:unlink).with("spec_test_lock_file").returns(true)
+
+      result = @agent.call(:enable)
+      result.should be_successful
+      result.should have_data_items(:output=>"Lock removed")
     end
   end
 
@@ -80,10 +98,26 @@ describe "puppetd agent" do
 
       File.expects(:exists?).returns(true)
       File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
+      File.expects(:read).with("spec_test_lock_file").returns("99999999")
+      ::Process.expects(:kill).with(0, 99999999).returns(1)
 
       result = @agent.call(:disable)
       result.should be_aborted_error
-      result[:statusmsg].should == "Currently running; can't remove lock"
+      result[:statusmsg].should == "Cannot disable Puppet while puppet is running."
+    end
+
+    it "should fail if puppetd is already disabled by stale lock file" do
+      stat = mock
+      stat.stubs(:zero?).returns(false)
+
+      File.expects(:exists?).returns(true)
+      File::Stat.expects(:new).with("spec_test_lock_file").returns(stat)
+      File.expects(:read).with("spec_test_lock_file").returns("99999999")
+      ::Process.expects(:kill).with(0, 99999999).raises(Errno::ESRCH)
+
+      result = @agent.call(:disable)
+      result.should be_aborted_error
+      result[:statusmsg].should == "Puppet already disabled by state lock file"
     end
 
     it "should create the lock if the lockfile doesn't exist" do
