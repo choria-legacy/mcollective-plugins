@@ -44,13 +44,19 @@ module MCollective
         @config = Config.instance
 
         @mongohost = @config.pluginconf["registration.mongohost"] || "localhost"
+        @mongoport = @config.pluginconf["registration.mongoport"] || "27017"
         @mongodb = @config.pluginconf["registration.mongodb"] || "puppet"
+        @mongouser = @config.pluginconf["registration.mongouser"]
+        @mongopass = @config.pluginconf["registration.mongopass"]
         @collection = @config.pluginconf["registration.collection"] || "nodes"
         @yaml_dir = @config.pluginconf["registration.extra_yaml_dir"] || false
 
-        Log.instance.debug("Connecting to mongodb @ #{@mongohost} db #{@mongodb} collection #{@collection}")
+        Log.instance.debug("Connecting to mongodb @ #{@mongohost}:#{@mongoport} db #{@mongodb} collection #{@collection}")
 
-        @dbh = Mongo::Connection.new(@mongohost).db(@mongodb)
+        @dbh = Mongo::Connection.new(@mongohost,@mongoport).db(@mongodb)
+        unless @mongouser.empty?
+          @auth = @dbh.authenticate(@mongouser, @mongopass)
+        end
         @coll = @dbh.collection(@collection)
 
         @coll.create_index("fqdn", {:unique => true, :dropDups => true})
@@ -86,7 +92,11 @@ module MCollective
         before = Time.now.to_f
         begin
           doc = @coll.find_and_modify(:query => by_fqdn, :update => {'$set' => req}, :new => true)
-          doc_id = doc['_id']
+          if doc
+            doc_id = doc['_id']
+          else
+            doc_id = @coll.insert(req, {:safe => true})
+          end
         rescue Mongo::OperationFailure
           doc_id = @coll.insert(req, {:safe => true})
         ensure
