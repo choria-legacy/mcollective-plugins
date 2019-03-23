@@ -74,7 +74,14 @@ module MCollective
         reply[:stopped] = reply[:status] == 'stopped'  ? 1 : 0
         reply[:lastrun] = 0
         reply[:lastrun] = File.stat(@statefile).mtime.to_i if File.exists?(@statefile)
-        reply[:output]  = "Currently #{reply[:status]}; last completed run #{Time.now.to_i - reply[:lastrun]} seconds ago"
+        diff = Time.now.to_i - reply[:lastrun]
+        if diff < 60
+          reply[:output]  = "Currently #{reply[:status]}; last completed run #{diff} seconds ago"
+        elsif diff > 60 && diff < 3600
+          reply[:output]  = "Currently #{reply[:status]}; last completed run #{diff/60} minutes ago"
+        else
+          reply[:output]  = "Currently #{reply[:status]}; last completed run #{diff/3600} hours ago"
+        end
       end
 
       def puppet_daemon_status
