@@ -21,7 +21,7 @@ module MCollective
                   :description => "Run puppet agent, get its status, and enable/disable it",
                   :author      => "R.I.Pienaar",
                   :license     => "Apache License 2.0",
-                  :version     => "1.8",
+                  :version     => "1.9",
                   :url         => "http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/AgentPuppetd",
                   :timeout     => 30
 
@@ -29,9 +29,9 @@ module MCollective
         @splaytime = @config.pluginconf["puppetd.splaytime"].to_i || 0
         @lockfile = @config.pluginconf["puppetd.lockfile"] || "/var/lib/puppet/state/puppetdlock"
         @statefile = @config.pluginconf["puppetd.statefile"] || "/var/lib/puppet/state/state.yaml"
-        @pidfile = @config.pluginconf["puppet.pidfile"] || "/var/run/puppet/agent.pid"
+        @pidfile = @config.pluginconf["puppetd.pidfile"] || "/var/run/puppet/agent.pid"
         @puppetd = @config.pluginconf["puppetd.puppetd"] || "/usr/bin/puppet agent"
-        @last_summary = @config.pluginconf["puppet.summary"] || "/var/lib/puppet/state/last_run_summary.yaml"
+        @last_summary = @config.pluginconf["puppetd.summary"] || "/var/lib/puppet/state/last_run_summary.yaml"
       end
 
       action "last_run_summary" do
