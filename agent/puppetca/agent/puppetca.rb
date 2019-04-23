@@ -10,7 +10,7 @@ module MCollective
                   :timeout     => 20
 
       def startup_hook
-        @puppetca = @config.pluginconf["puppetca.puppetca"] || "/usr/sbin/puppetca"
+        @puppetca = @config.pluginconf["puppetca.puppetca"] || "/usr/bin/puppet cert"
         @cadir  = @config.pluginconf["puppetca.cadir"]   || "/var/lib/puppet/ssl/ca"
       end
 
@@ -47,7 +47,7 @@ module MCollective
       action "revoke" do
         validate :certname, :shellsafe
 
-        reply[:out] = run("#{@puppetca} --color=none --revoke '#{request[:certname]}'", :stdout => :output, :chomp => true)
+        reply[:out] = run("#{@puppetca} revoke --color=none '#{request[:certname]}'", :stdout => :output, :chomp => true)
       end
 
       # sign a cert if we have one waiting
@@ -59,7 +59,7 @@ module MCollective
         reply.fail! "Already have a cert for #{certname} not attempting to sign again" if has_cert?(certname)
 
         if cert_waiting?(certname)
-          reply[:out] = run("#{@puppetca} --color=none --sign '#{request[:certname]}'", :stdout => :output, :chomp => true)
+          reply[:out] = run("#{@puppetca} sign --color=none '#{request[:certname]}'", :stdout => :output, :chomp => true)
         else
           reply.fail "No cert found to sign"
         end
